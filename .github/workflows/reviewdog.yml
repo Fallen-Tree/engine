@@ -3,6 +3,7 @@ on: [pull_request]
 
 jobs:
   cpplint:
+    permissions: write-all
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
