@@ -5,7 +5,7 @@ project(Engine VERSION 0.1)
 add_compile_options(-std=c++17 -Wall)
 set(CMAKE_BUILD_TYPE Debug)
 
-include_directories(include)			# Расположение заголовочных файлов
+include_directories(src/model)			# Расположение заголовочных файлов
 
 find_package(OpenGL REQUIRED)
 
