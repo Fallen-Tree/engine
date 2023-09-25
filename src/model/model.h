@@ -3,8 +3,6 @@
 
 #include <vector>
 
-
-
 class model {
  private:
     float* arrayOfPoints;
