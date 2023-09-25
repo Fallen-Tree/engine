@@ -96,7 +96,7 @@ int main() {
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
-    
+
     std::vector<float> testVertices = {
          0.5f,  0.5f, 0.0f,  // top right
          0.5f, -0.5f, 0.0f,  // bottom right
@@ -114,17 +114,21 @@ int main() {
     glGenVertexArrays(1, &testModel->VAO);
     glGenBuffers(1, &testModel->VBO);
     glGenBuffers(1, &testModel->EBO);
-    
+
     // bind the Vertex Array Object first,
     // then bind and set vertex buffer(s),
     // and then configure vertex attributes(s).
     glBindVertexArray(testModel->VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, testModel->VBO);
-    glBufferData(GL_ARRAY_BUFFER, testModel->getLengthofArrayOfPoints() * sizeof(float), testModel->getArrayOfPoints(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER,
+        testModel->getLengthofArrayOfPoints() * sizeof(float),
+        testModel->getArrayOfPoints(), GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, testModel->EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, testModel->getLengthOfArrayOfIndices() * sizeof(unsigned int), testModel->getArrayOfIndices(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+        testModel->getLengthOfArrayOfIndices() * sizeof(unsigned int),
+        testModel->getArrayOfIndices(), GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), reinterpret_cast<void*>(0));
     glEnableVertexAttribArray(0);
