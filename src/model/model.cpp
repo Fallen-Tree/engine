@@ -2,11 +2,11 @@
 
 #include <vector>
 #include <cassert>
-#include <iostream>
+#include <algorithm>
 
 
 // constructor of class.
-model::model(std::vector<float>& arrayOfPoints, std::vector<unsigned int>& arrayOfIndices) {
+model::model(const std::vector<float>& arrayOfPoints, const std::vector<unsigned int>& arrayOfIndices) {
     this->arrayOfPoints = new float[arrayOfPoints.size()];
     this->arrayOfIndices = new unsigned int[arrayOfIndices.size()];
     lengthOfArrayOfIndices = arrayOfIndices.size();
@@ -14,11 +14,11 @@ model::model(std::vector<float>& arrayOfPoints, std::vector<unsigned int>& array
 
     copy(arrayOfPoints.begin(), arrayOfPoints.end(), this->arrayOfPoints);
     copy(arrayOfIndices.begin(), arrayOfIndices.end(), this->arrayOfIndices);
-}            
+}
 
-model::model(std::vector<float>& arrayOfPoints) {     
+model::model(const std::vector<float>& arrayOfPoints) {
     this->arrayOfPoints = new float[arrayOfPoints.size()];
-    this->arrayOfIndices = NULL; 
+    this->arrayOfIndices = NULL;
     lengthOfArrayOfPoints = arrayOfPoints.size();
     lengthOfArrayOfIndices = 0;
 
@@ -53,7 +53,7 @@ unsigned int* model::getArrayOfIndices() {
     return this->arrayOfIndices;
 }
 
-void model::setArrayOfPoints(std::vector<float>& arrayOfPoints) {
+void model::setArrayOfPoints(const std::vector<float>& arrayOfPoints) {
     // free memory.
     if (this->arrayOfPoints != NULL) {
         delete[] this->arrayOfPoints;
@@ -65,13 +65,12 @@ void model::setArrayOfPoints(std::vector<float>& arrayOfPoints) {
     copy(arrayOfPoints.begin(), arrayOfPoints.end(), this->arrayOfPoints);
 }
 
-void model::setArrayOfIndices(std::vector<int>& arrayOfIndices) {
+void model::setArrayOfIndices(const std::vector<int>& arrayOfIndices) {
     // free memory.
     if (this->arrayOfIndices != NULL) {
         delete[] this->arrayOfIndices;
     }
-
-    this->arrayOfIndices = new unsigned int [arrayOfIndices.size()];
+    this->arrayOfIndices = new unsigned int[arrayOfIndices.size()];
     lengthOfArrayOfIndices = arrayOfIndices.size();
 
     copy(arrayOfIndices.begin(), arrayOfIndices.end(), this->arrayOfIndices);

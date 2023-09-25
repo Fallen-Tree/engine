@@ -1,4 +1,4 @@
-#ifndef MODEL_H
+#ifndef SRC_MODEL_MODEL_H_
 #define MODEL_H
 
 #include <vector>
@@ -6,39 +6,35 @@
 
 
 class model {
+ private:
+    float* arrayOfPoints;
+    unsigned int * arrayOfIndices;
+    int lengthOfArrayOfPoints, lengthOfArrayOfIndices;
 
-    private:
+ public:
+    // some variables
+    unsigned int VAO, VBO, EBO;
 
-        float* arrayOfPoints;
-        unsigned int * arrayOfIndices;
-        int lengthOfArrayOfPoints, lengthOfArrayOfIndices;
-    
-    public: 
-    
-        // some variables 
-        unsigned int VAO, VBO, EBO;
+    // constructor of class.
+    model(const std::vector<float>& arrayOfPoints, const std::vector<unsigned int>& arrayOfIndices);
+    model(const std::vector<float>& arrayOfPoints);
+    model();
 
-        // constructor of class.
-        model(std::vector<float>& arrayOfPoints, std::vector<unsigned int>& arrayOfIndices);
-        model(std::vector<float>& arrayOfPoints);
+    // deconstructor of class.
+    ~model();
 
-        model();
+    // getter and setter for working with class.
+    float* getArrayOfPoints();
 
-        // deconstructor of class.
-        ~model();
+    unsigned int* getArrayOfIndices();
 
-        // getter and setter for working with class.
-        float* getArrayOfPoints();
+    void setArrayOfPoints(const std::vector<float>& arrayOfPoints);
 
-        unsigned int* getArrayOfIndices();
+    void setArrayOfIndices(const std::vector<int>& arrayOfIndices);
 
-        void setArrayOfPoints(std::vector<float>& arrayOfPoints);
+    // get length of array.
+    int getLengthOfArrayOfIndices();
 
-        void setArrayOfIndices(std::vector<int>& arrayOfIndices);
-        
-        // get length of array.
-        int getLengthOfArrayOfIndices();
-
-        int getLengthofArrayOfPoints();
+    int getLengthofArrayOfPoints();
 };
 #endif
