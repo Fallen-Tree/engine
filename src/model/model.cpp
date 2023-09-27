@@ -17,6 +17,7 @@ Model::Model(const std::vector<float>& Points, const std::vector<unsigned int>& 
 Model::Model(const std::vector<float>& Points) {
     this->Points = NULL;
     this->Indices = NULL;
+    assert(Points.size() % 3 == 0);
     setPoints(Points);
     setIndices();
 }
