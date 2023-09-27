@@ -1,38 +1,40 @@
 #ifndef SRC_MODEL_MODEL_H_
-#define MODEL_H
+#define SRC_MODEL_MODEL_H_
 
 #include <vector>
 
-class model {
+class Model {
  private:
-    float* arrayOfPoints;
-    unsigned int * arrayOfIndices;
-    int lengthOfArrayOfPoints, lengthOfArrayOfIndices;
+    float* Points;
+    unsigned int * Indices;
+    unsigned int lenPoints, lenIndices;
 
  public:
     // some variables
     unsigned int VAO, VBO, EBO;
 
     // constructor of class.
-    model(const std::vector<float>& arrayOfPoints, const std::vector<unsigned int>& arrayOfIndices);
-    model(const std::vector<float>& arrayOfPoints);
-    model();
+    Model(const std::vector<float>& Points, const std::vector<unsigned int>& Indices);
+    Model(const std::vector<float>& Points);
+    Model();
 
     // deconstructor of class.
-    ~model();
+    ~Model();
 
     // getter and setter for working with class.
-    float* getArrayOfPoints();
+    float* getPoints();
 
-    unsigned int* getArrayOfIndices();
+    unsigned int* getIndices();
 
-    void setArrayOfPoints(const std::vector<float>& arrayOfPoints);
+    void setPoints(const std::vector<float>& Points);
 
-    void setArrayOfIndices(const std::vector<int>& arrayOfIndices);
+    void setIndices(const std::vector<unsigned int>& Indices);
+
+    void setIndices();
 
     // get length of array.
-    int getLengthOfArrayOfIndices();
+    int getLenIndices();
 
-    int getLengthofArrayOfPoints();
+    int getLenPoints();
 };
-#endif
+#endif  // SRC_MODEL_MODEL_H_

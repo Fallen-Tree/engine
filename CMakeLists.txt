@@ -9,10 +9,13 @@ include_directories(src/model)			# Расположение заголовочн
 
 find_package(OpenGL REQUIRED)
 
+add_library(MODEL STATIC 
+            src/model/model.cpp 
+            src/model/model.h)
+
 add_subdirectory(thirdparty/glfw)
 add_subdirectory(thirdparty/glad)
-add_subdirectory(src/model)
 
 add_executable(main src/main.cpp)
 
-target_link_libraries(main PUBLIC glfw glad OpenGL::GL model)
+target_link_libraries(main PUBLIC glfw glad OpenGL::GL MODEL)

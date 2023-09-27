@@ -6,81 +6,110 @@
 
 
 // constructor of class.
-model::model(const std::vector<float>& arrayOfPoints, const std::vector<unsigned int>& arrayOfIndices) {
-    this->arrayOfPoints = new float[arrayOfPoints.size()];
-    this->arrayOfIndices = new unsigned int[arrayOfIndices.size()];
-    lengthOfArrayOfIndices = arrayOfIndices.size();
-    lengthOfArrayOfPoints = arrayOfPoints.size();
-
-    copy(arrayOfPoints.begin(), arrayOfPoints.end(), this->arrayOfPoints);
-    copy(arrayOfIndices.begin(), arrayOfIndices.end(), this->arrayOfIndices);
+Model::Model(const std::vector<float>& Points, const std::vector<unsigned int>& Indices) {
+    this->Points = NULL;
+    this->Indices = NULL;
+    setPoints(Points);
+    setIndices(Indices);
 }
 
-model::model(const std::vector<float>& arrayOfPoints) {
-    this->arrayOfPoints = new float[arrayOfPoints.size()];
-    this->arrayOfIndices = NULL;
-    lengthOfArrayOfPoints = arrayOfPoints.size();
-    lengthOfArrayOfIndices = 0;
-
-    copy(arrayOfPoints.begin(), arrayOfPoints.end(), this->arrayOfPoints);
+// in this way we assume that the mathematical vector has size 3.
+Model::Model(const std::vector<float>& Points) {
+    this->Points = NULL;
+    this->Indices = NULL;
+    setPoints(Points);
+    setIndices();
 }
 
-model::model() {
-    this->arrayOfPoints = NULL;
-    this->arrayOfIndices = NULL;
-    lengthOfArrayOfIndices = 0;
-    lengthOfArrayOfPoints = 0;
+Model::Model() {
+    this->Points = NULL;
+    this->Indices = NULL;
+    lenIndices = 0;
+    lenPoints = 0;
 }
 
 // deconstructor of class.
-model::~model() {
-    if (this->arrayOfPoints) {
-        delete[] this->arrayOfPoints;
+Model::~Model() {
+    if (this->Points) {
+        delete[] this->Points;
     }
-    if (this->arrayOfIndices) {
-        delete[] this->arrayOfIndices;
+    if (this->Indices) {
+        delete[] this->Indices;
     }
 }
 
 // getter and setter for working with class.
-float* model::getArrayOfPoints() {
-    assert(this->arrayOfPoints != NULL);
-    return this->arrayOfPoints;
+float* Model::getPoints() {
+    assert(this->Points != NULL);
+    return this->Points;
 }
 
-unsigned int* model::getArrayOfIndices() {
-    assert(this->arrayOfIndices != NULL);
-    return this->arrayOfIndices;
+unsigned int* Model::getIndices() {
+    assert(this->Indices != NULL);
+    return this->Indices;
 }
 
-void model::setArrayOfPoints(const std::vector<float>& arrayOfPoints) {
-    // free memory.
-    if (this->arrayOfPoints != NULL) {
-        delete[] this->arrayOfPoints;
+void Model::setPoints(const std::vector<float>& Points) {
+    if (this->Points != NULL) {
+        // if we have array with equal len, we just copy from Points.
+        if (Points.size() ==  this->lenPoints) {
+            copy(Points.begin(), Points.end(), this->Points);
+            return;
+        }
+
+        // free memory.
+        delete[] this->Points;
     }
 
-    this->arrayOfPoints = new float[arrayOfPoints.size()];
-    lengthOfArrayOfPoints = arrayOfPoints.size();
-
-    copy(arrayOfPoints.begin(), arrayOfPoints.end(), this->arrayOfPoints);
+    this->Points = new float[Points.size()];
+    lenPoints = Points.size();
+    copy(Points.begin(), Points.end(), this->Points);
 }
 
-void model::setArrayOfIndices(const std::vector<int>& arrayOfIndices) {
-    // free memory.
-    if (this->arrayOfIndices != NULL) {
-        delete[] this->arrayOfIndices;
-    }
-    this->arrayOfIndices = new unsigned int[arrayOfIndices.size()];
-    lengthOfArrayOfIndices = arrayOfIndices.size();
+void Model::setIndices(const std::vector<unsigned int>& Indices) {
+    if (this->Indices != NULL) {
+        // if we have array with equal len, we just copy from Indices.
+        if (Indices.size() == lenIndices) {
+            copy(Indices.begin(), Indices.end(), this->Indices);
+            return;
+        }
 
-    copy(arrayOfIndices.begin(), arrayOfIndices.end(), this->arrayOfIndices);
+        // free memory.
+        delete[] this->Indices;
+    }
+
+    this->Indices = new unsigned int[Indices.size()];
+    lenIndices = Indices.size();
+    copy(Indices.begin(), Indices.end(), this->Indices);
+}
+
+// in this way we assume that the mathematical vector has size 3.
+void Model::setIndices() {
+    if (this->Indices != NULL) {
+        if (lenPoints / 3 == lenIndices) {
+            for (unsigned int i = 0; i < lenPoints; i++) {
+                this->Indices[i] = i;
+            }
+            return;
+        }
+
+    // free memory.
+    delete[] this->Indices;
+    }
+
+    lenIndices = lenPoints / 3;
+    this->Indices = new unsigned int[lenIndices];
+
+    for (unsigned int i = 0; i < lenIndices; i++) {
+        this->Indices[i] = i;
+    }
 }
 
 // get length of array.
-int model::getLengthOfArrayOfIndices() {
-    return lengthOfArrayOfIndices;
+int Model::getLenIndices() {
+    return lenIndices;
 }
 
-int model::getLengthofArrayOfPoints() {
-    return lengthOfArrayOfPoints;
+int Model::getLenPoints() {
+    return lenPoints;
 }

@@ -109,7 +109,7 @@ int main() {
     };
 
     // init a model
-    model * testModel = new model(testVertices, testIndices);
+    Model * testModel = new Model(testVertices, testIndices);
 
     glGenVertexArrays(1, &testModel->VAO);
     glGenBuffers(1, &testModel->VBO);
@@ -122,13 +122,13 @@ int main() {
 
     glBindBuffer(GL_ARRAY_BUFFER, testModel->VBO);
     glBufferData(GL_ARRAY_BUFFER,
-        testModel->getLengthofArrayOfPoints() * sizeof(float),
-        testModel->getArrayOfPoints(), GL_STATIC_DRAW);
+        testModel->getLenPoints() * sizeof(float),
+        testModel->getPoints(), GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, testModel->EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-        testModel->getLengthOfArrayOfIndices() * sizeof(unsigned int),
-        testModel->getArrayOfIndices(), GL_STATIC_DRAW);
+        testModel->getLenIndices() * sizeof(unsigned int),
+        testModel->getIndices(), GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), reinterpret_cast<void*>(0));
     glEnableVertexAttribArray(0);
