@@ -5,18 +5,16 @@
 
 class Model {
  private:
-    float* Points;
-    unsigned int * Indices;
-    unsigned int lenPoints, lenIndices;
+    std::vector<float> points;
+    std::vector<unsigned int> indices;
 
  public:
     // some variables
     unsigned int VAO, VBO, EBO;
 
     // constructor of class.
-    Model(const std::vector<float>& Points, const std::vector<unsigned int>& Indices);
-    Model(const std::vector<float>& Points);
-    Model();
+    explicit Model(const std::vector<float>& Points, const std::vector<unsigned int>& Indices);
+    explicit Model(const std::vector<float>& Points);
 
     // deconstructor of class.
     ~Model();
@@ -24,17 +22,21 @@ class Model {
     // getter and setter for working with class.
     float* getPoints();
 
+    std::vector<float>& getVecPoints();
+
     unsigned int* getIndices();
 
-    void setPoints(const std::vector<float>& Points);
+    std::vector<unsigned int>& getVecIndices();
 
-    void setIndices(const std::vector<unsigned int>& Indices);
+    void setPoints(const std::vector<float>& points);
+
+    void setIndices(const std::vector<unsigned int>& indices);
 
     void setIndices();
 
     // get length of array.
     int getLenIndices();
 
-    int getLenPoints();
+    int getLenArrPoints();
 };
 #endif  // SRC_MODEL_MODEL_H_

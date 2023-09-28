@@ -1,9 +1,7 @@
-#include "model.h"
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
 #include <iostream>
+#include "model/model.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -122,7 +120,7 @@ int main() {
 
     glBindBuffer(GL_ARRAY_BUFFER, testModel->VBO);
     glBufferData(GL_ARRAY_BUFFER,
-        testModel->getLenPoints() * sizeof(float),
+        testModel->getLenArrPoints() * sizeof(float),
         testModel->getPoints(), GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, testModel->EBO);
