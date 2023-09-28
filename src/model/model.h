@@ -14,6 +14,7 @@ class Model {
 
     // constructor of class.
     explicit Model(const std::vector<float>& Points, const std::vector<unsigned int>& Indices);
+
     explicit Model(const std::vector<float>& Points);
 
     // deconstructor of class.
