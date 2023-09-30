@@ -4,6 +4,7 @@ project(Engine VERSION 0.1)
 
 add_compile_options(-std=c++17 -Wall)
 set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include_directories(src/model)			# Расположение заголовочных файлов
 
@@ -18,4 +19,5 @@ add_subdirectory(thirdparty/glad)
 
 add_executable(main src/main.cpp)
 
+target_include_directories(main PUBLIC thirdparty)
 target_link_libraries(main PUBLIC glfw glad OpenGL::GL MODEL)
