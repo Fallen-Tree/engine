@@ -18,12 +18,6 @@ Model::Model(const std::vector<float>& Points) {
     setIndices();
 }
 
-// deconstructor of class.
-Model::~Model() {
-    points.clear();
-    indices.clear();
-}
-
 // getter and setter for working with class.
 float* Model::getPoints() {
     assert(this->points.size() != 0);

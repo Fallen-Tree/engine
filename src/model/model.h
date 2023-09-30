@@ -17,9 +17,6 @@ class Model {
 
     explicit Model(const std::vector<float>& Points);
 
-    // deconstructor of class.
-    ~Model();
-
     // getter and setter for working with class.
     float* getPoints();
 
