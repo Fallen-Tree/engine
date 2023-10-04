@@ -115,28 +115,30 @@ int main() {
 
     // init a model
     Model * testModel = new Model(testVertices, testIndices);
+    // transformation stores information about angle, scale, rotate and tranlsation.
+    // Method makeTransform make mat4 transform(public var), after we send it to shaders.
     Transformation * transformation = new Transformation(glm::vec3(1.f, 1.f, 1.f),
-        glm::vec3(0.f, 0.f, 1.f), 15, glm::vec3(0.f, 0.f, 0.f));
+        glm::vec3(0.f, 0.f, 1.f), 0, glm::vec3(0.f, 0.f, 0.f), testModel);
 
 
-    glGenVertexArrays(1, &testModel->VAO);
-    glGenBuffers(1, &testModel->VBO);
-    glGenBuffers(1, &testModel->EBO);
+    glGenVertexArrays(1, &transformation->getModel()->VAO);
+    glGenBuffers(1, &transformation->getModel()->VBO);
+    glGenBuffers(1, &transformation->getModel()->EBO);
 
     // bind the Vertex Array Object first,
     // then bind and set vertex buffer(s),
     // and then configure vertex attributes(s).
-    glBindVertexArray(testModel->VAO);
+    glBindVertexArray(transformation->getModel()->VAO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, testModel->VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, transformation->getModel()->VBO);
     glBufferData(GL_ARRAY_BUFFER,
-        testModel->getLenArrPoints() * sizeof(float),
-        testModel->getPoints(), GL_STATIC_DRAW);
+        transformation->getModel()->getLenArrPoints() * sizeof(float),
+        transformation->getModel()->getPoints(), GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, testModel->EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, transformation->getModel()->EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-        testModel->getLenIndices() * sizeof(unsigned int),
-        testModel->getIndices(), GL_STATIC_DRAW);
+        transformation->getModel()->getLenIndices() * sizeof(unsigned int),
+        transformation->getModel()->getIndices(), GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), reinterpret_cast<void*>(0));
     glEnableVertexAttribArray(0);
@@ -170,6 +172,9 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        // get time for demonstration
+        float timeValue = glfwGetTime();
+        transformation->setRotate(glm::vec3(0.f, 0.f, 1.f), timeValue * 2);
         // find location of mat4 tranform
         int transformLoc = glGetUniformLocation(shaderProgram, "transform");
         // draw our first triangle
@@ -178,7 +183,7 @@ int main() {
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformation->transform));
         // seeing as we only have a single VAO there's no need to bind it every time,
         // but we'll do so to keep things a bit more organized
-        glBindVertexArray(testModel->VAO);
+        glBindVertexArray(transformation->getModel()->VAO);
         // glDrawArrays(GL_TRIANGLES, 0, 6);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         // glBindVertexArray(0); // no need to unbind it every time
@@ -191,9 +196,9 @@ int main() {
 
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
-    glDeleteVertexArrays(1, &testModel->VAO);
-    glDeleteBuffers(1, &testModel->VBO);
-    glDeleteBuffers(1, &testModel->EBO);
+    glDeleteVertexArrays(1, &transformation->getModel()->VAO);
+    glDeleteBuffers(1, &transformation->getModel()->VBO);
+    glDeleteBuffers(1, &transformation->getModel()->EBO);
     glDeleteProgram(shaderProgram);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.

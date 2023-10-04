@@ -8,15 +8,29 @@
 #include <glm/gtc/type_ptr.hpp>
 
 class Transformation {
- public:
+ private:
     float angle;
-    glm::vec3 translation;
+    glm::vec3 translate;
     glm::vec3 scale;
-    glm::vec3 rotation;
+    glm::vec3 rotate;
+    Model *model;
+
+    void makeTransform();
+
+ public:
     glm::mat4 transform;
 
+    Transformation(glm::vec3 scale, glm::vec3 rotate, float angle, glm::vec3 tranlsate, Model * model);
 
-    Transformation(glm::vec3 scale, glm::vec3 rotation, float angle, glm::vec3 tranlsation);
+    void setTranslate(glm::vec3 translate);
+
+    void setScale(glm::vec3 scale);
+
+    void setRotate(glm::vec3 rotate, float angle);
+
+    void setModel(Model* model);
+
+    Model* getModel();
 };
 
 #endif  // SRC_MODEL_TRANSFORMATION_HPP_
