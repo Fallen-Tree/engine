@@ -1,6 +1,7 @@
 #include "transformation.hpp"
 
-Transformation::Transformation(glm::vec3 scale, glm::vec3 rotate, float angle, glm::vec3 translate, Model* model) {
+Transformation::Transformation
+    (glm::vec3 scale, glm::vec3 rotate, float angle, glm::vec3 translate, Model* model) {
     this->scale = scale;
     this->rotate = rotate;
     this->translate = translate;
