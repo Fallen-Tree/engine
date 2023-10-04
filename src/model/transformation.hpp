@@ -8,9 +8,12 @@
 
 class Transformation {
  private:
+    // in degree!!
     float angle;
     glm::vec3 translate;
     glm::vec3 scale;
+    // rotate shows which axis to turn along
+    // for example: if rotate = (0.f, 0.f, 1.f), then turn along z
     glm::vec3 rotate;
     Model *model;
 
