@@ -1,9 +1,13 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include "model/model.h"
+
+#include "model/model.hpp"
+#include "model/transformation.hpp"
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -14,9 +18,10 @@ const unsigned int SCR_HEIGHT = 600;
 
 const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
+    "uniform mat4 transform;\n"
     "void main()\n"
     "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "   gl_Position = transform * vec4(aPos, 1.0);\n"
     "}\0";
 const char *fragmentShaderSource = "#version 330 core\n"
     "out vec4 FragColor;\n"
@@ -110,6 +115,9 @@ int main() {
 
     // init a model
     Model * testModel = new Model(testVertices, testIndices);
+    Transformation * transformation = new Transformation(glm::vec3(1.f, 1.f, 1.f),
+        glm::vec3(0.f, 0.f, 1.f), 15, glm::vec3(0.f, 0.f, 0.f));
+
 
     glGenVertexArrays(1, &testModel->VAO);
     glGenBuffers(1, &testModel->VBO);
@@ -162,8 +170,12 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        // find location of mat4 tranform
+        int transformLoc = glGetUniformLocation(shaderProgram, "transform");
         // draw our first triangle
         glUseProgram(shaderProgram);
+        // send matrix transform to shader
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformation->transform));
         // seeing as we only have a single VAO there's no need to bind it every time,
         // but we'll do so to keep things a bit more organized
         glBindVertexArray(testModel->VAO);

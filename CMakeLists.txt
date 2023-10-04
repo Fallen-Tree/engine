@@ -12,7 +12,9 @@ find_package(OpenGL REQUIRED)
 
 add_library(MODEL STATIC 
             src/model/model.cpp 
-            src/model/model.h)
+            src/model/model.hpp
+            src/model/transformation.cpp
+            src/model/transformation.hpp)
 
 add_subdirectory(thirdparty/glfw)
 add_subdirectory(thirdparty/glad)
