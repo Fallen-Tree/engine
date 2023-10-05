@@ -12,8 +12,8 @@ ModelInstance::ModelInstance
 
 void ModelInstance::update() {
     this->transform = glm::mat4(1.f);
-    this->transform = glm::translate(this->transform, translation);
     this->transform = glm::scale(this->transform, this->scale);
+    this->transform = glm::translate(this->transform, translation);
     this->transform = glm::rotate(this->transform, glm::radians(angleDegree), rotationAxis);
 }
 
