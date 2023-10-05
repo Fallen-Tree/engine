@@ -32,7 +32,7 @@ void ModelInstance::setRotation(glm::vec3 rotationAxis, float angleDegree) {
     update();
 }
 
-void ModelInstance::setTranslate(glm::vec3 translation) {
+void ModelInstance::setTranslation(glm::vec3 translation) {
     this->translation = translation;
     update();
 }

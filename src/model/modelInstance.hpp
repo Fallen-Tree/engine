@@ -25,7 +25,7 @@ class ModelInstance {
     explicit ModelInstance(glm::vec3 scale,
       glm::vec3 rotation_axis, float angleDegree, glm::vec3 tranlsation, Model * model);
 
-    void setTranslate(glm::vec3 translation);
+    void setTranslation(glm::vec3 translation);
 
     void setScale(glm::vec3 scale);
 
