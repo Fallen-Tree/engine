@@ -7,14 +7,14 @@ ModelInstance::ModelInstance
     this->translation = translation;
     this->angleDegree = angleDegree;
     this->model = model;
-    makeTransform();
+    update();
 }
 
-void ModelInstance::makeTransform() {
+void ModelInstance::update() {
     this->transform = glm::mat4(1.f);
-    this->transform = glm::rotate(this->transform, glm::radians(angleDegree), rotationAxis);
-    this->transform = glm::scale(this->transform, this->scale);
     this->transform = glm::translate(this->transform, translation);
+    this->transform = glm::scale(this->transform, this->scale);
+    this->transform = glm::rotate(this->transform, glm::radians(angleDegree), rotationAxis);
 }
 
 void ModelInstance::setModel(Model* model) {
@@ -23,18 +23,18 @@ void ModelInstance::setModel(Model* model) {
 
 void ModelInstance::setScale(glm::vec3 scale) {
     this->scale = scale;
-    makeTransform();
+    update();
 }
 
 void ModelInstance::setRotation(glm::vec3 rotationAxis, float angleDegree) {
     this->rotationAxis = rotationAxis;
     this->angleDegree = angleDegree;
-    makeTransform();
+    update();
 }
 
 void ModelInstance::setTranslate(glm::vec3 translation) {
     this->translation = translation;
-    makeTransform();
+    update();
 }
 
 Model* ModelInstance::getModel() {

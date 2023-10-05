@@ -17,7 +17,7 @@ class ModelInstance {
     glm::vec3 rotationAxis;
     Model *model;
 
-    void makeTransform();
+    void update();
 
  public:
     glm::mat4 transform;

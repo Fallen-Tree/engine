@@ -6,7 +6,7 @@ add_compile_options(-std=c++17 -Wall)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-include_directories(src/model)			# Расположение заголовочных файлов
+ include_directories(src/model)			# Расположение заголовочных файлов
 
 find_package(OpenGL REQUIRED)
 
