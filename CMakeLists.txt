@@ -12,12 +12,16 @@ find_package(OpenGL REQUIRED)
 
 add_library(MODEL STATIC 
             src/model/model.cpp 
-            src/model/model.h)
+            src/model/model.hpp
+            src/model/modelInstance.cpp
+            src/model/modelInstance.hpp)
 
 add_subdirectory(thirdparty/glfw)
 add_subdirectory(thirdparty/glad)
 
+
 add_executable(main src/main.cpp)
 
+target_include_directories(MODEL PUBLIC thirdparty)
 target_include_directories(main PUBLIC thirdparty)
 target_link_libraries(main PUBLIC glfw glad OpenGL::GL MODEL)

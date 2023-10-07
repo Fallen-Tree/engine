@@ -1,9 +1,13 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include "model/model.h"
+
+#include "model/model.hpp"
+#include "model/modelInstance.hpp"
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -14,9 +18,10 @@ const unsigned int SCR_HEIGHT = 600;
 
 const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
+    "uniform mat4 transform;\n"
     "void main()\n"
     "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "   gl_Position = transform * vec4(aPos, 1.0);\n"
     "}\0";
 const char *fragmentShaderSource = "#version 330 core\n"
     "out vec4 FragColor;\n"
@@ -110,25 +115,30 @@ int main() {
 
     // init a model
     Model * testModel = new Model(testVertices, testIndices);
+    // transformation stores information about angle, scale, rotate and tranlsation.
+    // Method makeTransform make mat4 transform(public var), after we send it to shaders.
+    ModelInstance * modelInstance = new ModelInstance(glm::vec3(1.f, 1.f, 1.f),
+        glm::vec3(0.f, 0.f, 1.f), 0, glm::vec3(0.f, 0.f, 0.f), testModel);
 
-    glGenVertexArrays(1, &testModel->VAO);
-    glGenBuffers(1, &testModel->VBO);
-    glGenBuffers(1, &testModel->EBO);
+
+    glGenVertexArrays(1, &modelInstance->getModel()->VAO);
+    glGenBuffers(1, &modelInstance->getModel()->VBO);
+    glGenBuffers(1, &modelInstance->getModel()->EBO);
 
     // bind the Vertex Array Object first,
     // then bind and set vertex buffer(s),
     // and then configure vertex attributes(s).
-    glBindVertexArray(testModel->VAO);
+    glBindVertexArray(modelInstance->getModel()->VAO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, testModel->VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, modelInstance->getModel()->VBO);
     glBufferData(GL_ARRAY_BUFFER,
-        testModel->getLenArrPoints() * sizeof(float),
-        testModel->getPoints(), GL_STATIC_DRAW);
+        modelInstance->getModel()->getLenArrPoints() * sizeof(float),
+        modelInstance->getModel()->getPoints(), GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, testModel->EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, modelInstance->getModel()->EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-        testModel->getLenIndices() * sizeof(unsigned int),
-        testModel->getIndices(), GL_STATIC_DRAW);
+        modelInstance->getModel()->getLenIndices() * sizeof(unsigned int),
+        modelInstance->getModel()->getIndices(), GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), reinterpret_cast<void*>(0));
     glEnableVertexAttribArray(0);
@@ -162,11 +172,18 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        // get time for demonstration
+        float timeValue = glfwGetTime();
+        modelInstance->setRotation(glm::vec3(0.f, 0.f, 1.f), timeValue * 2);
+        // find location of mat4 tranform
+        int transformLoc = glGetUniformLocation(shaderProgram, "transform");
         // draw our first triangle
         glUseProgram(shaderProgram);
+        // send matrix transform to shader
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(modelInstance->transform));
         // seeing as we only have a single VAO there's no need to bind it every time,
         // but we'll do so to keep things a bit more organized
-        glBindVertexArray(testModel->VAO);
+        glBindVertexArray(modelInstance->getModel()->VAO);
         // glDrawArrays(GL_TRIANGLES, 0, 6);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         // glBindVertexArray(0); // no need to unbind it every time
@@ -179,9 +196,9 @@ int main() {
 
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
-    glDeleteVertexArrays(1, &testModel->VAO);
-    glDeleteBuffers(1, &testModel->VBO);
-    glDeleteBuffers(1, &testModel->EBO);
+    glDeleteVertexArrays(1, &modelInstance->getModel()->VAO);
+    glDeleteBuffers(1, &modelInstance->getModel()->VBO);
+    glDeleteBuffers(1, &modelInstance->getModel()->EBO);
     glDeleteProgram(shaderProgram);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
