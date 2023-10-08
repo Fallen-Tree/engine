@@ -25,9 +25,11 @@ const char *vertexShaderSource = "#version 330 core\n"
     "}\0";
 const char *fragmentShaderSource = "#version 330 core\n"
     "out vec4 FragColor;\n"
+    "uniform vec3 objectColor;"
+    "uniform vec3 lightColor;"
     "void main()\n"
     "{\n"
-    "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "   FragColor = vec4(lightColor * objectColor, 1.0f);\n"
     "}\n\0";
 
 int main() {
@@ -177,10 +179,14 @@ int main() {
         modelInstance->setRotation(glm::vec3(0.f, 0.f, 1.f), timeValue * 2);
         // find location of mat4 tranform
         int transformLoc = glGetUniformLocation(shaderProgram, "transform");
+        int lightColorLoc = glGetUniformLocation(shaderProgram, "lightColor");
+        int objectColorLoc = glGetUniformLocation(shaderProgram, "objectColor");
         // draw our first triangle
         glUseProgram(shaderProgram);
         // send matrix transform to shader
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(modelInstance->transform));
+        glUniform3fv(lightColorLoc, 1, glm::value_ptr(glm::vec3(1.f, 1.f, 1.f)));
+        glUniform3fv(objectColorLoc, 1, glm::value_ptr(glm::vec3(0.53, 0.43, 0.23)));
         // seeing as we only have a single VAO there's no need to bind it every time,
         // but we'll do so to keep things a bit more organized
         glBindVertexArray(modelInstance->getModel()->VAO);
