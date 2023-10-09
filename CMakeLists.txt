@@ -29,5 +29,7 @@ add_executable(main src/main.cpp src/engine.cpp)
 
 target_include_directories(MODEL PUBLIC thirdparty)
 target_include_directories(CAMERA PUBLIC thirdparty)
+target_include_directories(CAMERA PUBLIC thirdparty)
 target_include_directories(main PUBLIC thirdparty)
+target_link_libraries(main PUBLIC glfw glad OpenGL::GL MODEL CAMERA)
 target_link_libraries(main PUBLIC glfw glad OpenGL::GL MODEL CAMERA)
