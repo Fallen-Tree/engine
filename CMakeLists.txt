@@ -7,7 +7,6 @@ set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include_directories(src/model src/camera)			# Расположение заголовочных файлов
-include_directories(src/model src/camera)			# Расположение заголовочных файлов
 
 find_package(OpenGL REQUIRED)
 
@@ -19,7 +18,7 @@ add_library(MODEL STATIC
 
 add_library(CAMERA STATIC 
             src/camera/camera.cpp 
-            src/camera/camera.hpp)
+            src/camera/camera.h)
 
 add_subdirectory(thirdparty/glfw)
 add_subdirectory(thirdparty/glad)
