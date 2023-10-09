@@ -7,6 +7,7 @@ set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include_directories(src/model src/camera)			# Расположение заголовочных файлов
+include_directories(src/model src/camera)			# Расположение заголовочных файлов
 
 find_package(OpenGL REQUIRED)
 
