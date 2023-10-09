@@ -1,34 +1,44 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include "model.hpp"
+#include "modelInstance.hpp"
+#include "camera.h"
 
-#include "model/model.hpp"
-#include "model/modelInstance.hpp"
-#include "model/material.hpp"
-#include "model/light.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
+// camera
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = SCR_WIDTH / 2.0f;
+float lastY = SCR_HEIGHT / 2.0f;
+bool firstMouse = true;
+
+
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
+
+
+
 const char *vertexShaderSource = "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "layout (location = 1) in vec3 aNormal;"
-    "out vec3 Normal;"
-    "out vec3 FragPos;"
-    "uniform mat4 transform;"
+    "layout (location = 0) in vec3 position;\n"
+    "uniform mat4 model;\n"
+    "uniform mat4 view;\n"
+    "uniform mat4 projection;\n"
     "void main()\n"
     "{\n"
-    "gl_Position = transform * vec4(aPos, 1.0);\n"
-    "Normal = mat3(transpose(inverse(transform))) * aNormal;"
-    "FragPos = vec3(transform * vec4(aPos, 1.0));"
+    "   gl_Position = projection * view * model * vec4(position, 1.0f);\n"
     "}\0";
 const char *fragmentShaderSource = "#version 330 core\n"
     "in vec3 Normal;"
@@ -52,20 +62,15 @@ const char *fragmentShaderSource = "#version 330 core\n"
     "uniform vec3 viewPos;"
     "void main()\n"
     "{\n"
-    "vec3 ambient = light.ambient *  material.ambient;"
-    "vec3 norm = normalize(Normal);"
-    "vec3 lightDir = normalize(light.position - FragPos);"
-    "float diff = max(dot(norm, lightDir), 0.0);"
-    "vec3 diffuse = (diff + material.diffuse) * light.diffuse;"
-    "float specularStrength = 0.5;"
-    "vec3 viewDir = normalize(viewPos - FragPos);"
-    "vec3 reflectDir = reflect(-lightDir, norm);"
-    "float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);"
-    "vec3 specular = light.specular * (spec  * material.specular);"
-    "FragColor = vec4((diffuse + ambient + specular) * objectColor, 1.0f);\n"
+    "   FragColor = vec4(1.0f, 0.5f, 0.7f, 1.0f);\n"
     "}\n\0";
 
-glm::vec3 viewPos(0.f, 0.f, 0.f);
+
+
+
+
+
+
 
 int main() {
     // glfw: initialize and configure
@@ -87,8 +92,14 @@ int main() {
         glfwTerminate();
         return -1;
     }
+
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+
+    // tell GLFW to capture our mouse
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -97,6 +108,10 @@ int main() {
         return -1;
     }
 
+
+
+
+    // Это будет в отдельном файле
 
     // build and compile our shader program
     // ------------------------------------
@@ -136,70 +151,53 @@ int main() {
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
+    std::vector<GLuint> cubeIndices {
+        2, 6, 7,
+        2, 3, 7,
 
-    Material mat;
-    mat.m_Ambient = glm::vec3(0.2, 0.1, 0.2);
-    mat.m_Diffuse = glm::vec3(0.7, 0.6, 0.7);
-    mat.m_Specular = glm::vec3(0.6, 0.7, 0.6);
-    mat.Shininess = 0.6;
+        0, 4, 5,
+        0, 1, 5,
 
-    EnvLight envL;
-    envL.m_Ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-    envL.m_Diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
-    envL.m_Specular = glm::vec3(1.0f, 1.0f, 1.0f);
-    envL.m_Position = glm::vec3(-0.2, -0.5, -1.2);
+        0, 2, 6,
+        0, 4, 6,
 
-    std::vector<float> vertices = {
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        1, 3, 7,
+        1, 5, 7,
 
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        0, 2, 3,
+        0, 1, 3,
 
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+        4, 6, 7,
+        4, 5, 7
     };
-    // first, configure the cube's VAO (and VBO)
-    Model * cube = new Model(vertices);
-    ModelInstance * instCube = new ModelInstance(
-        glm::vec3(1.f, 1.f, 1.f), glm::vec3(0.f, 0.f, 0.f), 0, glm::vec3(0.f, 0.f, 0.f), cube);
-    glGenVertexArrays(1, &instCube->getModel()->VAO);
-    glGenBuffers(1, &instCube->getModel()->VBO);
+
+    std::vector<GLfloat> cubeVertices {
+        -1, -1,  1,
+         1, -1,  1,
+        -1,  1,  1,
+         1,  1,  1,
+        -1, -1, -1,
+         1, -1, -1,
+        -1,  1, -1,
+         1,  1, -1
+    };
+
+    // init a model
+    Model * testModel = new Model(cubeVertices, cubeIndices);
+    // transformation stores information about angle, scale, rotate and tranlsation.
+    // Method makeTransform make mat4 transform(public var), after we send it to shaders.
+    ModelInstance * modelInstance = new ModelInstance(glm::vec3(0.5f, 0.5f, 0.5f),
+        glm::vec3(0.0f, 1.0f, 0.0f), -55.0f, glm::vec3(0.f, 0.f, -3.f), testModel);
+
+
+    glGenVertexArrays(1, &modelInstance->getModel()->VAO);
+    glGenBuffers(1, &modelInstance->getModel()->VBO);
+    glGenBuffers(1, &modelInstance->getModel()->EBO);
+
+    // bind the Vertex Array Object first,
+    // then bind and set vertex buffer(s),
+    // and then configure vertex attributes(s).
+    glBindVertexArray(modelInstance->getModel()->VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, instCube->getModel()->VBO);
     glBufferData(GL_ARRAY_BUFFER, instCube->getModel()->getLenArrPoints() * sizeof(float),
@@ -224,6 +222,10 @@ int main() {
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window)) {
+        float currentFrame = static_cast<float>(glfwGetTime());
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
         // input
         // -----
         processInput(window);
@@ -233,45 +235,37 @@ int main() {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // get time for demonstration
-        // float timeValue = glfwGetTime();
-        // modelInstance->setRotation(glm::vec3(0.f, 0.f, 1.f), timeValue * 2);
-        // find location of mat4 tranform
-        int transformLoc = glGetUniformLocation(shaderProgram, "transform");
-        int objectColorLoc = glGetUniformLocation(shaderProgram, "objectColor");
-        int viewPosLoc = glGetUniformLocation(shaderProgram, "viewPos");
-        // loc for material
-        int ambientLoc =  glGetUniformLocation(shaderProgram, "material.ambient");
-        int diffuseLoc =  glGetUniformLocation(shaderProgram, "material.diffuse");
-        int specularLoc =  glGetUniformLocation(shaderProgram, "material.specular");
-        int shininessLoc =  glGetUniformLocation(shaderProgram, "material.shininess");
-        // loc for light
-        int lightPositionLoc =  glGetUniformLocation(shaderProgram, "light.position");
-        int lightAmbientLoc = glGetUniformLocation(shaderProgram, "light.ambient");
-        int lightSpecularLoc = glGetUniformLocation(shaderProgram, "light.specualar");
-        int lightDiffuseLoc = glGetUniformLocation(shaderProgram, "light.diffuse");
 
-        // draw our first triangle
+        glUseProgram(shaderProgram);
+
+        glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 projection = glm::perspective(
+                                        glm::radians(camera.GetZoom()),
+                                        static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT),
+                                        0.1f, 100.0f);
+
+        GLint modelLoc = glGetUniformLocation(shaderProgram, "model");
+        GLint viewLoc = glGetUniformLocation(shaderProgram, "view");
+        GLint projLoc = glGetUniformLocation(shaderProgram, "projection");
+
 
         // send matrix transform to shader
-        // glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(modelInstance->transform));
-        glUniform3fv(objectColorLoc, 1, glm::value_ptr(glm::vec3(0.53, 0.43, 0.23)));
-        glUniform3fv(viewPosLoc, 1, glm::value_ptr(viewPos));
-        // send material to shaders
-        glUniform3fv(ambientLoc, 1, glm::value_ptr(mat.m_Ambient));
-        glUniform3fv(diffuseLoc, 1, glm::value_ptr(mat.m_Diffuse));
-        glUniform3fv(specularLoc, 1, glm::value_ptr(mat.m_Specular));
-        glUniform1f(shininessLoc, mat.Shininess);
-        // send light to shaders
-        glUniform3fv(lightPositionLoc, 1, glm::value_ptr(envL.m_Position));
-        glUniform3fv(lightAmbientLoc, 1, glm::value_ptr(envL.m_Ambient));
-        glUniform3fv(lightSpecularLoc, 1, glm::value_ptr(mat.m_Specular));
-        glUniform3fv(lightDiffuseLoc, 1, glm::value_ptr(mat.m_Diffuse));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelInstance->transform));
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+
+
+        // Note: currently we set the projection matrix each frame,
+        // but since the projection matrix rarely changes it's
+        // often best practice to set it outside the main loop only once.
+        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+
+
         // seeing as we only have a single VAO there's no need to bind it every time,
         // but we'll do so to keep things a bit more organized
         glBindVertexArray(instCube->getModel()->VAO);
         // glDrawArrays(GL_TRIANGLES, 0, 6);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDrawElements(GL_TRIANGLES, modelInstance->getModel()->getLenIndices(), GL_UNSIGNED_INT, 0);
         // glBindVertexArray(0); // no need to unbind it every time
         // glUseProgram(shaderProgram);
 
@@ -303,12 +297,35 @@ int main() {
     return 0;
 }
 
+
+
+
+
+
+
+
+
+// Хочется вынести этот код в отедльный файл, который будет отвечать за различные инпуты.
+// Я пытался сделать это но пока не понял как
+// Потому что многие переменные находятся в мейне,
+// и тогда придется изменять сигнатуры функций и сильно их удлинять
+// Возможно получится придумать систему bind'ов по аналогии с openGL
+
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        camera.ProcessKeyboard(FORWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camera.ProcessKeyboard(BACKWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera.ProcessKeyboard(LEFT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera.ProcessKeyboard(RIGHT, deltaTime);
 }
+
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
@@ -316,4 +333,31 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
+}
+
+
+// glfw: whenever the mouse moves, this callback is called
+// -------------------------------------------------------
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
+    float xpos = static_cast<float>(xposIn);
+    float ypos = static_cast<float>(yposIn);
+
+    if (firstMouse) {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
+
+    camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+// glfw: whenever the mouse scroll wheel scrolls, this callback is called
+// ----------------------------------------------------------------------
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+    camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
