@@ -169,7 +169,7 @@ int main() {
     // transformation stores information about angle, scale, rotate and tranlsation.
     // Method makeTransform make mat4 transform(public var), after we send it to shaders.
     ModelInstance * modelInstance = new ModelInstance(glm::vec3(0.5f, 0.5f, 0.5f),
-        glm::vec3(0.0f, 1.0f, 0.0f), -55.0f, glm::vec3(0.f, 0.f, -3.f), testModel);
+        glm::vec3(0.0f, 1.0f, 0.0f), glm::radians(-55.0f), glm::vec3(0.f, 0.f, -3.f), testModel);
 
 
     glGenVertexArrays(1, &modelInstance->getModel()->VAO);

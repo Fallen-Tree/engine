@@ -9,7 +9,7 @@
 class ModelInstance {
  private:
     // in degree!!
-    float angleDegree;
+    float radiansDegree;
     glm::vec3 translation;
     glm::vec3 scale;
     // rotate shows which axis to turn along
@@ -23,13 +23,13 @@ class ModelInstance {
     glm::mat4 transform;
 
     explicit ModelInstance(glm::vec3 scale,
-      glm::vec3 rotation_axis, float angleDegree, glm::vec3 tranlsation, Model * model);
+      glm::vec3 rotation_axis, float radiansDegree, glm::vec3 tranlsation, Model * model);
 
     void setTranslation(glm::vec3 translation);
 
     void setScale(glm::vec3 scale);
 
-    void setRotation(glm::vec3 rotationAxis, float angleDegree);
+    void setRotation(glm::vec3 rotationAxis, float radiansDegree);
 
     void setModel(Model* model);
 
