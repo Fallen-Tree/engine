@@ -4,6 +4,9 @@
 #include "model.hpp"
 #include "modelInstance.hpp"
 #include "camera.h"
+#include "model.hpp"
+#include "modelInstance.hpp"
+#include "camera.h"
 
 
 #include <glm/glm.hpp>
@@ -46,13 +49,6 @@ const char *fragmentShaderSource = "#version 330 core\n"
     "{\n"
     "   FragColor = vec4(1.0f, 0.5f, 0.7f, 1.0f);\n"
     "}\n\0";
-
-
-
-
-
-
-
 
 
 
@@ -322,33 +318,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
-}
-
-
-// glfw: whenever the mouse moves, this callback is called
-// -------------------------------------------------------
-void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
-    float xpos = static_cast<float>(xposIn);
-    float ypos = static_cast<float>(yposIn);
-
-    if (firstMouse) {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos;
-    lastX = xpos;
-    lastY = ypos;
-
-    camera.ProcessMouseMovement(xoffset, yoffset);
-}
-
-// glfw: whenever the mouse scroll wheel scrolls, this callback is called
-// ----------------------------------------------------------------------
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
 
