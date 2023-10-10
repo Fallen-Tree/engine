@@ -10,7 +10,7 @@ class Model {
 
  public:
     // some variables
-    unsigned int VAO, VBO, EBO;
+    unsigned int VAO, VBO, EBO, shader;
 
     // constructor of class.
     explicit Model(const std::vector<float>& Points, const std::vector<unsigned int>& Indices);
