@@ -17,7 +17,7 @@ add_library(MODEL STATIC
 add_subdirectory(thirdparty/glfw)
 add_subdirectory(thirdparty/glad)
 
-add_executable(main src/main.cpp)
+add_executable(main src/main.cpp src/shaders/shader_loader.cpp)
 
 target_include_directories(main PUBLIC thirdparty)
 target_link_libraries(main PUBLIC glfw glad OpenGL::GL MODEL)
