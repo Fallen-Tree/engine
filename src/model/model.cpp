@@ -48,6 +48,8 @@ void Model::setIndices(const std::vector<unsigned int>& indices) {
 // in this way we assume that the mathematical vector has size 3.
 void Model::setIndices() {
     assert(points.size() % 3 == 0);
+    indices.resize(points.size() / 3);
+    assert(indices.size() == points.size() / 3);
     for (unsigned int i = 0; i < points.size() / 3; i++) {
         indices[i] = i;
     }

@@ -4,6 +4,8 @@
 
 #include "model/model.hpp"
 #include "model/modelInstance.hpp"
+#include "model/material.hpp"
+#include "model/light.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -18,19 +20,52 @@ const unsigned int SCR_HEIGHT = 600;
 
 const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
-    "uniform mat4 transform;\n"
+    "layout (location = 1) in vec3 aNormal;"
+    "out vec3 Normal;"
+    "out vec3 FragPos;"
+    "uniform mat4 transform;"
     "void main()\n"
     "{\n"
-    "   gl_Position = transform * vec4(aPos, 1.0);\n"
+    "gl_Position = transform * vec4(aPos, 1.0);\n"
+    "Normal = mat3(transpose(inverse(transform))) * aNormal;"
+    "FragPos = vec3(transform * vec4(aPos, 1.0));"
     "}\0";
 const char *fragmentShaderSource = "#version 330 core\n"
+    "in vec3 Normal;"
+    "in vec3 FragPos;"
     "out vec4 FragColor;\n"
+    "struct Material {"
+    "vec3 ambient;"
+    "vec3 diffuse;"
+    "vec3 specular;"
+    "float shininess;"
+    "};"
+    "struct Light {"
+    "vec3 position;"
+    "vec3 ambient;"
+    "vec3 diffuse;"
+    "vec3 specular;"
+    "};"
+    "uniform Light light;"
+    "uniform Material material;"
     "uniform vec3 objectColor;"
-    "uniform vec3 lightColor;"
+    "uniform vec3 viewPos;"
     "void main()\n"
     "{\n"
-    "   FragColor = vec4(lightColor * objectColor, 1.0f);\n"
+    "vec3 ambient = light.ambient *  material.ambient;"
+    "vec3 norm = normalize(Normal);"
+    "vec3 lightDir = normalize(light.position - FragPos);"
+    "float diff = max(dot(norm, lightDir), 0.0);"
+    "vec3 diffuse = (diff + material.diffuse) * light.diffuse;"
+    "float specularStrength = 0.5;"
+    "vec3 viewDir = normalize(viewPos - FragPos);"
+    "vec3 reflectDir = reflect(-lightDir, norm);"
+    "float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);"
+    "vec3 specular = light.specular * (spec  * material.specular);"
+    "FragColor = vec4((diffuse + ambient + specular) * objectColor, 1.0f);\n"
     "}\n\0";
+
+glm::vec3 viewPos(0.f, 0.f, 0.f);
 
 int main() {
     // glfw: initialize and configure
@@ -104,61 +139,85 @@ int main() {
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
 
-    std::vector<float> testVertices = {
-         0.5f,  0.5f, 0.0f,  // top right
-         0.5f, -0.5f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f,  // bottom left
-        -0.5f,  0.5f, 0.0f   // top left
+    Material mat;
+    mat.m_Ambient = glm::vec3(0.2, 0.1, 0.2);
+    mat.m_Diffuse = glm::vec3(0.7, 0.6, 0.7);
+    mat.m_Specular = glm::vec3(0.6, 0.7, 0.6);
+    mat.Shininess = 0.6;
+
+    EnvLight envL;
+    envL.m_Ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+    envL.m_Diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
+    envL.m_Specular = glm::vec3(1.0f, 1.0f, 1.0f);
+    envL.m_Position = glm::vec3(-0.2, -0.5, -1.2);
+
+    std::vector<float> vertices = {
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
     };
-    std::vector<unsigned int> testIndices = {  // note that we start from 0!
-        0, 1, 3,  // first Triangle
-        1, 2, 3   // second Triangle
-    };
+    // first, configure the cube's VAO (and VBO)
+    Model * cube = new Model(vertices);
+    ModelInstance * instCube = new ModelInstance(
+        glm::vec3(1.f, 1.f, 1.f), glm::vec3(0.f, 0.f, 0.f), 0, glm::vec3(0.f, 0.f, 0.f), cube);
+    glGenVertexArrays(1, &instCube->getModel()->VAO);
+    glGenBuffers(1, &instCube->getModel()->VBO);
 
-    // init a model
-    Model * testModel = new Model(testVertices, testIndices);
-    // transformation stores information about angle, scale, rotate and tranlsation.
-    // Method makeTransform make mat4 transform(public var), after we send it to shaders.
-    ModelInstance * modelInstance = new ModelInstance(glm::vec3(1.f, 1.f, 1.f),
-        glm::vec3(0.f, 0.f, 1.f), 0, glm::vec3(0.f, 0.f, 0.f), testModel);
+    glBindBuffer(GL_ARRAY_BUFFER, instCube->getModel()->VBO);
+    glBufferData(GL_ARRAY_BUFFER, instCube->getModel()->getLenArrPoints() * sizeof(float),
+        instCube->getModel()->getPoints(), GL_STATIC_DRAW);
 
+    glBindVertexArray(instCube->getModel()->VAO);
 
-    glGenVertexArrays(1, &modelInstance->getModel()->VAO);
-    glGenBuffers(1, &modelInstance->getModel()->VBO);
-    glGenBuffers(1, &modelInstance->getModel()->EBO);
-
-    // bind the Vertex Array Object first,
-    // then bind and set vertex buffer(s),
-    // and then configure vertex attributes(s).
-    glBindVertexArray(modelInstance->getModel()->VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, modelInstance->getModel()->VBO);
-    glBufferData(GL_ARRAY_BUFFER,
-        modelInstance->getModel()->getLenArrPoints() * sizeof(float),
-        modelInstance->getModel()->getPoints(), GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, modelInstance->getModel()->EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-        modelInstance->getModel()->getLenIndices() * sizeof(unsigned int),
-        modelInstance->getModel()->getIndices(), GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), reinterpret_cast<void*>(0));
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void*>(0));
     glEnableVertexAttribArray(0);
-
-    // note that this is allowed, the call to glVertexAttribPointer registered VBO as
-    // the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    // remember: do NOT unbind the EBO while a VAO is active as
-    // the bound element buffer object IS stored in the VAO; keep the EBO bound.
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO,
-    // but this rarely happens. Modifying other VAOs requires a call to glBindVertexArray anyways
-    // so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-    glBindVertexArray(0);
+    // normal attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+        reinterpret_cast<void*>(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
 
+
+    glEnable(GL_DEPTH_TEST);
     // uncomment this call to draw in wireframe polygons.
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -171,28 +230,60 @@ int main() {
 
         // render
         // ------
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // get time for demonstration
-        float timeValue = glfwGetTime();
-        modelInstance->setRotation(glm::vec3(0.f, 0.f, 1.f), timeValue * 2);
+        // float timeValue = glfwGetTime();
+        // modelInstance->setRotation(glm::vec3(0.f, 0.f, 1.f), timeValue * 2);
         // find location of mat4 tranform
         int transformLoc = glGetUniformLocation(shaderProgram, "transform");
-        int lightColorLoc = glGetUniformLocation(shaderProgram, "lightColor");
         int objectColorLoc = glGetUniformLocation(shaderProgram, "objectColor");
+        int viewPosLoc = glGetUniformLocation(shaderProgram, "viewPos");
+        // loc for material
+        int ambientLoc =  glGetUniformLocation(shaderProgram, "material.ambient");
+        int diffuseLoc =  glGetUniformLocation(shaderProgram, "material.diffuse");
+        int specularLoc =  glGetUniformLocation(shaderProgram, "material.specular");
+        int shininessLoc =  glGetUniformLocation(shaderProgram, "material.shininess");
+        // loc for light
+        int lightPositionLoc =  glGetUniformLocation(shaderProgram, "light.position");
+        int lightAmbientLoc = glGetUniformLocation(shaderProgram, "light.ambient");
+        int lightSpecularLoc = glGetUniformLocation(shaderProgram, "light.specualar");
+        int lightDiffuseLoc = glGetUniformLocation(shaderProgram, "light.diffuse");
+
         // draw our first triangle
-        glUseProgram(shaderProgram);
+
         // send matrix transform to shader
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(modelInstance->transform));
-        glUniform3fv(lightColorLoc, 1, glm::value_ptr(glm::vec3(1.f, 1.f, 1.f)));
+        // glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(modelInstance->transform));
         glUniform3fv(objectColorLoc, 1, glm::value_ptr(glm::vec3(0.53, 0.43, 0.23)));
+        glUniform3fv(viewPosLoc, 1, glm::value_ptr(viewPos));
+        // send material to shaders
+        glUniform3fv(ambientLoc, 1, glm::value_ptr(mat.m_Ambient));
+        glUniform3fv(diffuseLoc, 1, glm::value_ptr(mat.m_Diffuse));
+        glUniform3fv(specularLoc, 1, glm::value_ptr(mat.m_Specular));
+        glUniform1f(shininessLoc, mat.Shininess);
+        // send light to shaders
+        glUniform3fv(lightPositionLoc, 1, glm::value_ptr(envL.m_Position));
+        glUniform3fv(lightAmbientLoc, 1, glm::value_ptr(envL.m_Ambient));
+        glUniform3fv(lightSpecularLoc, 1, glm::value_ptr(mat.m_Specular));
+        glUniform3fv(lightDiffuseLoc, 1, glm::value_ptr(mat.m_Diffuse));
         // seeing as we only have a single VAO there's no need to bind it every time,
         // but we'll do so to keep things a bit more organized
-        glBindVertexArray(modelInstance->getModel()->VAO);
+        glBindVertexArray(instCube->getModel()->VAO);
         // glDrawArrays(GL_TRIANGLES, 0, 6);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
         // glBindVertexArray(0); // no need to unbind it every time
+        // glUseProgram(shaderProgram);
+
+        float time = glfwGetTime();
+        instCube->setTranslation(glm::vec3(0.f, 0.f, 0.f));
+        instCube->setRotation(glm::vec3(0.f, 1.f, 1.f), time * 3);
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(instCube->transform));
+        // glDrawArrays(GL_TRIANGLES, 0, 36);
+        glUseProgram(shaderProgram);
+
+
+
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -202,9 +293,8 @@ int main() {
 
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
-    glDeleteVertexArrays(1, &modelInstance->getModel()->VAO);
-    glDeleteBuffers(1, &modelInstance->getModel()->VBO);
-    glDeleteBuffers(1, &modelInstance->getModel()->EBO);
+    glDeleteVertexArrays(1, &instCube->getModel()->VAO);
+    glDeleteBuffers(1, &instCube->getModel()->VBO);
     glDeleteProgram(shaderProgram);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
