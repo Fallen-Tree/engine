@@ -18,7 +18,7 @@ add_library(MODEL STATIC
 
 add_library(CAMERA STATIC 
             src/camera/camera.cpp 
-            src/camera/camera.h)
+            src/camera/camera.hpp)
 
 add_subdirectory(thirdparty/glfw)
 add_subdirectory(thirdparty/glad)
