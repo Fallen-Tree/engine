@@ -1,5 +1,5 @@
-#ifndef SRC_CAMERA_CAMERA_H_
-#define SRC_CAMERA_CAMERA_H_
+#ifndef SRC_CAMERA_CAMERA_HPP_
+#define SRC_CAMERA_CAMERA_HPP_
 
 #include <glad/include/glad/glad.h>
 
@@ -23,14 +23,23 @@ const float SPEED       =  2.5f;
 const float SENSITIVITY =  0.1f;
 const float ZOOM        =  45.0f;
 
+const float MAXPITCH = 89.0f;
+const float MINPITCH = -89.0f;
+
 const float MAXFOV = 45.0f;
 const float MINFOV = 1.0f;
+
+
 
 
 class Camera {
  public:
     // constructor with vectors
     explicit Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, -3.0f),
+                    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
+                    float yaw = YAW, float pitch = PITCH);
+
+    void SetPosition(glm::vec3 position = glm::vec3(0.0f, 0.0f, -3.0f),
                     glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
                     float yaw = YAW, float pitch = PITCH);
 
@@ -56,23 +65,23 @@ class Camera {
 
  private:
     // camera Attributes
-    glm::vec3 Position;
-    glm::vec3 Front;
-    glm::vec3 Up;
-    glm::vec3 Right;
-    glm::vec3 WorldUp;
+    glm::vec3 m_Position;
+    glm::vec3 m_Front;
+    glm::vec3 m_Up;
+    glm::vec3 m_Right;
+    glm::vec3 m_WorldUp;
 
     // euler Angles
-    float Yaw;
-    float Pitch;
+    float m_Yaw;
+    float m_Pitch;
 
     // camera options
-    float MovementSpeed;
-    float MouseSensitivity;
-    float Zoom;
+    float m_MovementSpeed;
+    float m_MouseSensitivity;
+    float m_Zoom;
 
     // calculates the front vector from the Camera's (updated) Euler Angles
-    void updateCameraVectors();
+    void UpdateCameraVectors();
 };
 
-#endif  // SRC_CAMERA_CAMERA_H_
+#endif  // SRC_CAMERA_CAMERA_HPP_
