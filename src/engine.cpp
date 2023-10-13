@@ -1,9 +1,9 @@
 #include "engine.hpp"
-#include "camera.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <vector>
 #include <iostream>
+#include "camera.hpp"
 
 static Engine *s_Engine = nullptr;
 
