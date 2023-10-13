@@ -24,7 +24,7 @@ add_subdirectory(thirdparty/glfw)
 add_subdirectory(thirdparty/glad)
 
 
-add_executable(main src/main.cpp)
+add_executable(main src/main.cpp src/engine.cpp)
 
 target_include_directories(MODEL PUBLIC thirdparty)
 target_include_directories(CAMERA PUBLIC thirdparty)
