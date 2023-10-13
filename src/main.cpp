@@ -1,34 +1,58 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-
 #include "model/model.hpp"
 #include "model/modelInstance.hpp"
+#include "camera/camera.hpp"
+
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
+// cameragit
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = SCR_WIDTH / 2.0f;
+float lastY = SCR_HEIGHT / 2.0f;
+bool firstMouse = true;
+
+
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
+
+
+
 const char *vertexShaderSource = "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "uniform mat4 transform;\n"
+    "layout (location = 0) in vec3 position;\n"
+    "uniform mat4 model;\n"
+    "uniform mat4 view;\n"
+    "uniform mat4 projection;\n"
     "void main()\n"
     "{\n"
-    "   gl_Position = transform * vec4(aPos, 1.0);\n"
+    "   gl_Position = projection * view * model * vec4(position, 1.0f);\n"
     "}\0";
 const char *fragmentShaderSource = "#version 330 core\n"
     "out vec4 FragColor;\n"
     "void main()\n"
     "{\n"
-    "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "   FragColor = vec4(1.0f, 0.5f, 0.7f, 1.0f);\n"
     "}\n\0";
+
+
+
+
+
+
+
 
 int main() {
     // glfw: initialize and configure
@@ -50,8 +74,14 @@ int main() {
         glfwTerminate();
         return -1;
     }
+
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+
+    // tell GLFW to capture our mouse
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -60,6 +90,10 @@ int main() {
         return -1;
     }
 
+
+
+
+    // Это будет в отдельном файле
 
     // build and compile our shader program
     // ------------------------------------
@@ -99,26 +133,43 @@ int main() {
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
+    std::vector<GLuint> cubeIndices {
+        2, 6, 7,
+        2, 3, 7,
 
-    std::vector<float> testVertices = {
-         0.5f,  0.5f, 0.0f,  // top right
-         0.5f, -0.5f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f,  // bottom left
-        -0.5f,  0.5f, 0.0f   // top left
+        0, 4, 5,
+        0, 1, 5,
+
+        0, 2, 6,
+        0, 4, 6,
+
+        1, 3, 7,
+        1, 5, 7,
+
+        0, 2, 3,
+        0, 1, 3,
+
+        4, 6, 7,
+        4, 5, 7
     };
-    std::vector<unsigned int> testIndices = {  // note that we start from 0!
-        0, 1, 3,  // first Triangle
-        1, 2, 3   // second Triangle
+
+    std::vector<GLfloat> cubeVertices {
+        -1, -1,  1,
+         1, -1,  1,
+        -1,  1,  1,
+         1,  1,  1,
+        -1, -1, -1,
+         1, -1, -1,
+        -1,  1, -1,
+         1,  1, -1
     };
 
     // init a model
-    Model * testModel = new Model(testVertices, testIndices);
+    Model * testModel = new Model(cubeVertices, cubeIndices);
     // transformation stores information about angle, scale, rotate and tranlsation.
     // Method makeTransform make mat4 transform(public var), after we send it to shaders.
-    ModelInstance * modelInstance = new ModelInstance(glm::vec3(1.f, 1.f, 1.f),
-        glm::vec3(0.f, 0.f, 1.f), 0, glm::vec3(0.f, 0.f, 0.f), testModel);
+    ModelInstance * modelInstance = new ModelInstance(glm::vec3(0.5f, 0.5f, 0.5f),
+        glm::vec3(0.0f, 1.0f, 0.0f), glm::radians(-55.0f), glm::vec3(0.f, 0.f, -3.f), testModel);
 
 
     glGenVertexArrays(1, &modelInstance->getModel()->VAO);
@@ -163,6 +214,10 @@ int main() {
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window)) {
+        float currentFrame = static_cast<float>(glfwGetTime());
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
         // input
         // -----
         processInput(window);
@@ -172,20 +227,37 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // get time for demonstration
-        float timeValue = glfwGetTime();
-        modelInstance->setRotation(glm::vec3(0.f, 0.f, 1.f), timeValue * 2);
-        // find location of mat4 tranform
-        int transformLoc = glGetUniformLocation(shaderProgram, "transform");
-        // draw our first triangle
+
         glUseProgram(shaderProgram);
+
+        glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 projection = glm::perspective(
+                                        glm::radians(camera.GetZoom()),
+                                        static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT),
+                                        0.1f, 100.0f);
+
+        GLint modelLoc = glGetUniformLocation(shaderProgram, "model");
+        GLint viewLoc = glGetUniformLocation(shaderProgram, "view");
+        GLint projLoc = glGetUniformLocation(shaderProgram, "projection");
+
+
         // send matrix transform to shader
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(modelInstance->transform));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelInstance->transform));
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+
+
+        // Note: currently we set the projection matrix each frame,
+        // but since the projection matrix rarely changes it's
+        // often best practice to set it outside the main loop only once.
+        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+
+
         // seeing as we only have a single VAO there's no need to bind it every time,
         // but we'll do so to keep things a bit more organized
         glBindVertexArray(modelInstance->getModel()->VAO);
         // glDrawArrays(GL_TRIANGLES, 0, 6);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, modelInstance->getModel()->getLenIndices(), GL_UNSIGNED_INT, 0);
         // glBindVertexArray(0); // no need to unbind it every time
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -207,12 +279,35 @@ int main() {
     return 0;
 }
 
+
+
+
+
+
+
+
+
+// Хочется вынести этот код в отедльный файл, который будет отвечать за различные инпуты.
+// Я пытался сделать это но пока не понял как
+// Потому что многие переменные находятся в мейне,
+// и тогда придется изменять сигнатуры функций и сильно их удлинять
+// Возможно получится придумать систему bind'ов по аналогии с openGL
+
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        camera.ProcessKeyboard(FORWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camera.ProcessKeyboard(BACKWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera.ProcessKeyboard(LEFT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera.ProcessKeyboard(RIGHT, deltaTime);
 }
+
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
@@ -220,4 +315,31 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
+}
+
+
+// glfw: whenever the mouse moves, this callback is called
+// -------------------------------------------------------
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
+    float xpos = static_cast<float>(xposIn);
+    float ypos = static_cast<float>(yposIn);
+
+    if (firstMouse) {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
+
+    camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+// glfw: whenever the mouse scroll wheel scrolls, this callback is called
+// ----------------------------------------------------------------------
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+    camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }

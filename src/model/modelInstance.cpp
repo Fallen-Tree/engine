@@ -1,11 +1,11 @@
 #include "modelInstance.hpp"
 
 ModelInstance::ModelInstance
-    (glm::vec3 scale, glm::vec3 rotationAxis, float angleDegree, glm::vec3 translation, Model* model) {
+    (glm::vec3 scale, glm::vec3 rotationAxis, float radiansDegree, glm::vec3 translation, Model* model) {
     this->scale = scale;
     this->rotationAxis = rotationAxis;
     this->translation = translation;
-    this->angleDegree = angleDegree;
+    this->radiansDegree = radiansDegree;
     this->model = model;
     update();
 }
@@ -13,7 +13,7 @@ ModelInstance::ModelInstance
 void ModelInstance::update() {
     this->transform = glm::mat4(1.f);
     this->transform = glm::translate(this->transform, translation);
-    this->transform = glm::rotate(this->transform, glm::radians(angleDegree), rotationAxis);
+    this->transform = glm::rotate(this->transform, radiansDegree, rotationAxis);
     this->transform = glm::scale(this->transform, this->scale);
 }
 
@@ -26,9 +26,9 @@ void ModelInstance::setScale(glm::vec3 scale) {
     update();
 }
 
-void ModelInstance::setRotation(glm::vec3 rotationAxis, float angleDegree) {
+void ModelInstance::setRotation(glm::vec3 rotationAxis, float radiansDegree) {
     this->rotationAxis = rotationAxis;
-    this->angleDegree = angleDegree;
+    this->radiansDegree = radiansDegree;
     update();
 }
 
