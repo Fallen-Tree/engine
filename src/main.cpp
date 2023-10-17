@@ -13,7 +13,9 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 const char *vertexShaderSource = "..\\engine\\shader_examples\\vertex\\standart.vshader";
-const char *fragmentShaderSource = "..\\engine\\shader_examples\\fragment\\green.fshader";
+const char *fragmentShaderSource1 = "..\\engine\\shader_examples\\fragment\\green.fshader";
+const char *fragmentShaderSource2 = "..\\engine\\shader_examples\\fragment\\red.fshader";
+const char *fragmentShaderSource3 = "..\\engine\\shader_examples\\fragment\\blue.fshader";
 
 int main() {
     // glfw: initialize and configure
@@ -47,16 +49,12 @@ int main() {
 
 
     // build and compile our shader program
-    VertexShader vShader;
-    vShader.LoadSourceFromFile(vertexShaderSource);
-    vShader.Compile();
+    VertexShader vShader = VertexShader(vertexShaderSource);
+    FragmentShader fShaderGreen = FragmentShader(fragmentShaderSource1);
+    FragmentShader fShaderRed = FragmentShader(fragmentShaderSource2);
+    FragmentShader fShaderBlue = FragmentShader(fragmentShaderSource3);
 
-    FragmentShader fShader;
-    fShader.LoadSourceFromFile(fragmentShaderSource);
-    fShader.Compile();
-
-    ShaderProgram shaderProgram;
-    shaderProgram.Link(vShader, fShader);
+    ShaderProgram shaderProgram = ShaderProgram(vShader, fShaderBlue);
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -127,7 +125,7 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT);
 
         // draw our first triangle
-        glUseProgram(shaderProgram.m_Program);
+        shaderProgram.Use();
         // seeing as we only have a single VAO there's no need to bind it every time,
         // but we'll do so to keep things a bit more organized
         glBindVertexArray(testModel->VAO);

@@ -4,89 +4,110 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <sstream>
 #include <fstream>
+#include <cstdarg>
 
 #include <glm/glm.hpp>
 
-int Shader::CheckSuccess(unsigned int shader) {
+int Shader::CheckSuccess() {
     int success;
     char infoLog[512];
-    glGetShaderiv(this->m_Shader, GL_COMPILE_STATUS, &success);
+    glGetShaderiv(m_Shader, GL_COMPILE_STATUS, &success);
     if (!success) {
-        GLint maxLength = 0;
-        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
-        glGetShaderInfoLog(shader, 512, NULL, infoLog);
+        glGetShaderInfoLog(m_Shader, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
-        return 0;
     }
-    return 1;
+    return success;
 }
 
 int Shader::LoadSourceFromFile(const char* path) {
-    FILE *f = fopen(path, "rb");
-    if (!f) {
-        std::cout << "ERROR:SHADER::LOAD::FAILED_TO_OPEN_FILE\n" << path << std::endl;
-        return 1;
+    std::ifstream shaderFile;
+    // ensure ifstream objects can throw exceptions:
+    shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    try {
+        // open files
+        shaderFile.open(path);
+        std::stringstream shaderStream;
+        // read file's buffer contents into stream
+        shaderStream << shaderFile.rdbuf();
+        // close file handlers
+        shaderFile.close();
+        // convert stream into string
+        m_Source = shaderStream.str();
     }
-    fseek(f, 0, SEEK_END);
-    unsigned int fsize = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    // I feel malloc is bad because we can't free const char*, but idk how to replace it with something else
-    char* source = reinterpret_cast<char*>(malloc(fsize + 1));
-    fread(source, fsize, 1, f);
-    fclose(f);
-    m_Source = source;
-
+    catch (std::ifstream::failure& e) {
+        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
+    }
     return 0;
 }
 
-int Shader::LoadSource(const char* source) {
-    this->m_Source = source;
-    return 0;
+int Shader::Compile() {
+    const char* source = m_Source.c_str();
+    glShaderSource(m_Shader, 1, &source, NULL);
+    glCompileShader(m_Shader);
+    // check for shader compile errors
+    int success = CheckSuccess();
+    return success;
 }
 
 int VertexShader::Compile() {
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &(this->m_Source), NULL);
-    glCompileShader(vertexShader);
+    if (m_Shader == 0)
+        m_Shader = glCreateShader(GL_VERTEX_SHADER);
+    const char* source = m_Source.c_str();
+    glShaderSource(m_Shader, 1, &source, NULL);
+    glCompileShader(m_Shader);
     // check for shader compile errors
-    int success = this->CheckSuccess(vertexShader);
-    if (success) {
-        this->m_Shader = vertexShader;
-    }
+    int success = CheckSuccess();
     return success;
+}
+
+VertexShader::VertexShader(const char* path) {
+    m_Shader = 0;
+    LoadSourceFromFile(path);
+    Compile();
 }
 
 int FragmentShader::Compile() {
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &(this->m_Source), NULL);
-    glCompileShader(fragmentShader);
-    // check for shader compile errors
-    int success = this->CheckSuccess(fragmentShader);
-    if (success) {
-        this->m_Shader = fragmentShader;
-    }
-    return success;
+    if (m_Shader == 0)
+        m_Shader = glCreateShader(GL_FRAGMENT_SHADER);
+    return Shader::Compile();
 }
 
-int ShaderProgram::Link(VertexShader vShader, FragmentShader fShader) {
-    // link shaders
-    unsigned int shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vShader.m_Shader);
-    glAttachShader(shaderProgram, fShader.m_Shader);
-    glLinkProgram(shaderProgram);
+FragmentShader::FragmentShader(const char* path) {
+    m_Shader = 0;
+    LoadSourceFromFile(path);
+    Compile();
+}
+
+int ShaderProgram::AttachShader(Shader shader) {
+    glAttachShader(m_Program, shader.m_Shader);
+    return 0;
+}
+
+int ShaderProgram::Link() {
+    glLinkProgram(m_Program);
     // check for linking errors
     int success;
     char infoLog[512];
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    glGetProgramiv(m_Program, GL_LINK_STATUS, &success);
     if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+        glGetProgramInfoLog(m_Program, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+        m_Program = 0;
         return 1;
-    } else {
-        this->m_Program = shaderProgram;
-        return 0;
     }
-    // glDeleteShader(vShader);
-    // glDeleteShader(fShader);
+    return 0;
+}
+
+ShaderProgram::ShaderProgram(VertexShader vShader, FragmentShader fShader) {
+    m_Program = glCreateProgram();
+    AttachShader(vShader);
+    AttachShader(fShader);
+    Link();
+}
+
+int ShaderProgram::Use() {
+    glUseProgram(m_Program);
+    return 0;
 }
