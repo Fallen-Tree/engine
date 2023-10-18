@@ -1,5 +1,5 @@
-#ifndef SRC_SHADERS_SHADER_LOADER_H_
-#define SRC_SHADERS_SHADER_LOADER_H_
+#ifndef SRC_SHADERS_SHADER_LOADER_HPP_
+#define SRC_SHADERS_SHADER_LOADER_HPP_
 
 #include<string>
 
@@ -33,6 +33,7 @@ class ShaderProgram {
      int Link();
      ShaderProgram(VertexShader vShader, FragmentShader fShader);
      int Use();
+     void Delete();
 };
 
-#endif  // SRC_SHADERS_SHADER_LOADER_H_
+#endif  // SRC_SHADERS_SHADER_LOADER_HPP

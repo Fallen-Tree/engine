@@ -1,5 +1,5 @@
 
-#include "shader_loader.h"
+#include "shader_loader.hpp"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -110,4 +110,8 @@ ShaderProgram::ShaderProgram(VertexShader vShader, FragmentShader fShader) {
 int ShaderProgram::Use() {
     glUseProgram(m_Program);
     return 0;
+}
+
+void ShaderProgram::Delete() {
+    glDeleteProgram(m_Program);
 }
