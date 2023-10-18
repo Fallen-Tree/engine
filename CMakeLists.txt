@@ -16,6 +16,10 @@ add_library(MODEL STATIC
             src/model/modelInstance.cpp
             src/model/modelInstance.hpp)
 
+add_library(TRANSFORM STATIC 
+            src/transform/transform.cpp 
+            src/transform/transform.hpp)
+
 add_library(CAMERA STATIC 
             src/camera/camera.cpp 
             src/camera/camera.hpp)
@@ -27,6 +31,8 @@ add_subdirectory(thirdparty/glad)
 add_executable(main src/main.cpp src/engine.cpp)
 
 target_include_directories(MODEL PUBLIC thirdparty)
+target_include_directories(TRANSFORM PUBLIC thirdparty)
 target_include_directories(CAMERA PUBLIC thirdparty)
+
 target_include_directories(main PUBLIC thirdparty)
-target_link_libraries(main PUBLIC glfw glad OpenGL::GL MODEL CAMERA)
+target_link_libraries(main PUBLIC glfw glad OpenGL::GL MODEL CAMERA TRANSFORM)

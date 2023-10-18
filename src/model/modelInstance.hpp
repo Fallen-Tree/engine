@@ -1,39 +1,27 @@
 #ifndef SRC_MODEL_MODELINSTANCE_HPP_
 #define SRC_MODEL_MODELINSTANCE_HPP_
 
-#include <glm/glm.hpp>
 #include "model.hpp"
+#include "../transform/transform.hpp"
+
+#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 class ModelInstance {
  private:
-    // in degree!!
-    float radiansDegree;
-    glm::vec3 translation;
-    glm::vec3 scale;
-    // rotate shows which axis to turn along
-    // for example: if rotate = (0.f, 0.f, 1.f), then turn along z
-    glm::vec3 rotationAxis;
-    Model *model;
-
-    void update();
-
+   Model *m_Model;
+   Transform *m_Transform;
+   
  public:
-    glm::mat4 transform;
+   explicit ModelInstance(Model * model, Transform * transform);
+   explicit ModelInstance(Model* model, glm::vec3 translate, glm::vec3 scale, glm::mat4 rotate);
+   
+   void SetModel(Model* model);
+   Model* GetModel();
 
-    explicit ModelInstance(glm::vec3 scale,
-      glm::vec3 rotation_axis, float radiansDegree, glm::vec3 tranlsation, Model * model);
-
-    void setTranslation(glm::vec3 translation);
-
-    void setScale(glm::vec3 scale);
-
-    void setRotation(glm::vec3 rotationAxis, float radiansDegree);
-
-    void setModel(Model* model);
-
-    Model* getModel();
+   void SetTransform(Transform* transform);
+   Transform* GetTransform();
 };
 
 #endif  // SRC_MODEL_MODELINSTANCE_HPP_
