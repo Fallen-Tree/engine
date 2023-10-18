@@ -14,20 +14,20 @@ Transform::Transform(glm::vec3 translation, glm::vec3 scale, glm::mat4 rotation)
 }
 
 // Translation
-void Transform::SetTranslation(glm::vec3 translation) { 
-    this->m_Translation = translation; 
+void Transform::SetTranslation(glm::vec3 translation) {
+    this->m_Translation = translation;
 }
-void Transform::Translate(glm::vec3 translate) { 
-    this->m_Translation += translate; 
+void Transform::Translate(glm::vec3 translate) {
+    this->m_Translation += translate;
 }
 
 // Scale
-void Transform::SetScale(glm::vec3 scale) { 
-    this->m_Scale = scale; 
+void Transform::SetScale(glm::vec3 scale) {
+    this->m_Scale = scale;
 }
 
-void Transform::Scale(glm::vec3 scale) { 
-    this->m_Scale = this->m_Scale * scale; 
+void Transform::Scale(glm::vec3 scale) {
+    this->m_Scale = this->m_Scale * scale;
 }
 
 // Rotate
@@ -35,8 +35,8 @@ void Transform::SetRotation(float radiansDegree, glm::vec3 rotationAxis) {
     this->m_Rotation = glm::rotate(glm::mat4(1.0), radiansDegree, rotationAxis);
 }
 
-void Transform::SetRotation(glm::mat4 rotationMatrix) { 
-    this->m_Rotation = rotationMatrix; 
+void Transform::SetRotation(glm::mat4 rotationMatrix) {
+    this->m_Rotation = rotationMatrix;
 }
 
 void Transform::SetRotation(float radiansDegreeX, float radiansDegreeY, float radiansDegreeZ) {
@@ -57,16 +57,16 @@ void Transform::Rotate(float radiansDegreeX, float radiansDegreeY, float radians
 }
 
 // Getters
-glm::vec3 Transform::GetTranslation() { 
-    return this->m_Translation; 
+glm::vec3 Transform::GetTranslation() {
+    return this->m_Translation;
 }
 
-glm::vec3 Transform::GetScale() { 
-    return this->m_Scale; 
+glm::vec3 Transform::GetScale() {
+    return this->m_Scale;
 }
 
-glm::mat4 Transform::GetRotation() { 
-    return this->m_Rotation; 
+glm::mat4 Transform::GetRotation() {
+    return this->m_Rotation;
 }
 
 glm::mat4 Transform::GetTransformMatrix() {

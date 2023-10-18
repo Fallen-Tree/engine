@@ -161,7 +161,9 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     testModel->shader = shaderProgram;
     // transformation stores information about angle, scale, rotate and tranlsation.
     // Method makeTransform make mat4 transform(public var), after we send it to shaders.
-    ModelInstance * modelInstance = new ModelInstance(testModel, glm::vec3(0.f, 0.f, -3.f), glm::vec3(1.f, 1.f, 1.f), glm::mat4(1.0));
+    ModelInstance * modelInstance = new ModelInstance(testModel, glm::vec3(0.f, 0.f, -3.f),
+                                                                 glm::vec3(1.f, 1.f, 1.f),
+                                                                 glm::mat4(1.0));
 
     glGenVertexArrays(1, &modelInstance->GetModel()->VAO);
     glGenBuffers(1, &modelInstance->GetModel()->VBO);
@@ -224,7 +226,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     glDeleteVertexArrays(1, &modelInstance->GetModel()->VAO);
     glDeleteBuffers(1, &modelInstance->GetModel()->VBO);
     glDeleteBuffers(1, &modelInstance->GetModel()->EBO);
-    
+
     glDeleteProgram(shaderProgram);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
@@ -268,7 +270,8 @@ void Engine::Render(int width, int height) {
         instance->GetTransform()->Translate(glm::vec3(0.f, 0.f, -0.001f));
 
         // send matrix transform to shader
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(instance->GetTransform()->GetTransformMatrix()));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE,
+            glm::value_ptr(instance->GetTransform()->GetTransformMatrix()));
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
 
