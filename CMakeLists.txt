@@ -6,7 +6,7 @@ add_compile_options(-std=c++17 -Wall)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-include_directories(src/model src/camera)			# Расположение заголовочных файлов
+include_directories(src/model src/camera src/shaders)			# Расположение заголовочных файлов
 
 find_package(OpenGL REQUIRED)
 
@@ -25,7 +25,8 @@ add_subdirectory(thirdparty/glad)
 
 add_executable(main src/main.cpp src/engine.cpp src/shaders/shader_loader.cpp)
 
-target_include_directories(MODEL PUBLIC thirdparty src/shaders)
+target_include_directories(MODEL PUBLIC thirdparty)
 target_include_directories(CAMERA PUBLIC thirdparty)
 target_include_directories(main PUBLIC thirdparty)
+target_link_libraries(MODEL PUBLIC glfw glad OpenGL::GL)
 target_link_libraries(main PUBLIC glfw glad OpenGL::GL MODEL CAMERA)

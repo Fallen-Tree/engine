@@ -4,7 +4,7 @@
 #include <vector>
 #include <iostream>
 #include "camera.hpp"
-#include "shaders/shader_loader.hpp"
+#include "shader_loader.hpp"
 
 static Engine *s_Engine = nullptr;
 
@@ -77,10 +77,10 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     // build and compile our shader program
     // ------------------------------------
-    VertexShader vShader = VertexShader(vertexShaderSource);
-    FragmentShader fShader1 = FragmentShader(fragmentShaderSource1);
-    FragmentShader fShader2 = FragmentShader(fragmentShaderSource2);
-    FragmentShader fShader3 = FragmentShader(fragmentShaderSource3);
+    Shader vShader = Shader(VertexShader, vertexShaderSource);
+    Shader fShader1 = Shader(FragmentShader, fragmentShaderSource1);
+    Shader fShader2 = Shader(FragmentShader, fragmentShaderSource2);
+    Shader fShader3 = Shader(FragmentShader, fragmentShaderSource3);
 
     ShaderProgram shaderProgram = ShaderProgram(vShader, fShader2);
 

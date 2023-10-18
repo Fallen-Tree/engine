@@ -1,28 +1,22 @@
 #ifndef SRC_SHADERS_SHADER_LOADER_HPP_
 #define SRC_SHADERS_SHADER_LOADER_HPP_
 
-#include<string>
+#include <glad/glad.h>
+#include <string>
+
+enum ShaderType {UndefinedShader = 0, VertexShader = GL_VERTEX_SHADER, FragmentShader = GL_FRAGMENT_SHADER};
 
 class Shader {
  public:
      std::string m_Source;
      unsigned int m_Shader;
+     ShaderType m_Type;
 
      int CheckSuccess();
      int LoadSourceFromFile(const char* path);
      int Compile();
-};
-
-class VertexShader : public Shader {
- public:
-     int Compile();
-     explicit VertexShader(const char* path);
-};
-
-class FragmentShader : public Shader {
- public:
-     int Compile();
-     explicit FragmentShader(const char* path);
+     Shader();
+     explicit Shader(ShaderType shaderType, const char* path);
 };
 
 class ShaderProgram {
@@ -32,10 +26,10 @@ class ShaderProgram {
      int AttachShader(Shader shader);
      int Link();
      ShaderProgram();
-     ShaderProgram(VertexShader vShader, FragmentShader fShader);
+     ShaderProgram(Shader vShader, Shader fShader);
      int Use();
      int UniformLocation(const char* mode);
      ~ShaderProgram();
 };
 
-#endif  // SRC_SHADERS_SHADER_LOADER_HPP
+#endif  // SRC_SHADERS_SHADER_LOADER_HPP_

@@ -43,6 +43,8 @@ int Shader::LoadSourceFromFile(const char* path) {
 }
 
 int Shader::Compile() {
+    if (m_Shader == 0)
+        m_Shader = glCreateShader(m_Type);
     const char* source = m_Source.c_str();
     glShaderSource(m_Shader, 1, &source, NULL);
     glCompileShader(m_Shader);
@@ -51,30 +53,8 @@ int Shader::Compile() {
     return success;
 }
 
-int VertexShader::Compile() {
-    if (m_Shader == 0)
-        m_Shader = glCreateShader(GL_VERTEX_SHADER);
-    const char* source = m_Source.c_str();
-    glShaderSource(m_Shader, 1, &source, NULL);
-    glCompileShader(m_Shader);
-    // check for shader compile errors
-    int success = CheckSuccess();
-    return success;
-}
-
-VertexShader::VertexShader(const char* path) {
-    m_Shader = 0;
-    LoadSourceFromFile(path);
-    Compile();
-}
-
-int FragmentShader::Compile() {
-    if (m_Shader == 0)
-        m_Shader = glCreateShader(GL_FRAGMENT_SHADER);
-    return Shader::Compile();
-}
-
-FragmentShader::FragmentShader(const char* path) {
+Shader::Shader(ShaderType shaderType, const char* path) {
+    m_Type = shaderType;
     m_Shader = 0;
     LoadSourceFromFile(path);
     Compile();
@@ -104,7 +84,7 @@ ShaderProgram::ShaderProgram() {
     m_Program = 0;
 }
 
-ShaderProgram::ShaderProgram(VertexShader vShader, FragmentShader fShader) {
+ShaderProgram::ShaderProgram(Shader vShader, Shader fShader) {
     m_Program = glCreateProgram();
     AttachShader(vShader);
     AttachShader(fShader);
