@@ -248,8 +248,8 @@ void Engine::Render(int width, int height) {
         auto model = instance->GetModel();
 
         float timeValue = glfwGetTime();
-        instance->GetTransform()->ModifyRotate(timeValue / 10000.0, glm::vec3(0.f, 0.f, 1.f));
-        instance->GetTransform()->ModifyRotate(timeValue / 10000.0, glm::vec3(0.f, 1.f, 0.f));
+        instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 0.f, 1.f));
+        instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 1.f, 0.f));
 
         unsigned shader = model->shader;
         // draw our first triangle
@@ -265,7 +265,7 @@ void Engine::Render(int width, int height) {
         GLint viewLoc = glGetUniformLocation(shader, "view");
         GLint projLoc = glGetUniformLocation(shader, "projection");
 
-        instance->GetTransform()->ModifyTranslate(glm::vec3(0.f, 0.f, -0.001f));
+        instance->GetTransform()->Translate(glm::vec3(0.f, 0.f, -0.001f));
 
         // send matrix transform to shader
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(instance->GetTransform()->GetTransformMatrix()));
