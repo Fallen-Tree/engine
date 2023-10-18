@@ -4,25 +4,24 @@
 #include <glad/glad.h>
 #include <string>
 
-enum ShaderType {UndefinedShader = 0, VertexShader = GL_VERTEX_SHADER, FragmentShader = GL_FRAGMENT_SHADER};
+enum ShaderType {VertexShader = GL_VERTEX_SHADER, FragmentShader = GL_FRAGMENT_SHADER};
 
 class Shader {
- public:
+ private:
      std::string m_Source;
-     unsigned int m_Shader;
      ShaderType m_Type;
-
      int CheckSuccess();
      int LoadSourceFromFile(const char* path);
      int Compile();
-     Shader();
+ public:
+     unsigned int m_Shader;
      explicit Shader(ShaderType shaderType, const char* path);
 };
 
 class ShaderProgram {
- public:
+ private:
      unsigned int m_Program = 0;
-
+ public:
      int AttachShader(Shader shader);
      int Link();
      ShaderProgram();
