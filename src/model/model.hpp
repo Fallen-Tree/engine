@@ -1,5 +1,5 @@
-#ifndef SRC_MODEL_MODEL_H_
-#define SRC_MODEL_MODEL_H_
+#ifndef SRC_MODEL_MODEL_HPP_
+#define SRC_MODEL_MODEL_HPP_
 
 #include <vector>
 
@@ -10,7 +10,7 @@ class Model {
 
  public:
     // some variables
-    unsigned int VAO, VBO, EBO;
+    unsigned int VAO, VBO, EBO, shader;
 
     // constructor of class.
     explicit Model(const std::vector<float>& Points, const std::vector<unsigned int>& Indices);
@@ -37,4 +37,4 @@ class Model {
 
     int getLenArrPoints();
 };
-#endif  // SRC_MODEL_MODEL_H_
+#endif  // SRC_MODEL_MODEL_HPP_
