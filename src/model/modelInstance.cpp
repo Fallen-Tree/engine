@@ -7,7 +7,7 @@ ModelInstance::ModelInstance(Model* model, Transform* transform) {
 ModelInstance::ModelInstance(Model* model, glm::vec3 translate, glm::vec3 scale, glm::mat4 rotate) {
     this->m_Model = model;
     this->m_Transform = new Transform(translate, scale, rotate);
-} 
+}
 
 
 void ModelInstance::SetModel(Model* model) {

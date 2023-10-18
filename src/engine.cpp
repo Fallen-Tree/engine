@@ -161,7 +161,10 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     testModel->shader = shaderProgram;
     // transformation stores information about angle, scale, rotate and tranlsation.
     // Method makeTransform make mat4 transform(public var), after we send it to shaders.
-    ModelInstance * modelInstance = new ModelInstance(testModel, glm::vec3(0.f, 0.f, -3.f), glm::vec3(1.f, 1.f, 1.f), glm::mat4(1.0));
+    ModelInstance * modelInstance = new ModelInstance(  testModel,
+                                                        glm::vec3(0.f, 0.f, -3.f),
+                                                        glm::vec3(1.f, 1.f, 1.f),
+                                                        glm::mat4(1.0));
 
     glGenVertexArrays(1, &modelInstance->GetModel()->VAO);
     glGenBuffers(1, &modelInstance->GetModel()->VBO);
@@ -234,7 +237,7 @@ void Engine::Render(int width, int height) {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    for (long long unsigned int i = 0; i < m_objects.size(); i++) {
+    for (uint64_t i = 0; i < m_objects.size(); i++) {
         auto object = m_objects[i];
         if (!object->m_modelInstance)
             continue;
@@ -244,7 +247,7 @@ void Engine::Render(int width, int height) {
         float timeValue = glfwGetTime();
         instance->GetTransform()->ModifyRotate(timeValue / 10000.0, glm::vec3(0.f, 0.f, 1.f));
         instance->GetTransform()->ModifyRotate(timeValue / 10000.0, glm::vec3(0.f, 1.f, 0.f));
-        
+
         unsigned shader = model->shader;
         // draw our first triangle
         glUseProgram(shader);
@@ -262,7 +265,8 @@ void Engine::Render(int width, int height) {
         instance->GetTransform()->ModifyTranslate(glm::vec3(0.f, 0.f, -0.001f));
 
         // send matrix transform to shader
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(instance->GetTransform()->GetTransformMatrix()));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE,
+                        glm::value_ptr(instance->GetTransform()->GetTransformMatrix()));
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
 

@@ -25,7 +25,7 @@ void Transform::SetScale(glm::vec3 scale) {
   this->m_Scale = scale;
 }
 void Transform::ModifyScale(glm::vec3 scaleShift) {
-  this->m_Scale = this->m_Scale * scaleShift; 
+  this->m_Scale = this->m_Scale * scaleShift;
 }
 
 // Rotate
@@ -45,17 +45,20 @@ void Transform::ModifyRotate(float radiansDegree, glm::vec3 rotationAxis) {
 // Getters
 glm::vec3 Transform::GetTranslate() {
   return this->m_Translate;
-};
+}
+
 glm::vec3 Transform::GetScale() {
   return this->m_Scale;
 }
+
 glm::mat4 Transform::GetRotate() {
   return this->m_Rotate;
 }
+
 glm::mat4 Transform::GetTransformMatrix() {
-  glm::mat4 transform(1.0);
-  transform = glm::translate(transform, this->m_Translate);
-  transform = transform * this->m_Rotate; 
-  transform = glm::scale(transform, this->m_Scale);
-  return transform;
+  glm::mat4 transformMatrix(1.0f);
+  transformMatrix = glm::translate(transformMatrix, this->m_Translate);
+  transformMatrix = transformMatrix * this->m_Rotate;
+  transformMatrix = glm::scale(transformMatrix, this->m_Scale);
+  return transformMatrix;
 }

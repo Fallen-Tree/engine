@@ -10,18 +10,18 @@
 
 class ModelInstance {
  private:
-   Model *m_Model;
-   Transform *m_Transform;
-   
- public:
-   explicit ModelInstance(Model * model, Transform * transform);
-   explicit ModelInstance(Model* model, glm::vec3 translate, glm::vec3 scale, glm::mat4 rotate);
-   
-   void SetModel(Model* model);
-   Model* GetModel();
+    Model *m_Model;
+    Transform *m_Transform;
 
-   void SetTransform(Transform* transform);
-   Transform* GetTransform();
+ public:
+    explicit ModelInstance(Model * model, Transform * transform);
+    explicit ModelInstance(Model* model, glm::vec3 translate, glm::vec3 scale, glm::mat4 rotate);
+
+    void SetModel(Model* model);
+    Model* GetModel();
+
+    void SetTransform(Transform* transform);
+    Transform* GetTransform();
 };
 
 #endif  // SRC_MODEL_MODELINSTANCE_HPP_

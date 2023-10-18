@@ -1,5 +1,5 @@
-#ifndef SRC_TRANSFORM_HPP_
-#define SRC_TRANSFORM_HPP_
+#ifndef SRC_TRANSFORM_TRANSFORM_HPP_
+#define SRC_TRANSFORM_TRANSFORM_HPP_
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -7,15 +7,13 @@
 
 class Transform {
  private:
-
     glm::vec3 m_Translate;
     glm::vec3 m_Scale;
-    glm::mat4 m_Rotate;   
-     
+    glm::mat4 m_Rotate;
+
     glm::mat4 m_Transform;
 
  public:
-
     explicit Transform(glm::vec3 translation, glm::vec3 scale, glm::vec3 rotationAxis, float radiansDegree);
     explicit Transform(glm::vec3 translation, glm::vec3 scale, glm::mat4 rotate);
 
@@ -38,6 +36,6 @@ class Transform {
     glm::vec3 GetScale();
     glm::mat4 GetRotate();
     glm::mat4 GetTransformMatrix();
-};  
+};
 
-#endif  // SRC_TRANSFORM_HPP_
+#endif  // SRC_TRANSFORM_TRANSFORM_HPP_
