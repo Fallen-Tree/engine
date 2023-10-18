@@ -4,7 +4,6 @@
 #include <vector>
 #include <iostream>
 #include "camera.hpp"
-#include "shaders/shader_loader.hpp"
 
 static Engine *s_Engine = nullptr;
 
@@ -34,10 +33,21 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-const char *vertexShaderSource = "..\\engine\\shader_examples\\vertex\\standart.vshader";
-const char *fragmentShaderSource1 = "..\\engine\\shader_examples\\fragment\\green.fshader";
-const char *fragmentShaderSource2 = "..\\engine\\shader_examples\\fragment\\red.fshader";
-const char *fragmentShaderSource3 = "..\\engine\\shader_examples\\fragment\\blue.fshader";
+const char *vertexShaderSource = "#version 330 core\n"
+    "layout (location = 0) in vec3 position;\n"
+    "uniform mat4 model;\n"
+    "uniform mat4 view;\n"
+    "uniform mat4 projection;\n"
+    "void main()\n"
+    "{\n"
+    "   gl_Position = projection * view * model * vec4(position, 1.0f);\n"
+    "}\0";
+const char *fragmentShaderSource = "#version 330 core\n"
+    "out vec4 FragColor;\n"
+    "void main()\n"
+    "{\n"
+    "   FragColor = vec4(1.0f, 0.5f, 0.7f, 1.0f);\n"
+    "}\n\0";
 
 void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // glfw: initialize and configure
@@ -76,11 +86,41 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     // build and compile our shader program
     // ------------------------------------
-    VertexShader vShader = VertexShader(vertexShaderSource);
-    FragmentShader fShader = FragmentShader(fragmentShaderSource2);
-
+    // vertex shader
+    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    glCompileShader(vertexShader);
+    // check for shader compile errors
+    int success;
+    char infoLog[512];
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+    // fragment shader
+    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glCompileShader(fragmentShader);
+    // check for shader compile errors
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
     // link shaders
-    ShaderProgram shaderProgram = ShaderProgram(vShader, fShader);
+    unsigned int shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+    // check for linking errors
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+    }
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -118,7 +158,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     // init a model
     Model * testModel = new Model(cubeVertices, cubeIndices);
-    testModel->shader = shaderProgram.m_Program;
+    testModel->shader = shaderProgram;
     // transformation stores information about angle, scale, rotate and tranlsation.
     // Method makeTransform make mat4 transform(public var), after we send it to shaders.
     ModelInstance * modelInstance = new ModelInstance(glm::vec3(1.f, 1.f, 1.f),
@@ -181,6 +221,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     glDeleteVertexArrays(1, &modelInstance->getModel()->VAO);
     glDeleteBuffers(1, &modelInstance->getModel()->VBO);
     glDeleteBuffers(1, &modelInstance->getModel()->EBO);
+    glDeleteProgram(shaderProgram);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
