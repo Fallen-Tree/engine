@@ -31,9 +31,11 @@ class ShaderProgram {
 
      int AttachShader(Shader shader);
      int Link();
+     ShaderProgram();
      ShaderProgram(VertexShader vShader, FragmentShader fShader);
      int Use();
-     void Delete();
+     int UniformLocation(const char* mode);
+     ~ShaderProgram();
 };
 
 #endif  // SRC_SHADERS_SHADER_LOADER_HPP

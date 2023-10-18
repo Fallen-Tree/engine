@@ -34,10 +34,10 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-const char *vertexShaderSource = "..\\engine\\shader_examples\\vertex\\standart.vshader";
-const char *fragmentShaderSource1 = "..\\engine\\shader_examples\\fragment\\green.fshader";
-const char *fragmentShaderSource2 = "..\\engine\\shader_examples\\fragment\\red.fshader";
-const char *fragmentShaderSource3 = "..\\engine\\shader_examples\\fragment\\blue.fshader";
+const char *vertexShaderSource = "../engine/shader_examples/vertex/standart.vshader";
+const char *fragmentShaderSource1 = "../engine/shader_examples/fragment/green.fshader";
+const char *fragmentShaderSource2 = "../engine/shader_examples/fragment/red.fshader";
+const char *fragmentShaderSource3 = "../engine/shader_examples/fragment/blue.fshader";
 
 
 void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
@@ -120,7 +120,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     // init a model
     Model * testModel = new Model(cubeVertices, cubeIndices);
-    testModel->shader = shaderProgram.m_Program;
+    testModel->shader = shaderProgram;
     // transformation stores information about angle, scale, rotate and tranlsation.
     // Method makeTransform make mat4 transform(public var), after we send it to shaders.
     ModelInstance * modelInstance = new ModelInstance(glm::vec3(1.f, 1.f, 1.f),
@@ -183,7 +183,6 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     glDeleteVertexArrays(1, &modelInstance->getModel()->VAO);
     glDeleteBuffers(1, &modelInstance->getModel()->VBO);
     glDeleteBuffers(1, &modelInstance->getModel()->EBO);
-    shaderProgram.Delete();
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
@@ -207,9 +206,9 @@ void Engine::Render(int width, int height) {
         float timeValue = glfwGetTime();
         instance->setRotation(glm::vec3(0.f, 0.f, 1.f), timeValue * 2);
 
-        unsigned shader = model->shader;
+        ShaderProgram shader = model->shader;
         // draw our first triangle
-        glUseProgram(shader);
+        shader.Use();
 
         glm::mat4 view = m_Camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(
@@ -217,9 +216,9 @@ void Engine::Render(int width, int height) {
                                         static_cast<float>(width) / static_cast<float>(height),
                                         0.1f, 100.0f);
 
-        GLint modelLoc = glGetUniformLocation(shader, "model");
-        GLint viewLoc = glGetUniformLocation(shader, "view");
-        GLint projLoc = glGetUniformLocation(shader, "projection");
+        GLint modelLoc = shader.UniformLocation("model");
+        GLint viewLoc = shader.UniformLocation("view");
+        GLint projLoc = shader.UniformLocation("projection");
 
         // send matrix transform to shader
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(instance->transform));

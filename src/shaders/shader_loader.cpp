@@ -100,6 +100,10 @@ int ShaderProgram::Link() {
     return 0;
 }
 
+ShaderProgram::ShaderProgram() {
+    m_Program = 0;
+}
+
 ShaderProgram::ShaderProgram(VertexShader vShader, FragmentShader fShader) {
     m_Program = glCreateProgram();
     AttachShader(vShader);
@@ -112,6 +116,10 @@ int ShaderProgram::Use() {
     return 0;
 }
 
-void ShaderProgram::Delete() {
+ShaderProgram::~ShaderProgram() {
     glDeleteProgram(m_Program);
+}
+
+int ShaderProgram::UniformLocation(const char* mode) {
+    return glGetUniformLocation(m_Program, mode);
 }
