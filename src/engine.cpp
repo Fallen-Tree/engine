@@ -9,10 +9,12 @@
 #include "shader_loader.hpp"
 #include "light.hpp"
 #include "material.hpp"
+#include "controller.hpp"
 
 static Engine *s_Engine = nullptr;
 EnvLight envL;
 
+static Input *s_Input = nullptr;
 
 Engine::Engine() {
     m_objects = std::vector<Object *>();
@@ -33,12 +35,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
-float lastX = 0;
-float lastY = 0;
 bool firstMouse = true;
 
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
 
 const char *vertexShaderSource = "/vertex/standart.vshader";
 const char *fragmentShaderSource1 = "/fragment/green.fshader";
@@ -70,7 +68,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     glfwSetCursorPosCallback(m_Window, mouse_callback);
     glfwSetScrollCallback(m_Window, scroll_callback);
 
-    glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    s_Input = new Input(m_Window);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -224,9 +222,10 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // -----------
     while (!glfwWindowShouldClose(m_Window)) {
         float currentFrame = static_cast<float>(glfwGetTime());
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
+        s_DeltaTime = currentFrame - s_LastFrame;
+        s_LastFrame = currentFrame;
 
+        m_Camera.update(s_Input, s_DeltaTime);
         processInput(m_Window);
 
         Render(SCR_WIDTH, SCR_HEIGHT);
@@ -330,18 +329,12 @@ void Engine::Render(int width, int height) {
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
+
 void processInput(GLFWwindow *window) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    if (s_Input->IsKeyPressed(key::Escape))
         glfwSetWindowShouldClose(window, true);
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        s_Engine->m_Camera.ProcessKeyboard(FORWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        s_Engine->m_Camera.ProcessKeyboard(BACKWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        s_Engine->m_Camera.ProcessKeyboard(LEFT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        s_Engine->m_Camera.ProcessKeyboard(RIGHT, deltaTime);
 }
+
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
@@ -354,25 +347,18 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 // glfw: whenever the mouse moves, this callback is called
 // -------------------------------------------------------
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
-    float xpos = static_cast<float>(xposIn);
-    float ypos = static_cast<float>(yposIn);
-
     if (firstMouse) {
-        lastX = xpos;
-        lastY = ypos;
+        s_Input->setMouseX(static_cast<float>(xposIn));
+        s_Input->setMouseY(static_cast<float>(yposIn));
         firstMouse = false;
     }
 
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos;
-    lastX = xpos;
-    lastY = ypos;
-
-    s_Engine->m_Camera.ProcessMouseMovement(xoffset, yoffset);
+    s_Input->setMouseX(static_cast<float>(xposIn));
+    s_Input->setMouseY(static_cast<float>(yposIn));
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
 // ----------------------------------------------------------------------
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    s_Engine->m_Camera.ProcessMouseScroll(static_cast<float>(yoffset));
+    s_Input->setScrollOffset(static_cast<float>(yoffset));
 }

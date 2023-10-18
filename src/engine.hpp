@@ -5,6 +5,9 @@
 
 struct GLFWwindow;
 
+static float s_DeltaTime = 0.0f;
+static float s_LastFrame = 0.0f;
+
 class Object {
  public:
      ModelInstance *m_modelInstance;
