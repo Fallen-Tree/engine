@@ -1,7 +1,9 @@
 #pragma once
 
 #include <glfw/include/GLFW/glfw3.h>
+#include <glm/glm.hpp>
 #include "model.hpp"
+
 
 enum key {
 /* Printable keys */
@@ -19,8 +21,8 @@ K4 = GLFW_KEY_4,
 K5 = GLFW_KEY_5,
 K6 = GLFW_KEY_6,
 K7 = GLFW_KEY_7,
-k8 = GLFW_KEY_8,
-k9 = GLFW_KEY_9,
+K8 = GLFW_KEY_8,
+K9 = GLFW_KEY_9,
 Semicolon = GLFW_KEY_SEMICOLON,          /* ; */
 Equal = GLFW_KEY_EQUAL,              /* = */
 A = GLFW_KEY_A,
@@ -141,11 +143,11 @@ const int VALUE = GLFW_CURSOR_DISABLED;
 class Input {
  private:
     GLFWwindow *m_Window;
-    float m_LastX = 0.f;
-    float m_LastY = 0.f;
-    float m_CurrentX = 0.f;
-    float m_CurrentY = 0.f;
     float m_ScrollOffset = 0.f;
+    // m_X.x -- lastX, m_X.y -- currentX
+    glm::vec2 m_X = glm::vec2(0);
+    // m_Y.x -- lastY, m_Y.y -- currentY
+    glm::vec2 m_Y = glm::vec2(0);
 
  public:
     explicit Input(GLFWwindow *window);
@@ -158,6 +160,7 @@ class Input {
     float OffsetY();
 
 
+    void update();
     void setWindow(GLFWwindow * window);
     void setMouseX(float x);
     void setMouseY(float y);

@@ -2,11 +2,9 @@
 #include <vector>
 #include "modelInstance.hpp"
 #include "camera.hpp"
+#include "controller.hpp"
 
 struct GLFWwindow;
-
-static float s_DeltaTime = 0.0f;
-static float s_LastFrame = 0.0f;
 
 class Object {
  public:
@@ -25,10 +23,12 @@ class Engine {
     }
 
     void Run(int, int);
+    Input *m_Input = nullptr;
     Camera m_Camera;
  private:
     void AddObject(Object *);
     void Render(int, int);
+
 
     std::vector<Object *> m_objects;
     GLFWwindow *m_Window;
