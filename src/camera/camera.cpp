@@ -96,13 +96,16 @@ void Camera::UpdateCameraVectors() {
     this->m_Up    = glm::normalize(glm::cross(m_Right, m_Front));
 }
 
-void Camera::update(Input * input, float deltaTime) {
-    if (input->OffsetX() != 0 || input->OffsetY() != 0) {
-        ProcessMouseMovement(input->OffsetX(), input->OffsetY());
+void Camera::Update(Input * input, float deltaTime) {
+    float xOffset = input->OffsetX();
+    float yOffset = input->OffsetY();
+    if (xOffset != 0 || yOffset != 0) {
+        ProcessMouseMovement(xOffset, yOffset);
     }
 
     float scrollOffset = input->ScrollOfsset();
-    ProcessMouseScroll(scrollOffset);
+    if (scrollOffset != 0)
+        ProcessMouseScroll(scrollOffset);
 
     if (input->IsKeyPressed(key::W))
         ProcessKeyboard(FORWARD, deltaTime);

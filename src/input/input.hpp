@@ -160,9 +160,9 @@ class Input {
     float OffsetY();
 
 
-    void update();
-    void setWindow(GLFWwindow * window);
-    void setMouseX(float x);
-    void setMouseY(float y);
-    void setScrollOffset(float offset);
+    void Update();
+    void SetWindow(GLFWwindow * window);
+    void SetMouseX(float x);
+    void SetMouseY(float y);
+    void SetScrollOffset(float offset);
 };

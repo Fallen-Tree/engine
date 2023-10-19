@@ -225,9 +225,9 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        m_Input->update();
-        m_Camera.update(m_Input, deltaTime);
-        m_Input->setScrollOffset(0);
+        m_Input->Update();
+        m_Camera.Update(m_Input, deltaTime);
+        m_Input->SetScrollOffset(0);
 
         processInput(m_Window);
 
@@ -356,5 +356,5 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
 // ----------------------------------------------------------------------
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    s_Engine->m_Input->setScrollOffset(static_cast<float>(yoffset));
+    s_Engine->m_Input->SetScrollOffset(static_cast<float>(yoffset));
 }

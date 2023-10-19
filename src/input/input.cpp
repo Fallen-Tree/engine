@@ -29,27 +29,27 @@ float Input::OffsetY() {
     return this->m_Y.x - this->m_Y.y;
 }
 
-void Input::setWindow(GLFWwindow * window) {
+void Input::SetWindow(GLFWwindow * window) {
     this->m_Window = window;
 }
 
-void Input::setMouseX(float x) {
+void Input::SetMouseX(float x) {
     m_X.x = m_X.y;
     m_X.y = x;
 }
 
-void Input::setMouseY(float y) {
+void Input::SetMouseY(float y) {
     m_Y.x = m_Y.y;
     m_Y.y = y;
 }
 
-void Input::setScrollOffset(float offset) {
+void Input::SetScrollOffset(float offset) {
     this->m_ScrollOffset = offset;
 }
 
-void Input::update() {
+void Input::Update() {
     double xpos, ypos;
     glfwGetCursorPos(m_Window, &xpos, &ypos);
-    setMouseX(static_cast<float>(xpos));
-    setMouseY(static_cast<float>(ypos));
+    SetMouseX(static_cast<float>(xpos));
+    SetMouseY(static_cast<float>(ypos));
 }
