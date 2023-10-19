@@ -1,4 +1,4 @@
-#include "controller.hpp"
+#include "input.hpp"
 
 Input::Input(GLFWwindow *window) {
     m_Window = window;

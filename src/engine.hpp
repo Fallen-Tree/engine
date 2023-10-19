@@ -2,7 +2,7 @@
 #include <vector>
 #include "modelInstance.hpp"
 #include "camera.hpp"
-#include "controller.hpp"
+#include "input.hpp"
 
 struct GLFWwindow;
 
