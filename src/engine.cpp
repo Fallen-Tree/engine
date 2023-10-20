@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 #include "camera.hpp"
+#include "shader_loader.hpp"
 
 static Engine *s_Engine = nullptr;
 
@@ -33,21 +34,11 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-const char *vertexShaderSource = "#version 330 core\n"
-    "layout (location = 0) in vec3 position;\n"
-    "uniform mat4 model;\n"
-    "uniform mat4 view;\n"
-    "uniform mat4 projection;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = projection * view * model * vec4(position, 1.0f);\n"
-    "}\0";
-const char *fragmentShaderSource = "#version 330 core\n"
-    "out vec4 FragColor;\n"
-    "void main()\n"
-    "{\n"
-    "   FragColor = vec4(1.0f, 0.5f, 0.7f, 1.0f);\n"
-    "}\n\0";
+const char *vertexShaderSource = "../engine/shader_examples/vertex/standart.vshader";
+const char *fragmentShaderSource1 = "../engine/shader_examples/fragment/green.fshader";
+const char *fragmentShaderSource2 = "../engine/shader_examples/fragment/red.fshader";
+const char *fragmentShaderSource3 = "../engine/shader_examples/fragment/blue.fshader";
+
 
 void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // glfw: initialize and configure
@@ -86,41 +77,12 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     // build and compile our shader program
     // ------------------------------------
-    // vertex shader
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-    // check for shader compile errors
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-    // fragment shader
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-    // check for shader compile errors
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-    // link shaders
-    unsigned int shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    // check for linking errors
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-    }
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    Shader vShader = Shader(VertexShader, vertexShaderSource);
+    Shader fShader1 = Shader(FragmentShader, fragmentShaderSource1);
+    Shader fShader2 = Shader(FragmentShader, fragmentShaderSource2);
+    Shader fShader3 = Shader(FragmentShader, fragmentShaderSource3);
+
+    ShaderProgram shaderProgram = ShaderProgram(vShader, fShader2);
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -221,7 +183,6 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     glDeleteVertexArrays(1, &modelInstance->getModel()->VAO);
     glDeleteBuffers(1, &modelInstance->getModel()->VBO);
     glDeleteBuffers(1, &modelInstance->getModel()->EBO);
-    glDeleteProgram(shaderProgram);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
@@ -245,9 +206,9 @@ void Engine::Render(int width, int height) {
         float timeValue = glfwGetTime();
         instance->setRotation(glm::vec3(0.f, 0.f, 1.f), timeValue * 2);
 
-        unsigned shader = model->shader;
+        ShaderProgram shader = model->shader;
         // draw our first triangle
-        glUseProgram(shader);
+        shader.Use();
 
         glm::mat4 view = m_Camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(
@@ -255,9 +216,9 @@ void Engine::Render(int width, int height) {
                                         static_cast<float>(width) / static_cast<float>(height),
                                         0.1f, 100.0f);
 
-        GLint modelLoc = glGetUniformLocation(shader, "model");
-        GLint viewLoc = glGetUniformLocation(shader, "view");
-        GLint projLoc = glGetUniformLocation(shader, "projection");
+        GLint modelLoc = shader.UniformLocation("model");
+        GLint viewLoc = shader.UniformLocation("view");
+        GLint projLoc = shader.UniformLocation("projection");
 
         // send matrix transform to shader
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(instance->transform));
