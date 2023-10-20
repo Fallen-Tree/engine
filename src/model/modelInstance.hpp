@@ -10,11 +10,11 @@
 
 class ModelInstance {
  private:
-    Model *m_Model;
-    Transform *m_Transform;
+    Model* m_Model;
+    Transform* m_Transform;
 
  public:
-    explicit ModelInstance(Model * model, Transform * transform);
+    explicit ModelInstance(Model* model, Transform* transform);
     explicit ModelInstance(Model* model, glm::vec3 translate, glm::vec3 scale, glm::mat4 rotate);
 
     void SetModel(Model* model);

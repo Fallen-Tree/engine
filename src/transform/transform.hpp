@@ -29,6 +29,8 @@ class Transform {
     void SetRotation(glm::mat4 rotationMatrix);
     void Rotate(float radiansDegree, glm::vec3 rotationAxis);
     void Rotate(float radiansDegreeX, float radiansDegreeY, float radiansDegreeZ);
+    void Rotate(glm::mat4 rotationMatrix);
+
 
     // Getters
     glm::vec3 GetTranslation();

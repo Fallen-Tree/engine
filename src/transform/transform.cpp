@@ -56,6 +56,10 @@ void Transform::Rotate(float radiansDegreeX, float radiansDegreeY, float radians
     glm::rotate(this->m_Rotation, radiansDegreeZ, glm::vec3(0.0f, 0.f, 1.f));
 }
 
+void Transform::Rotate(glm::mat4 rotationMatrix) {
+    this->m_Rotation *= rotationMatrix;
+}
+
 // Getters
 glm::vec3 Transform::GetTranslation() {
     return this->m_Translation;
