@@ -189,9 +189,6 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     glDeleteBuffers(1, &modelInstance->GetModel()->VBO);
     glDeleteBuffers(1, &modelInstance->GetModel()->EBO);
 
-    glDeleteProgram(shaderProgram);
-
-
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
     glfwTerminate();

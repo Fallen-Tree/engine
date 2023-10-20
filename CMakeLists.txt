@@ -33,5 +33,6 @@ target_include_directories(MODEL PUBLIC thirdparty)
 target_include_directories(TRANSFORM PUBLIC thirdparty)
 target_include_directories(CAMERA PUBLIC thirdparty)
 
+target_link_libraries(MODEL PUBLIC glfw glad OpenGL::GL)
 target_include_directories(main PUBLIC thirdparty)
 target_link_libraries(main PUBLIC glfw glad OpenGL::GL MODEL CAMERA TRANSFORM)
