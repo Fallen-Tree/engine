@@ -123,27 +123,31 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     testModel->shader = shaderProgram;
     // transformation stores information about angle, scale, rotate and tranlsation.
     // Method makeTransform make mat4 transform(public var), after we send it to shaders.
-    ModelInstance * modelInstance = new ModelInstance(glm::vec3(1.f, 1.f, 1.f),
-        glm::vec3(0.f, 0.f, 1.f), 0, glm::vec3(0.f, 0.f, 0.f), testModel);
+    ModelInstance * modelInstance = new ModelInstance(testModel, glm::vec3(0.f, 0.f, -3.f),
+                                                                 glm::vec3(1.f, 1.f, 1.f),
+                                                                 glm::mat4(1.0));
 
-    glGenVertexArrays(1, &modelInstance->getModel()->VAO);
-    glGenBuffers(1, &modelInstance->getModel()->VBO);
-    glGenBuffers(1, &modelInstance->getModel()->EBO);
+    glGenVertexArrays(1, &modelInstance->GetModel()->VAO);
+    glGenBuffers(1, &modelInstance->GetModel()->VBO);
+    glGenBuffers(1, &modelInstance->GetModel()->EBO);
+
 
     // bind the Vertex Array Object first,
     // then bind and set vertex buffer(s),
     // and then configure vertex attributes(s).
-    glBindVertexArray(modelInstance->getModel()->VAO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, modelInstance->getModel()->VBO);
+    glBindVertexArray(modelInstance->GetModel()->VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, modelInstance->GetModel()->VBO);
     glBufferData(GL_ARRAY_BUFFER,
-        modelInstance->getModel()->getLenArrPoints() * sizeof(float),
-        modelInstance->getModel()->getPoints(), GL_STATIC_DRAW);
+        modelInstance->GetModel()->getLenArrPoints() * sizeof(float),
+        modelInstance->GetModel()->getPoints(), GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, modelInstance->getModel()->EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, modelInstance->GetModel()->EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-        modelInstance->getModel()->getLenIndices() * sizeof(unsigned int),
-        modelInstance->getModel()->getIndices(), GL_STATIC_DRAW);
+        modelInstance->GetModel()->getLenIndices() * sizeof(unsigned int),
+        modelInstance->GetModel()->getIndices(), GL_STATIC_DRAW);
+
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
     glEnableVertexAttribArray(0);
@@ -180,9 +184,13 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
-    glDeleteVertexArrays(1, &modelInstance->getModel()->VAO);
-    glDeleteBuffers(1, &modelInstance->getModel()->VBO);
-    glDeleteBuffers(1, &modelInstance->getModel()->EBO);
+
+    glDeleteVertexArrays(1, &modelInstance->GetModel()->VAO);
+    glDeleteBuffers(1, &modelInstance->GetModel()->VBO);
+    glDeleteBuffers(1, &modelInstance->GetModel()->EBO);
+
+    glDeleteProgram(shaderProgram);
+
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
@@ -196,15 +204,17 @@ void Engine::Render(int width, int height) {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    for (int i = 0; i < m_objects.size(); i++) {
+    for (uint64_t i = 0; i < m_objects.size(); i++) {
         auto object = m_objects[i];
         if (!object->m_modelInstance)
             continue;
         auto instance = object->m_modelInstance;
-        auto model = instance->getModel();
+
+        auto model = instance->GetModel();
 
         float timeValue = glfwGetTime();
-        instance->setRotation(glm::vec3(0.f, 0.f, 1.f), timeValue * 2);
+        instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 0.f, 1.f));
+        instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 1.f, 0.f));
 
         ShaderProgram shader = model->shader;
         // draw our first triangle
@@ -220,8 +230,11 @@ void Engine::Render(int width, int height) {
         GLint viewLoc = shader.UniformLocation("view");
         GLint projLoc = shader.UniformLocation("projection");
 
+        instance->GetTransform()->Translate(glm::vec3(0.f, 0.f, -0.001f));
+
         // send matrix transform to shader
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(instance->transform));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE,
+            glm::value_ptr(instance->GetTransform()->GetTransformMatrix()));
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
 
