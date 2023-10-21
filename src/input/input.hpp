@@ -113,7 +113,7 @@ KP8 = GLFW_KEY_KP_8,
 KP9 = GLFW_KEY_KP_9,
 Decimal = GLFW_KEY_KP_DECIMAL,
 Divide = GLFW_KEY_KP_DIVIDE,
-Multipy = GLFW_KEY_KP_MULTIPLY,
+Multiply = GLFW_KEY_KP_MULTIPLY,
 Subtract = GLFW_KEY_KP_SUBTRACT,
 Add = GLFW_KEY_KP_ADD,
 KEnter = GLFW_KEY_KP_ENTER,
@@ -138,21 +138,21 @@ MouseMiddle = GLFW_MOUSE_BUTTON_MIDDLE,
 
 // Initial (Default) conroller values
 const int MODE = GLFW_CURSOR;
-const int VALUE = GLFW_CURSOR_DISABLED;
+const int VALUE = GLFW_CURSOR_NORMAL;
 
 class Input {
  private:
     GLFWwindow *m_Window;
     float m_ScrollOffset = 0.f;
-    // m_X.x -- lastX, m_X.y -- currentX
-    glm::vec2 m_X = glm::vec2(0);
-    // m_Y.x -- lastY, m_Y.y -- currentY
-    glm::vec2 m_Y = glm::vec2(0);
+    glm::vec2 m_Last = glm::vec2(0);
+    glm::vec2 m_Current = glm::vec2(0);
 
  public:
     explicit Input(GLFWwindow *window);
+    Input();
 
     bool IsKeyPressed(key button);
+    bool IsKeyDown(key button);
     float ScrollOfsset();
     float MouseX();
     float MouseY();

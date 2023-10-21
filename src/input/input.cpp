@@ -5,8 +5,16 @@ Input::Input(GLFWwindow *window) {
     glfwSetInputMode(m_Window, MODE, VALUE);
 }
 
+Input::Input() {
+    glfwSetInputMode(m_Window, MODE, VALUE);
+}
+
 bool Input::IsKeyPressed(key button) {
     return glfwGetKey(m_Window, button) == GLFW_PRESS;
+}
+
+bool Input::IsKeyDown(key button) {
+    return glfwGetKey(m_Window, button) == GLFW_RELEASE;
 }
 
 float Input::ScrollOfsset() {
@@ -14,19 +22,19 @@ float Input::ScrollOfsset() {
 }
 
 float Input::MouseX() {
-    return this->m_X.y;
+    return this->m_Current.x;
 }
 
 float Input::MouseY() {
-    return this->m_Y.y;
+    return this->m_Current.y;
 }
 
 float Input::OffsetX() {
-    return this->m_X.y - this->m_X.x;
+    return this->m_Current.x - this->m_Last.x;
 }
 
 float Input::OffsetY() {
-    return this->m_Y.x - this->m_Y.y;
+    return this->m_Last.y - this->m_Current.y;
 }
 
 void Input::SetWindow(GLFWwindow * window) {
@@ -34,13 +42,13 @@ void Input::SetWindow(GLFWwindow * window) {
 }
 
 void Input::SetMouseX(float x) {
-    m_X.x = m_X.y;
-    m_X.y = x;
+    m_Last.x = m_Current.x;
+    m_Current.x = x;
 }
 
 void Input::SetMouseY(float y) {
-    m_Y.x = m_Y.y;
-    m_Y.y = y;
+    m_Last.y = m_Current.y;
+    m_Current.y = y;
 }
 
 void Input::SetScrollOffset(float offset) {

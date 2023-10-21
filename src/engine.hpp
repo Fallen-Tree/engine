@@ -23,7 +23,7 @@ class Engine {
     }
 
     void Run(int, int);
-    Input *m_Input = nullptr;
+    Input m_Input;
     Camera m_Camera;
  private:
     void AddObject(Object *);

@@ -31,7 +31,6 @@ void Engine::AddObject(Object *a) {
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-// void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
@@ -68,7 +67,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     //  glfwSetCursorPosCallback(m_Window, mouse_callback);
     glfwSetScrollCallback(m_Window, scroll_callback);
 
-    m_Input = new Input(m_Window);
+    m_Input.SetWindow(m_Window);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -225,9 +224,9 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        m_Input->Update();
-        m_Camera.Update(m_Input, deltaTime);
-        m_Input->SetScrollOffset(0);
+        m_Input.Update();
+        m_Camera.Update(&m_Input, deltaTime);
+        m_Input.SetScrollOffset(0);
 
         processInput(m_Window);
 
@@ -335,7 +334,7 @@ void Engine::Render(int width, int height) {
 // ---------------------------------------------------------------------------------------------------------
 
 void processInput(GLFWwindow *window) {
-    if (s_Engine->m_Input->IsKeyPressed(key::Escape))
+    if (s_Engine->m_Input.IsKeyPressed(key::Escape))
         glfwSetWindowShouldClose(window, true);
 }
 
@@ -348,13 +347,9 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-// glfw: whenever the mouse moves, this callback is called
-// -------------------------------------------------------
-void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
-}
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
 // ----------------------------------------------------------------------
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    s_Engine->m_Input->SetScrollOffset(static_cast<float>(yoffset));
+    s_Engine->m_Input.SetScrollOffset(static_cast<float>(yoffset));
 }
