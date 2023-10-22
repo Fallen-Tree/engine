@@ -5,8 +5,13 @@
 #include <iostream>
 #include "camera.hpp"
 #include "shader_loader.hpp"
+#include "light.hpp"
+#include "material.hpp"
 
 static Engine *s_Engine = nullptr;
+Material mat;
+EnvLight envL;
+
 
 Engine::Engine() {
     m_objects = std::vector<Object *>();
@@ -34,10 +39,11 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-const char *vertexShaderSource = "../engine/shader_examples/vertex/standart.vshader";
-const char *fragmentShaderSource1 = "../engine/shader_examples/fragment/green.fshader";
-const char *fragmentShaderSource2 = "../engine/shader_examples/fragment/red.fshader";
-const char *fragmentShaderSource3 = "../engine/shader_examples/fragment/blue.fshader";
+const char *vertexShaderSource = "../shader_examples/vertex/standart.vshader";
+const char *fragmentShaderSource1 = "../shader_examples/fragment/green.fshader";
+const char *fragmentShaderSource2 = "../shader_examples/fragment/red.fshader";
+const char *fragmentShaderSource3 = "../shader_examples/fragment/blue.fshader";
+
 
 void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // glfw: initialize and configure
@@ -86,6 +92,18 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
 
+    mat.m_Ambient = glm::vec3(0.2, 0.1, 0.2);
+    mat.m_Diffuse = glm::vec3(0.7, 0.6, 0.7);
+    mat.m_Specular = glm::vec3(0.6, 0.7, 0.6);
+    mat.Shininess = 0.6;
+
+    envL.m_Ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+    envL.m_Diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
+    envL.m_Specular = glm::vec3(1.0f, 1.0f, 1.0f);
+    envL.m_Position = glm::vec3(-0.2, -0.5, -1.2);
+
+
+
     std::vector<GLuint> cubeIndices {
         2, 6, 7,
         2, 3, 7,
@@ -107,14 +125,47 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     };
 
     std::vector<GLfloat> cubeVertices {
-        -1, -1,  1,
-         1, -1,  1,
-        -1,  1,  1,
-         1,  1,  1,
-        -1, -1, -1,
-         1, -1, -1,
-        -1,  1, -1,
-         1,  1, -1
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
     };
 
     // init a model
@@ -125,6 +176,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     ModelInstance * modelInstance = new ModelInstance(testModel, glm::vec3(0.f, 0.f, -3.f),
                                                                  glm::vec3(1.f, 1.f, 1.f),
                                                                  glm::mat4(1.0));
+
 
     glGenVertexArrays(1, &modelInstance->GetModel()->VAO);
     glGenBuffers(1, &modelInstance->GetModel()->VBO);
@@ -148,8 +200,13 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         modelInstance->GetModel()->getIndices(), GL_STATIC_DRAW);
 
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void*>(0));
     glEnableVertexAttribArray(0);
+    // normal attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+        reinterpret_cast<void*>(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as
     // the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
@@ -167,6 +224,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     auto testObj = new Object();
     testObj->m_modelInstance = modelInstance;
     AddObject(testObj);
+    glEnable(GL_DEPTH_TEST);
 
     // render loop
     // -----------
@@ -198,7 +256,7 @@ void Engine::Render(int width, int height) {
     // render
     // ------
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     for (uint64_t i = 0; i < m_objects.size(); i++) {
         auto object = m_objects[i];
@@ -217,21 +275,51 @@ void Engine::Render(int width, int height) {
         shader.Use();
 
         glm::mat4 view = m_Camera.GetViewMatrix();
+        glm::vec3 viewPos = m_Camera.GetPosition();
+
         glm::mat4 projection = glm::perspective(
                                         glm::radians(m_Camera.GetZoom()),
                                         static_cast<float>(width) / static_cast<float>(height),
                                         0.1f, 100.0f);
 
+        GLint objectColorLoc = shader.UniformLocation("objectColor");
         GLint modelLoc = shader.UniformLocation("model");
         GLint viewLoc = shader.UniformLocation("view");
+        GLint viewPosLoc = shader.UniformLocation("viewPos");
         GLint projLoc = shader.UniformLocation("projection");
+        // loc for material
+        GLint ambientLoc =  shader.UniformLocation("material.ambient");
+        GLint diffuseLoc =  shader.UniformLocation("material.diffuse");
+        GLint specularLoc =  shader.UniformLocation("material.specular");
+        GLint shininessLoc =  shader.UniformLocation("material.shininess");
+        // loc for light
+        GLint lightPositionLoc =  shader.UniformLocation("light.position");
+        GLint lightAmbientLoc = shader.UniformLocation("light.ambient");
+        GLint lightSpecularLoc = shader.UniformLocation("light.specualar");
+        GLint lightDiffuseLoc = shader.UniformLocation("light.diffuse");
+
 
         instance->GetTransform()->Translate(glm::vec3(0.f, 0.f, -0.001f));
 
+
+        // send color to shader
+        glUniform3fv(objectColorLoc, 1, glm::value_ptr(glm::vec3(0.53, 0.43, 0.23)));
         // send matrix transform to shader
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE,
             glm::value_ptr(instance->GetTransform()->GetTransformMatrix()));
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        glUniform3fv(viewPosLoc, 1, glm::value_ptr(viewPos));
+        // send material to shaders
+        glUniform3fv(ambientLoc, 1, glm::value_ptr(mat.m_Ambient));
+        glUniform3fv(diffuseLoc, 1, glm::value_ptr(mat.m_Diffuse));
+        glUniform3fv(specularLoc, 1, glm::value_ptr(mat.m_Specular));
+        glUniform1f(shininessLoc, mat.Shininess);
+        // send light to shaders
+        glUniform3fv(lightPositionLoc, 1, glm::value_ptr(envL.m_Position));
+        glUniform3fv(lightAmbientLoc, 1, glm::value_ptr(envL.m_Ambient));
+        glUniform3fv(lightSpecularLoc, 1, glm::value_ptr(mat.m_Specular));
+        glUniform3fv(lightDiffuseLoc, 1, glm::value_ptr(mat.m_Diffuse));
+
 
 
         // Note: currently we set the projection matrix each frame,
@@ -240,7 +328,8 @@ void Engine::Render(int width, int height) {
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
         glBindVertexArray(model->VAO);
-        glDrawElements(GL_TRIANGLES, model->getLenIndices(), GL_UNSIGNED_INT, 0);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        // glDrawElements(GL_TRIANGLES, model->getLenIndices(), GL_UNSIGNED_INT, 0);
     }
     glfwSwapBuffers(m_Window);
 }
