@@ -68,6 +68,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     glfwSetScrollCallback(m_Window, scroll_callback);
 
     m_Input.SetWindow(m_Window);
+    m_Input.SetMode();
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------

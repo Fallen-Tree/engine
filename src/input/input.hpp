@@ -138,7 +138,7 @@ MouseMiddle = GLFW_MOUSE_BUTTON_MIDDLE,
 
 // Initial (Default) conroller values
 const int MODE = GLFW_CURSOR;
-const int VALUE = GLFW_CURSOR_NORMAL;
+const int VALUE = GLFW_CURSOR_DISABLED;
 
 class Input {
  private:
@@ -165,4 +165,5 @@ class Input {
     void SetMouseX(float x);
     void SetMouseY(float y);
     void SetScrollOffset(float offset);
+    void SetMode();
 };

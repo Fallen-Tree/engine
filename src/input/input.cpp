@@ -2,12 +2,10 @@
 
 Input::Input(GLFWwindow *window) {
     m_Window = window;
-    glfwSetInputMode(m_Window, MODE, VALUE);
+    SetMode();
 }
 
-Input::Input() {
-    glfwSetInputMode(m_Window, MODE, VALUE);
-}
+Input::Input() {}
 
 bool Input::IsKeyPressed(key button) {
     return glfwGetKey(m_Window, button) == GLFW_PRESS;
@@ -60,4 +58,8 @@ void Input::Update() {
     glfwGetCursorPos(m_Window, &xpos, &ypos);
     SetMouseX(static_cast<float>(xpos));
     SetMouseY(static_cast<float>(ypos));
+}
+
+void Input::SetMode() {
+    glfwSetInputMode(m_Window, MODE, VALUE);
 }
