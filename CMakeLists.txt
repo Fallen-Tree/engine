@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 project(Engine VERSION 0.1)
 
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -27,11 +28,6 @@ add_subdirectory(thirdparty/glfw)
 add_subdirectory(thirdparty/glad)
 
 add_executable(main src/main.cpp src/engine.cpp src/shaders/shader_loader.cpp)
-
-set_property(main tgt PROPERTY CXX_STANDARD 17)
-set_property(MODEL tgt PROPERTY CXX_STANDARD 17)
-set_property(CAMERA tgt PROPERTY CXX_STANDARD 17)
-set_property(TRANSFORM tgt PROPERTY CXX_STANDARD 17)
 
 target_include_directories(MODEL PUBLIC thirdparty)
 target_include_directories(TRANSFORM PUBLIC thirdparty)
