@@ -12,7 +12,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-      submodules: true
+      with:
+        submodules: true
 
     - name: Download depedencies
       run: sudo apt-get install libgl1-mesa-dev
