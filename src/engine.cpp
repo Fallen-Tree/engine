@@ -34,6 +34,10 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+const char *catSource = "../engine/models/cat.obj";
+const char *cubeSource = "../engine/models/cube.obj";
+const char *benchSource = "../engine/models/bench.obj";
+
 const char *vertexShaderSource = "../engine/shader_examples/vertex/standart.vshader";
 const char *fragmentShaderSource1 = "../engine/shader_examples/fragment/green.fshader";
 const char *fragmentShaderSource2 = "../engine/shader_examples/fragment/red.fshader";
@@ -119,7 +123,8 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     };
 
     // init a model
-    Model * testModel = new Model(cubeVertices, cubeIndices);
+    // Model * testModel = new Model(cubeVertices, cubeIndices);
+    Model * testModel = new Model(catSource);
     testModel->shader = shaderProgram;
     // transformation stores information about angle, scale, rotate and tranlsation.
     // Method makeTransform make mat4 transform(public var), after we send it to shaders.
@@ -210,8 +215,8 @@ void Engine::Render(int width, int height) {
         auto model = instance->GetModel();
 
         float timeValue = glfwGetTime();
-        instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 0.f, 1.f));
-        instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 1.f, 0.f));
+        //instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 0.f, 1.f));
+        //instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 1.f, 0.f));
 
         ShaderProgram shader = model->shader;
         // draw our first triangle
@@ -227,7 +232,7 @@ void Engine::Render(int width, int height) {
         GLint viewLoc = shader.UniformLocation("view");
         GLint projLoc = shader.UniformLocation("projection");
 
-        instance->GetTransform()->Translate(glm::vec3(0.f, 0.f, -0.001f));
+        //instance->GetTransform()->Translate(glm::vec3(0.f, 0.f, -0.001f));
 
         // send matrix transform to shader
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE,

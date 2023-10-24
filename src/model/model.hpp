@@ -19,6 +19,8 @@ class Model {
 
     explicit Model(const std::vector<float>& Points);
 
+    explicit Model(const char* path);
+
     // getter and setter for working with class.
     float* getPoints();
 
