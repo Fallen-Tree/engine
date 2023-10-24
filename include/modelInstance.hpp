@@ -2,7 +2,7 @@
 #define SRC_MODEL_MODELINSTANCE_HPP_
 
 #include "model.hpp"
-#include "../transform/transform.hpp"
+#include "transform.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
