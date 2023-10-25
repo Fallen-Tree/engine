@@ -9,7 +9,6 @@
 #include "material.hpp"
 
 static Engine *s_Engine = nullptr;
-Material mat;
 EnvLight envL;
 
 
@@ -92,11 +91,6 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
 
-    mat.m_Ambient = glm::vec3(0.2, 0.1, 0.2);
-    mat.m_Diffuse = glm::vec3(0.7, 0.6, 0.7);
-    mat.m_Specular = glm::vec3(0.6, 0.7, 0.6);
-    mat.Shininess = 0.6;
-
     envL.m_Ambient = glm::vec3(0.2f, 0.2f, 0.2f);
     envL.m_Diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
     envL.m_Specular = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -176,6 +170,11 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     ModelInstance * modelInstance = new ModelInstance(testModel, glm::vec3(0.f, 0.f, -3.f),
                                                                  glm::vec3(1.f, 1.f, 1.f),
                                                                  glm::mat4(1.0));
+
+    modelInstance->m_Mat.m_Ambient = glm::vec3(0.2, 0.1, 0.2);
+    modelInstance->m_Mat.m_Diffuse = glm::vec3(0.7, 0.6, 0.7);
+    modelInstance->m_Mat.m_Specular = glm::vec3(0.6, 0.7, 0.6);
+    modelInstance->m_Mat.Shininess = 0.6;
 
 
     glGenVertexArrays(1, &modelInstance->GetModel()->VAO);
@@ -310,15 +309,15 @@ void Engine::Render(int width, int height) {
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         glUniform3fv(viewPosLoc, 1, glm::value_ptr(viewPos));
         // send material to shaders
-        glUniform3fv(ambientLoc, 1, glm::value_ptr(mat.m_Ambient));
-        glUniform3fv(diffuseLoc, 1, glm::value_ptr(mat.m_Diffuse));
-        glUniform3fv(specularLoc, 1, glm::value_ptr(mat.m_Specular));
-        glUniform1f(shininessLoc, mat.Shininess);
+        glUniform3fv(ambientLoc, 1, glm::value_ptr(instance->m_Mat.m_Ambient));
+        glUniform3fv(diffuseLoc, 1, glm::value_ptr(instance->m_Mat.m_Diffuse));
+        glUniform3fv(specularLoc, 1, glm::value_ptr(instance->m_Mat.m_Specular));
+        glUniform1f(shininessLoc, instance->m_Mat.Shininess);
         // send light to shaders
         glUniform3fv(lightPositionLoc, 1, glm::value_ptr(envL.m_Position));
         glUniform3fv(lightAmbientLoc, 1, glm::value_ptr(envL.m_Ambient));
-        glUniform3fv(lightSpecularLoc, 1, glm::value_ptr(mat.m_Specular));
-        glUniform3fv(lightDiffuseLoc, 1, glm::value_ptr(mat.m_Diffuse));
+        glUniform3fv(lightSpecularLoc, 1, glm::value_ptr(envL.m_Specular));
+        glUniform3fv(lightDiffuseLoc, 1, glm::value_ptr(envL.m_Diffuse));
 
 
 
