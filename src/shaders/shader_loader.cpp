@@ -1,13 +1,13 @@
-
-#include "shader_loader.hpp"
-#include "../logging/logger.hpp"
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
 #include <cstdarg>
+#include "shader_loader.hpp"
+#include "../logging/logger.hpp"
+
+
 
 #include <glm/glm.hpp>
 
