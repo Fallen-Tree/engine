@@ -8,34 +8,24 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 file(COPY ./resources DESTINATION .)
 
-include_directories(src/model src/camera src/shaders src/)			# Расположение заголовочных файлов
+include_directories(include)
 
 find_package(OpenGL REQUIRED)
 
-add_library(MODEL STATIC 
+add_library(ENGINE STATIC 
+            src/engine.cpp
+            src/shaders/shader_loader.cpp
             src/model/model.cpp 
-            src/model/model.hpp
             src/model/modelInstance.cpp
-            src/model/modelInstance.hpp)
-
-add_library(TRANSFORM STATIC 
-            src/transform/transform.cpp 
-            src/transform/transform.hpp)
-
-add_library(CAMERA STATIC 
+            src/transform/transform.cpp
             src/camera/camera.cpp 
-            src/camera/camera.hpp)
+)
 
 add_subdirectory(thirdparty/glfw)
 add_subdirectory(thirdparty/glad)
 
-add_executable(main src/main.cpp src/engine.cpp src/shaders/shader_loader.cpp)
+target_include_directories(ENGINE PUBLIC thirdparty)
+target_link_libraries(ENGINE PUBLIC glfw glad OpenGL::GL)
 
-target_include_directories(MODEL PUBLIC thirdparty)
-target_include_directories(TRANSFORM PUBLIC thirdparty)
-target_include_directories(CAMERA PUBLIC thirdparty)
-target_include_directories(main PUBLIC thirdparty)
-
-target_link_libraries(MODEL PUBLIC glfw glad OpenGL::GL)
-target_link_libraries(CAMERA PUBLIC glfw glad OpenGL::GL)
-target_link_libraries(main PUBLIC glfw glad OpenGL::GL MODEL CAMERA TRANSFORM)
+add_executable(main src/main.cpp)
+target_link_libraries(main PUBLIC ENGINE)
