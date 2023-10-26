@@ -1,14 +1,16 @@
-
 #include "shader_loader.hpp"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <string.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
 #include <cstdarg>
 
 #include <glm/glm.hpp>
+
+#include "config.hpp"
 
 int Shader::CheckSuccess() {
     int success;
@@ -23,11 +25,13 @@ int Shader::CheckSuccess() {
 
 int Shader::LoadSourceFromFile(const char* path) {
     std::ifstream shaderFile;
+    char finalPath[512];
+    snprintf(finalPath, sizeof(finalPath), RESOURCE_DIR"/shaders%s", path);
     // ensure ifstream objects can throw exceptions:
     shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     try {
         // open files
-        shaderFile.open(path);
+        shaderFile.open(finalPath);
         std::stringstream shaderStream;
         // read file's buffer contents into stream
         shaderStream << shaderFile.rdbuf();

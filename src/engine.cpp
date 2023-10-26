@@ -1,8 +1,10 @@
 #include "engine.hpp"
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <vector>
 #include <iostream>
+
 #include "camera.hpp"
 #include "shader_loader.hpp"
 #include "light.hpp"
@@ -38,11 +40,10 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-const char *vertexShaderSource = "../shader_examples/vertex/standart.vshader";
-const char *fragmentShaderSource1 = "../shader_examples/fragment/green.fshader";
-const char *fragmentShaderSource2 = "../shader_examples/fragment/red.fshader";
-const char *fragmentShaderSource3 = "../shader_examples/fragment/blue.fshader";
-
+const char *vertexShaderSource = "/vertex/standart.vshader";
+const char *fragmentShaderSource1 = "/fragment/green.fshader";
+const char *fragmentShaderSource2 = "/fragment/red.fshader";
+const char *fragmentShaderSource3 = "/fragment/blue.fshader";
 
 void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // glfw: initialize and configure
@@ -79,8 +80,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     }
 
 
-    // build and compile our shader program
-    // ------------------------------------
+    // build and compile our shader program ------------------------------------
     Shader vShader = Shader(VertexShader, vertexShaderSource);
     Shader fShader1 = Shader(FragmentShader, fragmentShaderSource1);
     Shader fShader2 = Shader(FragmentShader, fragmentShaderSource2);

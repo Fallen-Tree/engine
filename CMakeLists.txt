@@ -6,7 +6,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-include_directories(src/model src/camera src/shaders)			# Расположение заголовочных файлов
+file(COPY ./resources DESTINATION .)
+
+include_directories(src/model src/camera src/shaders src/)			# Расположение заголовочных файлов
 
 find_package(OpenGL REQUIRED)
 
