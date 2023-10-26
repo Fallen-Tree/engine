@@ -43,9 +43,7 @@ const char *cubeSource = "../engine/models/cube.obj";
 const char *benchSource = "../engine/models/bench.obj";
 
 const char *vertexShaderSource = "../engine/shader_examples/vertex/standart.vshader";
-const char *fragmentShaderSource1 = "../engine/shader_examples/fragment/green.fshader";
-const char *fragmentShaderSource2 = "../engine/shader_examples/fragment/red.fshader";
-const char *fragmentShaderSource3 = "../engine/shader_examples/fragment/blue.fshader";
+const char *fragmentShaderSource = "../engine/shader_examples/fragment/standart.fshader";
 
 
 void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
@@ -86,35 +84,44 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // build and compile our shader program
     // ------------------------------------
     Shader vShader = Shader(VertexShader, vertexShaderSource);
-    Shader fShader1 = Shader(FragmentShader, fragmentShaderSource1);
-    Shader fShader2 = Shader(FragmentShader, fragmentShaderSource2);
-    Shader fShader3 = Shader(FragmentShader, fragmentShaderSource3);
-
-    ShaderProgram shaderProgram = ShaderProgram(vShader, fShader2);
-
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
-
-    envL.m_Ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-    envL.m_Diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
-    envL.m_Specular = glm::vec3(1.0f, 1.0f, 1.0f);
-    envL.m_Position = glm::vec3(-0.2, -0.5, -1.2);
+    Shader fShader = Shader(FragmentShader, fragmentShaderSource);
+    
+    ShaderProgram shaderProgram = ShaderProgram(vShader, fShader);
 
     // init a model
     // Model * testModel = new Model(cubeVertices, cubeIndices);
-    Model * testModel = new Model(cubeSource);
+    Model * catModel = Model::loadFromFile(catSource);
+    Model * benchModel = Model::loadFromFile(benchSource);
+    Model * testModel = Model::loadFromFile(cubeSource);
+
     testModel->shader = shaderProgram;
+    catModel->shader = shaderProgram;
+    benchModel->shader = shaderProgram;
+
     // transformation stores information about angle, scale, rotate and tranlsation.
     // Method makeTransform make mat4 transform(public var), after we send it to shaders.
-    ModelInstance * modelInstance = new ModelInstance(testModel, glm::vec3(0.f, 0.f, -3.f),
+    ModelInstance *catInstance = new ModelInstance(catModel, glm::vec3(0.f, 0.f, -3.f),
+                                                                 glm::vec3(0.04f, 0.04f, 0.04f),
+                                                                 glm::mat4(1.0));
+    ModelInstance *benchInstance = new ModelInstance(benchModel, glm::vec3(0.f, 0.f, -3.f),
+                                                                 glm::vec3(0.05f, 0.05f, 0.05f),
+                                                                 glm::mat4(1.0));
+    ModelInstance *cubeInstance = new ModelInstance(testModel, glm::vec3(0.f, 0.f, -3.f),
                                                                  glm::vec3(1.f, 1.f, 1.f),
                                                                  glm::mat4(1.0));
 
+    ModelInstance *modelInstance = catInstance;
+    
     modelInstance->m_Mat.m_Ambient = glm::vec3(0.2, 0.1, 0.2);
     modelInstance->m_Mat.m_Diffuse = glm::vec3(0.7, 0.6, 0.7);
     modelInstance->m_Mat.m_Specular = glm::vec3(0.6, 0.7, 0.6);
     modelInstance->m_Mat.Shininess = 0.6;
-
+    
+    envL.m_Ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+    envL.m_Diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
+    envL.m_Specular = glm::vec3(1.0f, 1.0f, 1.0f);
+    envL.m_Position = glm::vec3(-0.2, -0.5, -1.2);
+    
 
     glGenVertexArrays(1, &modelInstance->GetModel()->VAO);
     glGenBuffers(1, &modelInstance->GetModel()->VBO);

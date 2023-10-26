@@ -12,7 +12,7 @@ class Model {
  public:
     // some variables
     unsigned int VAO, VBO, EBO;
-    ShaderProgram shader = ShaderProgram();
+    ShaderProgram shader;
 
     // constructor of class.
     explicit Model(const std::vector<float>& Points, const std::vector<unsigned int>& Indices);
@@ -20,7 +20,7 @@ class Model {
     explicit Model(const std::vector<float>& Points, int vectorSize);
 
 
-    explicit Model(const char* path);
+    static Model* loadFromFile(const char* path);
 
     // getter and setter for working with class.
     float* getPoints();

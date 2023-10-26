@@ -68,34 +68,37 @@ int Model::getLenArrPoints() {
     return points.size();
 }
 
-Model::Model(const char* path) {
+Model* Model::loadFromFile(const char* filePath) {
     std::ifstream objFile;
     // ensure ifstream objects can throw exceptions:
     objFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     try {
-        objFile.open(path);
+        objFile.open(filePath);
     }
     catch (std::ifstream::failure& e) {
-        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
+        std::cout << "ERROR::MODEL::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
     }
     std::vector<float> modelPoints(0);
     std::vector<unsigned> modelIndices(0);
     if (objFile.is_open()) {
+        int line_num = 0;
+        std::string line;
         while (objFile.good()) {
-            std::string line;
             std::getline(objFile, line);
             std::stringstream lineStream;
             lineStream << line;
             std::string key;
-            if (!(lineStream >> key)) continue;
-            // std::cout << line << std::endl;
+            lineStream >> key;
             if (key == "v") {
                 // read vertice coordinates
                 float x, y, z;
                 lineStream >> x >> y >> z;
-                modelPoints.push_back(x / 20);
-                modelPoints.push_back(y / 20);
-                modelPoints.push_back(z / 20);
+                modelPoints.push_back(x);
+                modelPoints.push_back(y);
+                modelPoints.push_back(z);
+                modelPoints.push_back(1);
+                modelPoints.push_back(1);
+                modelPoints.push_back(1);
             } else if (key == "f") {
                 // add triangles
                 std::vector<unsigned> faceIndices;
@@ -117,10 +120,11 @@ Model::Model(const char* path) {
                     modelIndices.push_back(faceIndices[i + 1]);
                 }
             } else {
-                // not a valid key
+                // not a valid key at the start of the string
             }
         }
+        objFile.close();
     }
-    setPoints(modelPoints);
-    setIndices(modelIndices);
+    Model* newModel = new Model(modelPoints, modelIndices);
+    return newModel;
 }
