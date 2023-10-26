@@ -10,6 +10,7 @@
 #include "light.hpp"
 #include "material.hpp"
 #include "controller.hpp"
+#include "input.hpp"
 
 // should send to all constants
 const int maxValidKey = 350;
