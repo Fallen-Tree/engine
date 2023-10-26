@@ -11,11 +11,11 @@ Model::Model(const std::vector<float>& Points, const std::vector<unsigned int>& 
     setIndices(Indices);
 }
 
-// in this way we assume that the mathematical vector has size 3.
-Model::Model(const std::vector<float>& Points) {
-    assert(Points.size() % 3 == 0);
+
+Model::Model(const std::vector<float>& Points, int vectorSize) {
+    assert(vectorSize > 0);
     setPoints(Points);
-    setIndices();
+    setIndices(vectorSize);
 }
 
 // getter and setter for working with class.
@@ -46,9 +46,11 @@ void Model::setIndices(const std::vector<unsigned int>& indices) {
 }
 
 // in this way we assume that the mathematical vector has size 3.
-void Model::setIndices() {
-    assert(points.size() % 3 == 0);
-    for (unsigned int i = 0; i < points.size() / 3; i++) {
+void Model::setIndices(int vectorSize) {
+    assert(points.size() % vectorSize == 0);
+    assert(vectorSize > 0);
+    indices.resize(points.size() / vectorSize);
+    for (unsigned int i = 0; i < points.size() / vectorSize; i++) {
         indices[i] = i;
     }
 }
