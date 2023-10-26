@@ -36,6 +36,10 @@ float Camera::GetZoom() {
     return this->m_Zoom;
 }
 
+glm::vec3 Camera::GetPosition() {
+    return this->m_Position;
+}
+
 // processes input received from any keyboard-like input system. Accepts
 // input parameter in the form of camera defined ENUM (to abstract it from
 // windowing systems)

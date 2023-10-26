@@ -17,7 +17,8 @@ class Model {
     // constructor of class.
     explicit Model(const std::vector<float>& Points, const std::vector<unsigned int>& Indices);
 
-    explicit Model(const std::vector<float>& Points);
+    explicit Model(const std::vector<float>& Points, int vectorSize);
+
 
     explicit Model(const char* path);
 
@@ -34,7 +35,7 @@ class Model {
 
     void setIndices(const std::vector<unsigned int>& indices);
 
-    void setIndices();
+    void setIndices(int vectorSize);
 
     // get length of array.
     int getLenIndices();
