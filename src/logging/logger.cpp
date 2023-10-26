@@ -16,11 +16,10 @@ void Logger::GetTime() {
 
     int milliseconds = time_now.tv_usec / 1000 % 1000;
     time_t now = time_now.tv_sec;
-    tm tm_local;
-    localtime_s(&tm_local, &now);
+    tm* tm_local = localtime(&now);
 
     snprintf(buffer, sizeof(buffer), "%02d:%02d:%02d.%03d",
-        tm_local.tm_hour, tm_local.tm_min, tm_local.tm_sec, milliseconds);
+        tm_local->tm_hour, tm_local->tm_min, tm_local->tm_sec, milliseconds);
 }
 
 void Logger::RedirectToFile(const char* fileName) {
