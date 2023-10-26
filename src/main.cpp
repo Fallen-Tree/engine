@@ -5,5 +5,5 @@ static int SCR_WIDTH = 800;
 
 int main() {
     auto engine = Engine();
-    engine.Run(SCR_WIDTH, SCR_HEIGHT);
+    engine.Run(1980, 1080);
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glfw/include/GLFW/glfw3.h>
+#include <vector>
 #include <glm/glm.hpp>
 #include "model.hpp"
 
@@ -167,4 +168,5 @@ class Input {
     void SetMouseY(float y);
     void SetScrollOffset(float offset);
     void SetMode();
+    void ButtonPress(int button);
 };

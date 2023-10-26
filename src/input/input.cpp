@@ -1,4 +1,5 @@
 #include "input.hpp"
+#include <vector>
 
 Input::Input(GLFWwindow *window) {
     m_IsDown = std::vector<bool>(350, false);
@@ -11,11 +12,11 @@ Input::Input() {
 }
 
 bool Input::IsKeyPressed(key button) {
-    return glfwGetKey(m_Window, button) == GLFW_PRESS;
+    return m_IsDown[button];
 }
 
 bool Input::IsKeyDown(key button) {
-    return glfwGetKey(m_Window, button) == GLFW_RELEASE;
+    return glfwGetKey(m_Window, button) == GLFW_PRESS;
 }
 
 float Input::ScrollOfsset() {
@@ -66,4 +67,8 @@ void Input::Update() {
 
 void Input::SetMode() {
     glfwSetInputMode(m_Window, MODE, VALUE);
+}
+
+void Input::ButtonPress(int button) {
+    m_IsDown[button] = true;
 }

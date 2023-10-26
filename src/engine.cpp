@@ -11,6 +11,9 @@
 #include "material.hpp"
 #include "controller.hpp"
 
+// should send to all constants
+const int maxValidKey = 350;
+
 static Engine *s_Engine = nullptr;
 EnvLight envL;
 
@@ -30,6 +33,7 @@ void Engine::AddObject(Object *a) {
     m_objects.push_back(a);
 }
 
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
@@ -65,6 +69,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     glfwMakeContextCurrent(m_Window);
     glfwSetFramebufferSizeCallback(m_Window, framebuffer_size_callback);
     glfwSetScrollCallback(m_Window, scroll_callback);
+    glfwSetKeyCallback(m_Window, key_callback);
 
     m_Input.SetWindow(m_Window);
     m_Input.SetMode();
@@ -225,7 +230,6 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         lastFrame = currentFrame;
 
         m_Input.Update();
-        m_Camera.Update(&m_Input, deltaTime);
         m_Input.SetScrollOffset(0);
 
         processInput(m_Window);
@@ -233,6 +237,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
         Render(SCR_WIDTH, SCR_HEIGHT);
         glfwPollEvents();
+        m_Camera.Update(&m_Input, deltaTime);
     }
 
     // optional: de-allocate all resources once they've outlived their purpose:
@@ -334,14 +339,13 @@ void Engine::Render(int width, int height) {
 // ---------------------------------------------------------------------------------------------------------
 
 void processInput(GLFWwindow *window) {
-    if (s_Engine->m_Input.IsKeyPressed(key::Escape))
+    if (s_Engine->m_Input.IsKeyDown(key::Escape))
         glfwSetWindowShouldClose(window, true);
 }
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (action == GLFW_PRESS) {
-
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (key > 0 && key < maxValidKey && action == GLFW_PRESS) {
+        s_Engine->m_Input.ButtonPress(key);
     }
 }
 
