@@ -1,7 +1,10 @@
 #include "logger.hpp"
+#include <sys/time.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <ctime>
+
+#define _BSD_SOURCE
 
 FILE* Logger::s_LoggingFile = stdout;
 LogLevel Logger::s_LogLevel = INFO;
@@ -10,7 +13,7 @@ char buffer[32];
 
 void Logger::GetTime() {
     struct timeval time_now {};
-    mingw_gettimeofday(&time_now, nullptr);
+    gettimeofday(&time_now, nullptr);
 
     int milliseconds = time_now.tv_usec / 1000 % 1000;
     time_t now = time_now.tv_sec;
