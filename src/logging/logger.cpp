@@ -1,10 +1,8 @@
 #include "logger.hpp"
-#include <sys/time.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <ctime>
-
-#define _BSD_SOURCE
+#include <chrono>
 
 FILE* Logger::s_LoggingFile = stdout;
 LogLevel Logger::s_LogLevel = INFO;
@@ -12,11 +10,12 @@ LogLevel Logger::s_LogLevel = INFO;
 char buffer[32];
 
 void Logger::GetTime() {
-    struct timeval time_now {};
-    gettimeofday(&time_now, nullptr);
+    const std::chrono::time_point<std::chrono::system_clock> nowh =
+        std::chrono::system_clock::now();
 
-    int milliseconds = time_now.tv_usec / 1000 % 1000;
-    time_t now = time_now.tv_sec;
+    const std::time_t now = std::chrono::system_clock::to_time_t(nowh);
+
+    auto milliseconds = nowh.time_since_epoch() / std::chrono::milliseconds(1) % 1000;
     tm* tm_local = localtime(&now);
 
     snprintf(buffer, sizeof(buffer), "%02d:%02d:%02d.%03d",
