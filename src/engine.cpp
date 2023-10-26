@@ -64,7 +64,6 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     }
     glfwMakeContextCurrent(m_Window);
     glfwSetFramebufferSizeCallback(m_Window, framebuffer_size_callback);
-    //  glfwSetCursorPosCallback(m_Window, mouse_callback);
     glfwSetScrollCallback(m_Window, scroll_callback);
 
     m_Input.SetWindow(m_Window);
@@ -339,6 +338,12 @@ void processInput(GLFWwindow *window) {
         glfwSetWindowShouldClose(window, true);
 }
 
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (action == GLFW_PRESS) {
+
+    }
+}
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------

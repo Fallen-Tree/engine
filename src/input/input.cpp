@@ -1,11 +1,14 @@
 #include "input.hpp"
 
 Input::Input(GLFWwindow *window) {
+    m_IsDown = std::vector<bool>(350, false);
     m_Window = window;
     SetMode();
 }
 
-Input::Input() {}
+Input::Input() {
+    m_IsDown = std::vector<bool>(350, false);
+}
 
 bool Input::IsKeyPressed(key button) {
     return glfwGetKey(m_Window, button) == GLFW_PRESS;
@@ -58,6 +61,7 @@ void Input::Update() {
     glfwGetCursorPos(m_Window, &xpos, &ypos);
     SetMouseX(static_cast<float>(xpos));
     SetMouseY(static_cast<float>(ypos));
+    std::fill(m_IsDown.begin(), m_IsDown.end(), false);
 }
 
 void Input::SetMode() {

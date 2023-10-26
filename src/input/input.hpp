@@ -142,6 +142,7 @@ const int VALUE = GLFW_CURSOR_DISABLED;
 
 class Input {
  private:
+    std::vector<bool> m_IsDown;
     GLFWwindow *m_Window;
     float m_ScrollOffset = 0.f;
     glm::vec2 m_Last = glm::vec2(0);
