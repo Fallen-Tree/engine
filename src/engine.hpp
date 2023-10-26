@@ -1,7 +1,8 @@
 #pragma once
 #include <vector>
-#include "model/modelInstance.hpp"
+#include "modelInstance.hpp"
 #include "camera.hpp"
+#include "logger.hpp"
 
 struct GLFWwindow;
 

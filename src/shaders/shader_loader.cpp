@@ -1,5 +1,6 @@
 
 #include "shader_loader.hpp"
+#include "../logging/logger.hpp"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -16,7 +17,7 @@ int Shader::CheckSuccess() {
     glGetShaderiv(m_Shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(m_Shader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
+        Logger::Error("ERROR::SHADER::PROGRAM::LINKING_FAILED %s", infoLog);
     }
     return success;
 }
@@ -37,7 +38,7 @@ int Shader::LoadSourceFromFile(const char* path) {
         m_Source = shaderStream.str();
     }
     catch (std::ifstream::failure& e) {
-        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
+        Logger::Error("ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: %s", e.what());
     }
     return 0;
 }
@@ -73,7 +74,7 @@ int ShaderProgram::Link() {
     glGetProgramiv(m_Program, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(m_Program, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+        Logger::Error("ERROR::SHADER::PROGRAM::LINKING_FAILED %s", infoLog);
         m_Program = 0;
         return 1;
     }
