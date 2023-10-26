@@ -1,5 +1,4 @@
 #include "logger.hpp"
-#include <sys/time.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <ctime>
@@ -11,7 +10,7 @@ char buffer[32];
 
 void Logger::GetTime() {
     struct timeval time_now {};
-    gettimeofday(&time_now, nullptr);
+    mingw_gettimeofday(&time_now, nullptr);
 
     int milliseconds = time_now.tv_usec / 1000 % 1000;
     time_t now = time_now.tv_sec;
