@@ -89,7 +89,6 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     ShaderProgram shaderProgram = ShaderProgram(vShader, fShader);
 
     // init a model
-    // Model * testModel = new Model(cubeVertices, cubeIndices);
     Model * catModel = Model::loadFromFile(catSource);
     Model * benchModel = Model::loadFromFile(benchSource);
     Model * testModel = Model::loadFromFile(cubeSource);
@@ -103,25 +102,27 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     ModelInstance *catInstance = new ModelInstance(catModel, glm::vec3(0.f, 0.f, -3.f),
                                                                  glm::vec3(0.04f, 0.04f, 0.04f),
                                                                  glm::mat4(1.0));
+
+    catInstance->GetTransform()->Rotate(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
     ModelInstance *benchInstance = new ModelInstance(benchModel, glm::vec3(0.f, 0.f, -3.f),
                                                                  glm::vec3(0.05f, 0.05f, 0.05f),
                                                                  glm::mat4(1.0));
     ModelInstance *cubeInstance = new ModelInstance(testModel, glm::vec3(0.f, 0.f, -3.f),
-                                                                 glm::vec3(1.f, 1.f, 1.f),
+                                                                 glm::vec3(0.5f, 0.5f, 0.5f),
                                                                  glm::mat4(1.0));
 
     ModelInstance *modelInstance = catInstance;
-    
-    modelInstance->m_Mat.m_Ambient = glm::vec3(0.2, 0.1, 0.2);
-    modelInstance->m_Mat.m_Diffuse = glm::vec3(0.7, 0.6, 0.7);
-    modelInstance->m_Mat.m_Specular = glm::vec3(0.6, 0.7, 0.6);
+
+    modelInstance->m_Mat.m_Ambient = glm::vec3(1.0, 1.0, 1.0);
+    modelInstance->m_Mat.m_Diffuse = glm::vec3(1.0, 1.0, 1.0);
+    modelInstance->m_Mat.m_Specular = glm::vec3(1.0, 1.0, 1.0);
     modelInstance->m_Mat.Shininess = 0.6;
-    
+
     envL.m_Ambient = glm::vec3(0.2f, 0.2f, 0.2f);
     envL.m_Diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
     envL.m_Specular = glm::vec3(1.0f, 1.0f, 1.0f);
     envL.m_Position = glm::vec3(-0.2, -0.5, -1.2);
-    
 
     glGenVertexArrays(1, &modelInstance->GetModel()->VAO);
     glGenBuffers(1, &modelInstance->GetModel()->VBO);
@@ -173,6 +174,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     // render loop
     // -----------
+
     while (!glfwWindowShouldClose(m_Window)) {
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -212,8 +214,8 @@ void Engine::Render(int width, int height) {
         auto model = instance->GetModel();
 
         float timeValue = glfwGetTime();
-        //instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 0.f, 1.f));
-        //instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 1.f, 0.f));
+        // instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 0.f, 1.f));
+        // instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 1.f, 0.f));
 
         ShaderProgram shader = model->shader;
         // draw our first triangle
@@ -248,7 +250,7 @@ void Engine::Render(int width, int height) {
 
 
         // send color to shader
-        glUniform3fv(objectColorLoc, 1, glm::value_ptr(glm::vec3(0.53, 0.43, 0.23)));
+        glUniform3fv(objectColorLoc, 1, glm::value_ptr(glm::vec3(1, 1, 1)));
         // send matrix transform to shader
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE,
             glm::value_ptr(instance->GetTransform()->GetTransformMatrix()));
