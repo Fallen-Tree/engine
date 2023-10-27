@@ -1,4 +1,5 @@
 #include "camera.hpp"
+#include "input.hpp"
 
 Camera::Camera(glm::vec3 position,
                 glm::vec3 up, float yaw,
@@ -107,7 +108,7 @@ void Camera::Update(Input * input, float deltaTime) {
     if (scrollOffset != 0)
         ProcessMouseScroll(scrollOffset);
 
-    if (input->IsKeyDown(key::W))
+    if (input->IsKeyPressed(key::W))
         ProcessKeyboard(FORWARD, deltaTime);
     if (input->IsKeyDown(key::S))
         ProcessKeyboard(BACKWARD, deltaTime);

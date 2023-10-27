@@ -6,6 +6,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "input.hpp"
+
 
 // Defines several possible options for camera movement.
 // Used as abstraction to stay away from window-system specific input methods
@@ -63,6 +65,8 @@ class Camera {
     // processes input received from a mouse scroll-wheel event.
     // Only requires input on the vertical wheel-axis
     void ProcessMouseScroll(float yoffset);
+
+    void Update(Input * input, float deltaTime);
 
 
  private:

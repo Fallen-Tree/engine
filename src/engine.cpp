@@ -9,7 +9,6 @@
 #include "shader_loader.hpp"
 #include "light.hpp"
 #include "material.hpp"
-#include "controller.hpp"
 #include "input.hpp"
 
 // should send to all constants
@@ -19,6 +18,10 @@ static Engine *s_Engine = nullptr;
 EnvLight envL;
 
 static Input *s_Input = nullptr;
+
+
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
 
 Engine::Engine() {
     m_objects = std::vector<Object *>();
@@ -231,13 +234,11 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         lastFrame = currentFrame;
 
         m_Input.Update();
-        m_Input.SetScrollOffset(0);
-
+        glfwPollEvents();
         processInput(m_Window);
 
 
         Render(SCR_WIDTH, SCR_HEIGHT);
-        glfwPollEvents();
         m_Camera.Update(&m_Input, deltaTime);
     }
 
@@ -340,7 +341,7 @@ void Engine::Render(int width, int height) {
 // ---------------------------------------------------------------------------------------------------------
 
 void processInput(GLFWwindow *window) {
-    if (s_Engine->m_Input.IsKeyDown(key::Escape))
+    if (s_Engine->m_Input.IsKeyPressed(key::Escape))
         glfwSetWindowShouldClose(window, true);
 }
 

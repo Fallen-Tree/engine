@@ -19,6 +19,7 @@ add_library(ENGINE STATIC
             src/model/modelInstance.cpp
             src/transform/transform.cpp
             src/camera/camera.cpp 
+            src/input/input.cpp
 )
 
 add_subdirectory(thirdparty/glfw)

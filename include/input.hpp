@@ -3,7 +3,6 @@
 #include <glfw/include/GLFW/glfw3.h>
 #include <vector>
 #include <glm/glm.hpp>
-#include "model.hpp"
 
 
 enum key {
