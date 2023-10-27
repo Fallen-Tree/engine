@@ -7,7 +7,7 @@ const int maxValidKey = 350;
 Input::Input(GLFWwindow *window) {
     m_IsDown = std::vector<bool>(maxValidKey, false);
     m_Window = window;
-    SetMode();
+    SetMode(MODE, VALUE);
 }
 
 Input::Input() {
@@ -69,8 +69,8 @@ void Input::Update() {
     SetScrollOffset(0);
 }
 
-void Input::SetMode() {
-    glfwSetInputMode(m_Window, MODE, VALUE);
+void Input::SetMode(int mode, int value) {
+    glfwSetInputMode(m_Window, mode, value);
 }
 
 void Input::ButtonPress(int button) {

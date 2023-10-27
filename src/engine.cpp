@@ -76,7 +76,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     glfwSetKeyCallback(m_Window, key_callback);
 
     m_Input.SetWindow(m_Window);
-    m_Input.SetMode();
+    m_Input.SetMode(MODE, VALUE);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------

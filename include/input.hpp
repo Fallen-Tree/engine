@@ -138,6 +138,7 @@ enum Key {
 
 
 // Initial (Default) conroller values
+// They should be replaced into other constants
 const int MODE = GLFW_CURSOR;
 const int VALUE = GLFW_CURSOR_DISABLED;
 
@@ -167,6 +168,6 @@ class Input {
     void SetMouseX(float x);
     void SetMouseY(float y);
     void SetScrollOffset(float offset);
-    void SetMode();
+    void SetMode(int mode, int value);
     void ButtonPress(int button);
 };
