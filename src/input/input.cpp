@@ -1,21 +1,24 @@
 #include "input.hpp"
 #include <vector>
 
+// should send to all constants
+const int maxValidKey = 350;
+
 Input::Input(GLFWwindow *window) {
-    m_IsDown = std::vector<bool>(350, false);
+    m_IsDown = std::vector<bool>(maxValidKey, false);
     m_Window = window;
     SetMode();
 }
 
 Input::Input() {
-    m_IsDown = std::vector<bool>(350, false);
+    m_IsDown = std::vector<bool>(maxValidKey, false);
 }
 
-bool Input::IsKeyPressed(key button) {
+bool Input::IsKeyPressed(Key button) {
     return m_IsDown[button];
 }
 
-bool Input::IsKeyDown(key button) {
+bool Input::IsKeyDown(Key button) {
     return glfwGetKey(m_Window, button) == GLFW_PRESS;
 }
 

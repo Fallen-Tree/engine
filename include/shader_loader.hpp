@@ -1,7 +1,7 @@
 #ifndef SRC_SHADERS_SHADER_LOADER_HPP_
 #define SRC_SHADERS_SHADER_LOADER_HPP_
 
-#include <glad/include/glad/glad.h>
+#include <glad/glad.h>
 #include <string>
 
 enum ShaderType {VertexShader = GL_VERTEX_SHADER, FragmentShader = GL_FRAGMENT_SHADER};

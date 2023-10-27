@@ -341,7 +341,7 @@ void Engine::Render(int width, int height) {
 // ---------------------------------------------------------------------------------------------------------
 
 void processInput(GLFWwindow *window) {
-    if (s_Engine->m_Input.IsKeyPressed(key::Escape))
+    if (s_Engine->m_Input.IsKeyPressed(Key::Escape))
         glfwSetWindowShouldClose(window, true);
 }
 

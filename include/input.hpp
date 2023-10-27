@@ -5,7 +5,8 @@
 #include <glm/glm.hpp>
 
 
-enum key {
+
+enum Key {
       /* Printable keys */
       Space = GLFW_KEY_SPACE,
       Apostrophe = GLFW_KEY_APOSTROPHE,         /* ' */
@@ -133,7 +134,7 @@ enum key {
       MouseLeft = GLFW_MOUSE_BUTTON_LEFT,
       MouseRight = GLFW_MOUSE_BUTTON_RIGHT,
       MouseMiddle = GLFW_MOUSE_BUTTON_MIDDLE,
-      };  // namespace key
+};  // namespace key
 
 
 // Initial (Default) conroller values
@@ -152,8 +153,8 @@ class Input {
     explicit Input(GLFWwindow *window);
     Input();
 
-    bool IsKeyPressed(key button);
-    bool IsKeyDown(key button);
+    bool IsKeyPressed(Key button);
+    bool IsKeyDown(Key button);
     float ScrollOfsset();
     float MouseX();
     float MouseY();
