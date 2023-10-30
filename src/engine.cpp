@@ -9,10 +9,19 @@
 #include "shader_loader.hpp"
 #include "light.hpp"
 #include "material.hpp"
+#include "input.hpp"
+
+// should send to all constants
+const int maxValidKey = 350;
 
 static Engine *s_Engine = nullptr;
 EnvLight envL;
 
+static Input *s_Input = nullptr;
+
+
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
 
 Engine::Engine() {
     m_objects = std::vector<Object *>();
@@ -28,17 +37,13 @@ void Engine::AddObject(Object *a) {
     m_objects.push_back(a);
 }
 
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
-float lastX = 0;
-float lastY = 0;
 bool firstMouse = true;
 
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
 
 const char *vertexShaderSource = "/vertex/standart.vshader";
 const char *fragmentShaderSource1 = "/fragment/green.fshader";
@@ -67,10 +72,11 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     }
     glfwMakeContextCurrent(m_Window);
     glfwSetFramebufferSizeCallback(m_Window, framebuffer_size_callback);
-    glfwSetCursorPosCallback(m_Window, mouse_callback);
     glfwSetScrollCallback(m_Window, scroll_callback);
+    glfwSetKeyCallback(m_Window, key_callback);
 
-    glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    m_Input.SetWindow(m_Window);
+    m_Input.SetMode(MODE, VALUE);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -227,10 +233,13 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        m_Input.Update();
+        glfwPollEvents();
         processInput(m_Window);
 
+
         Render(SCR_WIDTH, SCR_HEIGHT);
-        glfwPollEvents();
+        m_Camera.Update(&m_Input, deltaTime);
     }
 
     // optional: de-allocate all resources once they've outlived their purpose:
@@ -330,17 +339,16 @@ void Engine::Render(int width, int height) {
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
+
 void processInput(GLFWwindow *window) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    if (s_Engine->m_Input.IsKeyPressed(Key::Escape))
         glfwSetWindowShouldClose(window, true);
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        s_Engine->m_Camera.ProcessKeyboard(FORWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        s_Engine->m_Camera.ProcessKeyboard(BACKWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        s_Engine->m_Camera.ProcessKeyboard(LEFT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        s_Engine->m_Camera.ProcessKeyboard(RIGHT, deltaTime);
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (key > 0 && key < maxValidKey && action == GLFW_PRESS) {
+        s_Engine->m_Input.ButtonPress(key);
+    }
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -351,28 +359,9 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-// glfw: whenever the mouse moves, this callback is called
-// -------------------------------------------------------
-void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
-    float xpos = static_cast<float>(xposIn);
-    float ypos = static_cast<float>(yposIn);
-
-    if (firstMouse) {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos;
-    lastX = xpos;
-    lastY = ypos;
-
-    s_Engine->m_Camera.ProcessMouseMovement(xoffset, yoffset);
-}
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
 // ----------------------------------------------------------------------
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    s_Engine->m_Camera.ProcessMouseScroll(static_cast<float>(yoffset));
+    s_Engine->m_Input.SetScrollOffset(static_cast<float>(yoffset));
 }

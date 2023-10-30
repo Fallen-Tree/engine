@@ -1,4 +1,5 @@
 #include "camera.hpp"
+#include "input.hpp"
 
 Camera::Camera(glm::vec3 position,
                 glm::vec3 up, float yaw,
@@ -94,4 +95,25 @@ void Camera::UpdateCameraVectors() {
     // also re-calculate the Right and Up vector
     this->m_Right = glm::normalize(glm::cross(m_Front, m_WorldUp));
     this->m_Up    = glm::normalize(glm::cross(m_Right, m_Front));
+}
+
+void Camera::Update(Input * input, float deltaTime) {
+    float xOffset = input->OffsetX();
+    float yOffset = input->OffsetY();
+    if (xOffset != 0 || yOffset != 0) {
+        ProcessMouseMovement(xOffset, yOffset);
+    }
+
+    float scrollOffset = input->ScrollOfsset();
+    if (scrollOffset != 0)
+        ProcessMouseScroll(scrollOffset);
+
+    if (input->IsKeyPressed(Key::W))
+        ProcessKeyboard(FORWARD, deltaTime);
+    if (input->IsKeyDown(Key::S))
+        ProcessKeyboard(BACKWARD, deltaTime);
+    if (input->IsKeyDown(Key::A))
+        ProcessKeyboard(LEFT, deltaTime);
+    if (input->IsKeyDown(Key::D))
+        ProcessKeyboard(RIGHT, deltaTime);
 }
