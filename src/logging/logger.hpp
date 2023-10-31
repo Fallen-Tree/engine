@@ -16,7 +16,7 @@ class Logger {
     static FILE* s_LoggingFile;
     static LogLevel s_LogLevel;
     static void Log(const char* logLevel, const char *format, va_list args);
-    static void GetTime();
+    static void GetTime(char* buffer, size_t bufsiz);
 
  public:
     static void RedirectToFile(const char* fileName);

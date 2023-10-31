@@ -17,7 +17,7 @@ int Shader::CheckSuccess() {
     glGetShaderiv(m_Shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(m_Shader, 512, NULL, infoLog);
-        Logger::Error("ERROR::SHADER::PROGRAM::LINKING_FAILED %s", infoLog);
+        Logger::Error("SHADER::PROGRAM::LINKING_FAILED %s", infoLog);
     }
     return success;
 }
@@ -38,7 +38,7 @@ int Shader::LoadSourceFromFile(const char* path) {
         m_Source = shaderStream.str();
     }
     catch (std::ifstream::failure& e) {
-        Logger::Error("ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: %s", e.what());
+        Logger::Error("SHADER::FILE_NOT_SUCCESSFULLY_READ: %s", e.what());
     }
     return 0;
 }
@@ -74,7 +74,7 @@ int ShaderProgram::Link() {
     glGetProgramiv(m_Program, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(m_Program, 512, NULL, infoLog);
-        Logger::Error("ERROR::SHADER::PROGRAM::LINKING_FAILED %s", infoLog);
+        Logger::Error("SHADER::PROGRAM::LINKING_FAILED %s", infoLog);
         m_Program = 0;
         return 1;
     }
