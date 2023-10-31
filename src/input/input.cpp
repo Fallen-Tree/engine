@@ -70,6 +70,7 @@ void Input::Update() {
         Input::firstMouse = 0;
     }
 
+
     SetMouseX(static_cast<float>(xpos));
     SetMouseY(static_cast<float>(ypos));
     std::fill(m_IsDown.begin(), m_IsDown.end(), false);

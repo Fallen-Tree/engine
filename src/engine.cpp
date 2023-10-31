@@ -17,6 +17,11 @@ const int maxValidKey = 350;
 static Engine *s_Engine = nullptr;
 EnvLight envL;
 
+static Input *s_Input = nullptr;
+
+
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -39,6 +44,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
+
 
 const char *vertexShaderSource = "/vertex/standart.vshader";
 const char *fragmentShaderSource1 = "/fragment/green.fshader";
