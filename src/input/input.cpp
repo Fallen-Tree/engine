@@ -63,7 +63,7 @@ void Input::SetScrollOffset(float offset) {
 void Input::Update() {
     double xpos, ypos;
     glfwGetCursorPos(m_Window, &xpos, &ypos);
-    
+
     if (Input::firstMouse) {
         m_Current.y = ypos;
         m_Current.x = xpos;
