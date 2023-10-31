@@ -14,6 +14,8 @@
 
 // should send to all constants
 const int maxValidKey = 350;
+const float fpsLimit = 2000.f;
+const float fpsShowingInterval = 1.f;
 
 static Engine *s_Engine = nullptr;
 EnvLight envL;
@@ -44,7 +46,6 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
 bool firstMouse = true;
-
 
 const char *vertexShaderSource = "/vertex/standart.vshader";
 const char *fragmentShaderSource1 = "/fragment/green.fshader";
@@ -227,28 +228,37 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     AddObject(testObj);
     glEnable(GL_DEPTH_TEST);
 
-    float fpsPrevious = 0.f;
+
+    float lastRenderedFrame = 0.f;
+    float lastFpsShowedFrame = 0.f;
+    float penalty = 0.f;
     int fpsFrames = 0;
+
     // render loop
     // -----------
     while (!glfwWindowShouldClose(m_Window)) {
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
-        fpsFrames++;
-
-        if (currentFrame - fpsPrevious > 0.3f) {
-            Logger::Info("FPS: %d", static_cast<int>(fpsFrames / (currentFrame - fpsPrevious)));
-            fpsPrevious = currentFrame;
-            fpsFrames = 0;
-        }
 
         m_Input.Update();
         glfwPollEvents();
         processInput(m_Window);
 
+        if (currentFrame - lastRenderedFrame >= 1.f / fpsLimit - penalty) {
+            penalty = currentFrame - lastRenderedFrame - (1.f / fpsLimit - penalty);
+            lastRenderedFrame = currentFrame;
+            fpsFrames++;
+            Render(SCR_WIDTH, SCR_HEIGHT);
+        }
 
-        Render(SCR_WIDTH, SCR_HEIGHT);
+        if (currentFrame - lastFpsShowedFrame > fpsShowingInterval) {
+            Logger::Info("FPS: %d", static_cast<int>(fpsFrames / (currentFrame - lastFpsShowedFrame)));
+            lastFpsShowedFrame = currentFrame;
+            penalty = 0;
+            fpsFrames = 0;
+        }
+
         m_Camera.Update(&m_Input, deltaTime);
     }
 
