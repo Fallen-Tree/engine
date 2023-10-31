@@ -147,6 +147,7 @@ class Input {
     std::vector<bool> m_IsDown;
     GLFWwindow *m_Window;
     float m_ScrollOffset = 0.f;
+    bool firstMouse = true;
     glm::vec2 m_Last = glm::vec2(0);
     glm::vec2 m_Current = glm::vec2(0);
 
