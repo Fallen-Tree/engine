@@ -2,7 +2,10 @@
 #include <vector>
 #include "modelInstance.hpp"
 #include "camera.hpp"
+
 #include "logger.hpp"
+#include "input.hpp"
+
 
 struct GLFWwindow;
 
@@ -23,10 +26,12 @@ class Engine {
     }
 
     void Run(int, int);
+    Input m_Input;
     Camera m_Camera;
  private:
     void AddObject(Object *);
     void Render(int, int);
+
 
     std::vector<Object *> m_objects;
     GLFWwindow *m_Window;
