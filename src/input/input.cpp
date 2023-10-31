@@ -14,6 +14,7 @@ Input::Input() {
     m_IsDown = std::vector<bool>(maxValidKey, false);
 }
 
+
 bool Input::IsKeyPressed(Key button) {
     return m_IsDown[button];
 }
@@ -42,6 +43,8 @@ float Input::OffsetY() {
     return this->m_Last.y - this->m_Current.y;
 }
 
+
+
 void Input::SetWindow(GLFWwindow * window) {
     this->m_Window = window;
 }
@@ -56,6 +59,13 @@ void Input::SetMouseY(float y) {
     m_Current.y = y;
 }
 
+void Input::InitMouse() {
+    double xpos, ypos;
+    glfwGetCursorPos(m_Window, &xpos, &ypos);
+    SetMouseX(static_cast<float>(xpos));
+    SetMouseY(static_cast<float>(ypos));
+}
+
 void Input::SetScrollOffset(float offset) {
     this->m_ScrollOffset = offset;
 }
@@ -63,14 +73,6 @@ void Input::SetScrollOffset(float offset) {
 void Input::Update() {
     double xpos, ypos;
     glfwGetCursorPos(m_Window, &xpos, &ypos);
-
-    if (Input::firstMouse) {
-        m_Current.y = ypos;
-        m_Current.x = xpos;
-        Input::firstMouse = 0;
-    }
-
-
     SetMouseX(static_cast<float>(xpos));
     SetMouseY(static_cast<float>(ypos));
     std::fill(m_IsDown.begin(), m_IsDown.end(), false);

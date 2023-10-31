@@ -75,6 +75,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     m_Input.SetWindow(m_Window);
     m_Input.SetMode(MODE, VALUE);
+    m_Input.InitMouse();
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
