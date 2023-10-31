@@ -23,9 +23,6 @@ static Input *s_Input = nullptr;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
-
 Engine::Engine() {
     m_objects = std::vector<Object *>();
     m_Camera = Camera(glm::vec3(0.0f, 0.0f, 3.0f));
