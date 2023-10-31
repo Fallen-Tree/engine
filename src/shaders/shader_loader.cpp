@@ -7,9 +7,7 @@
 #include <fstream>
 #include <cstdarg>
 #include "shader_loader.hpp"
-#include "../logging/logger.hpp"
-
-
+#include "logger.hpp"
 
 #include <glm/glm.hpp>
 

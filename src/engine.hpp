@@ -2,8 +2,6 @@
 #include <vector>
 #include "modelInstance.hpp"
 #include "camera.hpp"
-
-#include "logger.hpp"
 #include "input.hpp"
 
 

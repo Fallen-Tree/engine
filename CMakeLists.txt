@@ -21,12 +21,8 @@ add_library(ENGINE STATIC
             src/transform/transform.cpp
             src/camera/camera.cpp 
             src/input/input.cpp
+            src/logging/logger.cpp
 )
-
-add_library(LOGGING STATIC  
-            src/logging/logger.hpp
-            src/logging/logger.cpp)
-
 
 add_subdirectory(thirdparty/glfw)
 add_subdirectory(thirdparty/glad)
