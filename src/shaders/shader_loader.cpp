@@ -6,7 +6,6 @@
 #include <sstream>
 #include <fstream>
 #include <cstdarg>
-#include "shader_loader.hpp"
 #include "logger.hpp"
 
 #include <glm/glm.hpp>

@@ -10,6 +10,7 @@
 #include "light.hpp"
 #include "material.hpp"
 #include "input.hpp"
+#include "logger.hpp"
 
 // should send to all constants
 const int maxValidKey = 350;
@@ -226,12 +227,21 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     AddObject(testObj);
     glEnable(GL_DEPTH_TEST);
 
+    float fpsPrevious = 0.f;
+    int fpsFrames = 0;
     // render loop
     // -----------
     while (!glfwWindowShouldClose(m_Window)) {
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+        fpsFrames++;
+
+        if (currentFrame - fpsPrevious > 0.3f) {
+            Logger::Info("FPS: %d", static_cast<int>(fpsFrames / (currentFrame - fpsPrevious)));
+            fpsPrevious = currentFrame;
+            fpsFrames = 0;
+        }
 
         m_Input.Update();
         glfwPollEvents();
