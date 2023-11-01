@@ -1,10 +1,12 @@
 #ifndef SRC_CAMERA_CAMERA_HPP_
 #define SRC_CAMERA_CAMERA_HPP_
 
-#include <glad/include/glad/glad.h>
+#include <glad/glad.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+#include "input.hpp"
 
 
 // Defines several possible options for camera movement.
@@ -63,6 +65,8 @@ class Camera {
     // processes input received from a mouse scroll-wheel event.
     // Only requires input on the vertical wheel-axis
     void ProcessMouseScroll(float yoffset);
+
+    void Update(Input * input, float deltaTime);
 
 
  private:
