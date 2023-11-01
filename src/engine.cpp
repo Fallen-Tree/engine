@@ -10,6 +10,7 @@
 #include "light.hpp"
 #include "material.hpp"
 #include "input.hpp"
+#include "model.hpp"
 
 // should send to all constants
 const int maxValidKey = 350;
@@ -42,16 +43,9 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
-float lastX = 0;
-float lastY = 0;
-bool firstMouse = true;
-
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
-
-const char *catSource = "/models/cat.obj";
-const char *cubeSource = "/models/cube.obj";
-const char *benchSource = "/models/bench.obj";
+const char *cubeSource = "/cube.obj";
+const char *catSource = "/cat.obj";
+const char *benchSource = "/bench.obj";
 
 const char *vertexShaderSource = "/vertex/standart.vshader";
 const char *fragmentShaderSource = "/fragment/standart.fshader";
@@ -96,44 +90,47 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // build and compile our shader program ------------------------------------
     Shader vShader = Shader(VertexShader, vertexShaderSource);
     Shader fShader = Shader(FragmentShader, fragmentShaderSource);
-    
+
     ShaderProgram shaderProgram = ShaderProgram(vShader, fShader);
 
-    // init a model
-    Model * catModel = Model::loadFromFile(catSource);
-    Model * benchModel = Model::loadFromFile(benchSource);
-    Model * testModel = Model::loadFromFile(cubeSource);
-
-    testModel->shader = shaderProgram;
-    catModel->shader = shaderProgram;
-    benchModel->shader = shaderProgram;
-
-    // transformation stores information about angle, scale, rotate and tranlsation.
-    // Method makeTransform make mat4 transform(public var), after we send it to shaders.
-    ModelInstance *catInstance = new ModelInstance(catModel, glm::vec3(0.f, 0.f, -3.f),
-                                                                 glm::vec3(0.04f, 0.04f, 0.04f),
-                                                                 glm::mat4(1.0));
-
-    catInstance->GetTransform()->Rotate(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-
-    ModelInstance *benchInstance = new ModelInstance(benchModel, glm::vec3(0.f, 0.f, -3.f),
-                                                                 glm::vec3(0.05f, 0.05f, 0.05f),
-                                                                 glm::mat4(1.0));
-    ModelInstance *cubeInstance = new ModelInstance(testModel, glm::vec3(0.f, 0.f, -3.f),
-                                                                 glm::vec3(0.5f, 0.5f, 0.5f),
-                                                                 glm::mat4(1.0));
-
-    ModelInstance *modelInstance = catInstance;
-
-    modelInstance->m_Mat.m_Ambient = glm::vec3(1.0, 1.0, 1.0);
-    modelInstance->m_Mat.m_Diffuse = glm::vec3(1.0, 1.0, 1.0);
-    modelInstance->m_Mat.m_Specular = glm::vec3(1.0, 1.0, 1.0);
-    modelInstance->m_Mat.Shininess = 0.6;
+    // set up vertex data (and buffer(s)) and configure vertex attributes
+    // ------------------------------------------------------------------
 
     envL.m_Ambient = glm::vec3(0.2f, 0.2f, 0.2f);
     envL.m_Diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
     envL.m_Specular = glm::vec3(1.0f, 1.0f, 1.0f);
     envL.m_Position = glm::vec3(-0.2, -0.5, -1.2);
+
+    // init a model
+    Model * cubeModel = Model::loadFromFile(cubeSource);
+    cubeModel->shader = shaderProgram;
+    // transformation stores information about angle, scale, rotate and tranlsation.
+    // Method makeTransform make mat4 transform(public var), after we send it to shaders.
+    ModelInstance * cubeInstance = new ModelInstance(cubeModel, glm::vec3(0.f, 0.f, -3.f),
+                                                                 glm::vec3(1.f, 1.f, 1.f),
+                                                                 glm::mat4(1.0));
+    Model * catModel = Model::loadFromFile(catSource);
+    catModel->shader = shaderProgram;
+    // transformation stores information about angle, scale, rotate and tranlsation.
+    // Method makeTransform make mat4 transform(public var), after we send it to shaders.
+    ModelInstance * catInstance = new ModelInstance(catModel, glm::vec3(0.f, 0.f, -3.f),
+                                                                 glm::vec3(0.1f, 0.1f, 0.1f),
+                                                                 glm::mat4(1.0));
+    Model * benchModel = Model::loadFromFile(benchSource);
+    benchModel->shader = shaderProgram;
+    // transformation stores information about angle, scale, rotate and tranlsation.
+    // Method makeTransform make mat4 transform(public var), after we send it to shaders.
+    ModelInstance * benchInstance = new ModelInstance(benchModel, glm::vec3(0.f, 0.f, -3.f),
+                                                                 glm::vec3(0.2f, 0.2f, 0.2f),
+                                                                 glm::mat4(1.0));
+
+    ModelInstance * modelInstance = catInstance;
+
+    modelInstance->m_Mat.m_Ambient = glm::vec3(0.2, 0.1, 0.2);
+    modelInstance->m_Mat.m_Diffuse = glm::vec3(0.7, 0.6, 0.7);
+    modelInstance->m_Mat.m_Specular = glm::vec3(0.6, 0.7, 0.6);
+    modelInstance->m_Mat.Shininess = 0.6;
+
 
     glGenVertexArrays(1, &modelInstance->GetModel()->VAO);
     glGenBuffers(1, &modelInstance->GetModel()->VBO);
@@ -185,7 +182,6 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     // render loop
     // -----------
-
     while (!glfwWindowShouldClose(m_Window)) {
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -228,8 +224,8 @@ void Engine::Render(int width, int height) {
         auto model = instance->GetModel();
 
         float timeValue = glfwGetTime();
-        // instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 0.f, 1.f));
-        // instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 1.f, 0.f));
+        instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 0.f, 1.f));
+        instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 1.f, 0.f));
 
         ShaderProgram shader = model->shader;
         // draw our first triangle
@@ -260,11 +256,11 @@ void Engine::Render(int width, int height) {
         GLint lightDiffuseLoc = shader.UniformLocation("light.diffuse");
 
 
-        //instance->GetTransform()->Translate(glm::vec3(0.f, 0.f, -0.001f));
+        instance->GetTransform()->Translate(glm::vec3(0.f, 0.f, -0.001f));
 
 
         // send color to shader
-        glUniform3fv(objectColorLoc, 1, glm::value_ptr(glm::vec3(1, 1, 1)));
+        glUniform3fv(objectColorLoc, 1, glm::value_ptr(glm::vec3(1., 1., 1.)));
         // send matrix transform to shader
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE,
             glm::value_ptr(instance->GetTransform()->GetTransformMatrix()));

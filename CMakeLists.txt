@@ -15,7 +15,7 @@ find_package(OpenGL REQUIRED)
 add_library(ENGINE STATIC 
             src/engine.cpp
             src/shaders/shader_loader.cpp
-            src/model/model.hpp
+            src/model/model.cpp
             src/model/modelLoader.cpp
             src/model/modelInstance.cpp
             src/transform/transform.cpp

@@ -1,9 +1,13 @@
 #include <vector>
 #include <iostream>
-#include <filesystem>
+#include <sstream>
 #include <fstream>
+#include <filesystem>
+#include <cstdarg>
 
-#include <model.hpp>
+#include "config.hpp"
+
+#include "model.hpp"
 
 Model* Model::loadFromFile(const char* filePath) {
     std::filesystem::path fileExtension = ((std::filesystem::path) filePath).extension();
@@ -11,8 +15,10 @@ Model* Model::loadFromFile(const char* filePath) {
         std::cout << "INCORRECT::FILE::FORMAT" << std::endl;
         return 0;
     }
+    char finalPath[512];
+    snprintf(finalPath, sizeof(finalPath), RESOURCE_DIR"/models%s", filePath);
     std::ifstream objFile;
-    objFile.open(filePath);
+    objFile.open(finalPath);
 
     // Check if file opened correctly
 

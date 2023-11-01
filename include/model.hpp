@@ -1,16 +1,13 @@
-#ifndef SRC_MODEL_MODEL_HPP_
-#define SRC_MODEL_MODEL_HPP_
+#pragma once
 
 #include <vector>
 #include "shader_loader.hpp"
 
 class Model {
- private:
-    std::vector<float> points;
-    std::vector<unsigned int> indices;
-
  public:
     // some variables
+    std::vector<float> points;
+    std::vector<unsigned int> indices;
     unsigned int VAO, VBO, EBO;
     ShaderProgram shader;
 
@@ -18,7 +15,6 @@ class Model {
     explicit Model(const std::vector<float>& Points, const std::vector<unsigned int>& Indices);
 
     explicit Model(const std::vector<float>& Points, int vectorSize);
-
 
     static Model* loadFromFile(const char* path);
 
@@ -42,4 +38,3 @@ class Model {
 
     int getLenArrPoints();
 };
-#endif  // SRC_MODEL_MODEL_HPP_
