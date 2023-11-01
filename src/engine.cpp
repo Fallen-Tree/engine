@@ -14,7 +14,7 @@
 
 // should send to all constants
 const int maxValidKey = 350;
-const float fpsLimit = 2000.f;
+const float fpsLimit = 500;
 const float fpsShowingInterval = 1.f;
 
 static Engine *s_Engine = nullptr;
@@ -22,9 +22,6 @@ EnvLight envL;
 
 static Input *s_Input = nullptr;
 
-
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
 
 Engine::Engine() {
     m_objects = std::vector<Object *>();
@@ -229,36 +226,35 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     glEnable(GL_DEPTH_TEST);
 
 
-    float lastRenderedFrame = 0.f;
-    float lastFpsShowedFrame = 0.f;
-    float penalty = 0.f;
+    float lastFpsShowedTime = 0.f;
+    int lastRenderedFrame = -1;
     int fpsFrames = 0;
+    const float frameTime = 1.f / fpsLimit;
+    float deltaTime = 0.0f;
+    float lastTime = 0.0f;
 
     // render loop
     // -----------
     while (!glfwWindowShouldClose(m_Window)) {
-        float currentFrame = static_cast<float>(glfwGetTime());
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
+        while (static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime)) != lastRenderedFrame) {
+            fpsFrames++;
+            lastRenderedFrame = static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime));
+            Render(SCR_WIDTH, SCR_HEIGHT);
+        }
+
+        float currentTime = static_cast<float>(glfwGetTime());
+        deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
+
+        if (currentTime - lastFpsShowedTime > fpsShowingInterval) {
+            Logger::Info("FPS: %d", static_cast<int>(fpsFrames / (currentTime - lastFpsShowedTime)));
+            lastFpsShowedTime = currentTime;
+            fpsFrames = 0;
+        }
 
         m_Input.Update();
         glfwPollEvents();
         processInput(m_Window);
-
-        if (currentFrame - lastRenderedFrame >= 1.f / fpsLimit - penalty) {
-            penalty = currentFrame - lastRenderedFrame - (1.f / fpsLimit - penalty);
-            lastRenderedFrame = currentFrame;
-            fpsFrames++;
-            Render(SCR_WIDTH, SCR_HEIGHT);
-        }
-
-        if (currentFrame - lastFpsShowedFrame > fpsShowingInterval) {
-            Logger::Info("FPS: %d", static_cast<int>(fpsFrames / (currentFrame - lastFpsShowedFrame)));
-            lastFpsShowedFrame = currentFrame;
-            penalty = 0;
-            fpsFrames = 0;
-        }
-
         m_Camera.Update(&m_Input, deltaTime);
     }
 
