@@ -1,5 +1,4 @@
-#ifndef SRC_SHADERS_SHADER_LOADER_HPP_
-#define SRC_SHADERS_SHADER_LOADER_HPP_
+#pragma once
 
 #include <glad/glad.h>
 #include <string>
@@ -28,7 +27,12 @@ class ShaderProgram {
      ShaderProgram(Shader vShader, Shader fShader);
      int Use();
      int UniformLocation(const char* mode);
+
+     void SetValue(const char* name, const float value);
+     void SetVec3(const char* name, const float* vec);
+     void SetVecs3(const char* name, unsigned count, const float* vec);
+     void SetMat4(const char* name, const float* mat4);
+     void SetMats4(const char* name, unsigned count, const float* mat4);
+
      ~ShaderProgram();
 };
-
-#endif  // SRC_SHADERS_SHADER_LOADER_HPP_
