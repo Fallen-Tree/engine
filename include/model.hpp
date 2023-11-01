@@ -1,13 +1,18 @@
 #pragma once
 
 #include <vector>
+#include <fstream>
 #include "shader_loader.hpp"
 
 class Model {
- public:
-    // some variables
+ private:
     std::vector<float> points;
     std::vector<unsigned int> indices;
+
+    static Model* loadFromObjFile(std::ifstream &objFile);
+
+ public:
+    // some variables
     unsigned int VAO, VBO, EBO;
     ShaderProgram shader;
 
