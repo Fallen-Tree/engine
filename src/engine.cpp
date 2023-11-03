@@ -287,30 +287,29 @@ void Engine::Render(int width, int height) {
         instance->GetTransform()->Translate(glm::vec3(0.f, 0.f, -0.001f));
 
         // send color to shader
-        shader.SetVec3("objectColor", glm::value_ptr(glm::vec3(1, 1, 1)));
+        shader.SetVec3("objectColor", glm::vec3(1, 1, 1));
 
         // send matrix transform to shader
-        shader.SetMat4("model",
-            glm::value_ptr(instance->GetTransform()->GetTransformMatrix()));
-        shader.SetMat4("view", glm::value_ptr(view));
-        shader.SetVec3("viewPos", glm::value_ptr(viewPos));
+        shader.SetMat4("model", instance->GetTransform()->GetTransformMatrix());
+        shader.SetMat4("view", view);
+        shader.SetVec3("viewPos", viewPos);
 
         // send material to shaders
-        shader.SetVec3("material.ambient", glm::value_ptr(instance->m_Mat.m_Ambient));
-        shader.SetVec3("material.diffuse", glm::value_ptr(instance->m_Mat.m_Diffuse));
-        shader.SetVec3("material.specular", glm::value_ptr(instance->m_Mat.m_Specular));
-        shader.SetValue("material.shininess", instance->m_Mat.Shininess);
+        shader.SetVec3("material.ambient", instance->m_Mat.m_Ambient);
+        shader.SetVec3("material.diffuse", instance->m_Mat.m_Diffuse);
+        shader.SetVec3("material.specular", instance->m_Mat.m_Specular);
+        shader.SetVar("material.shininess", instance->m_Mat.Shininess);
 
         // send light to shaders
-        shader.SetVec3("light.position", glm::value_ptr(envL.m_Position));
-        shader.SetVec3("light.ambient", glm::value_ptr(envL.m_Ambient));
-        shader.SetVec3("light.diffuse", glm::value_ptr(envL.m_Diffuse));
-        shader.SetVec3("light.specular", glm::value_ptr(envL.m_Specular));
+        shader.SetVec3("light.position", envL.m_Position);
+        shader.SetVec3("light.ambient", envL.m_Ambient);
+        shader.SetVec3("light.diffuse", envL.m_Diffuse);
+        shader.SetVec3("light.specular", envL.m_Specular);
 
         // Note: currently we set the projection matrix each frame,
         // but since the projection matrix rarely changes it's
         // often best practice to set it outside the main loop only once.
-        shader.SetMat4("projection", glm::value_ptr(projection));
+        shader.SetMat4("projection", projection);
 
         glBindVertexArray(model->VAO);
 
