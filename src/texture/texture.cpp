@@ -30,10 +30,11 @@ void Texture::loadTexture(std::string path) {
 
     int width, height, nrComponents;
     char finalPath[512];
-    snprintf(finalPath, sizeof(finalPath), RESOURCE_DIR"/textures%s", path.c_str());
-    unsigned char *data = stbi_load(std::filesystem::absolute(finalPath).c_str(),
-        &width, &height, &nrComponents, 0);
-    std::cout << std::filesystem::absolute(finalPath).c_str() << std::endl;
+    snprintf(finalPath, sizeof(finalPath),
+        std::filesystem::absolute(RESOURCE_DIR"/textures%s").c_str(), path.c_str());
+    unsigned char *data = reinterpret_cast<unsigned char*>(
+        stbi_load(finalPath,
+        &width, &height, &nrComponents, 0));
 
     if (!data) {
         stbi_image_free(data);
