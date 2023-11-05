@@ -108,7 +108,7 @@ void Camera::Update(Input * input, float deltaTime) {
     if (scrollOffset != 0)
         ProcessMouseScroll(scrollOffset);
 
-    if (input->IsKeyPressed(Key::W))
+    if (input->IsKeyDown(Key::W))
         ProcessKeyboard(FORWARD, deltaTime);
     if (input->IsKeyDown(Key::S))
         ProcessKeyboard(BACKWARD, deltaTime);
