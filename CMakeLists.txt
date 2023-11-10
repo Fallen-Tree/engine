@@ -20,6 +20,7 @@ add_library(ENGINE STATIC
             src/transform/transform.cpp
             src/camera/camera.cpp 
             src/input/input.cpp
+            src/logging/logger.cpp
 )
 
 add_subdirectory(thirdparty/glfw)
@@ -30,3 +31,4 @@ target_link_libraries(ENGINE PUBLIC glfw glad OpenGL::GL)
 
 add_executable(main src/main.cpp)
 target_link_libraries(main PUBLIC ENGINE)
+
