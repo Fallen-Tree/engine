@@ -291,7 +291,6 @@ void Engine::Render(int width, int height) {
         // send material to shaders
         shader.SetVec3("material.ambient", instance->m_Mat.m_Ambient);
         shader.SetVar("material.shininess", instance->m_Mat.Shininess);
-
         // send light to shaders
         shader.SetVec3("light.position", glm::value_ptr(envL.m_Position));
         shader.SetVec3("light.ambient", glm::value_ptr(envL.m_Ambient));
