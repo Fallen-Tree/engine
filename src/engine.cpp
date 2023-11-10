@@ -236,12 +236,6 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // render loop
     // -----------
     while (!glfwWindowShouldClose(m_Window)) {
-        while (static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime)) != lastRenderedFrame) {
-            fpsFrames++;
-            lastRenderedFrame = static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime));
-            Render(SCR_WIDTH, SCR_HEIGHT);
-        }
-
         float currentTime = static_cast<float>(glfwGetTime());
         deltaTime = currentTime - lastTime;
         lastTime = currentTime;
@@ -256,6 +250,13 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         glfwPollEvents();
         processInput(m_Window);
         m_Camera.Update(&m_Input, deltaTime);
+    
+        while (static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime)) == lastRenderedFrame) {
+        }
+        
+        fpsFrames++;
+        lastRenderedFrame = static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime));
+        Render(SCR_WIDTH, SCR_HEIGHT);
     }
 
     // optional: de-allocate all resources once they've outlived their purpose:
