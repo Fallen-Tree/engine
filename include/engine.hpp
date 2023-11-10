@@ -5,8 +5,6 @@
 #include "camera.hpp"
 #include "input.hpp"
 
-const int MAX_ENTITIES = 10000;
-
 struct GLFWwindow;
 
 class Object {
