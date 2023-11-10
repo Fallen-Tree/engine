@@ -3,6 +3,7 @@
 #include "texture.hpp"
 #include "stb_image.h"
 #include "config.hpp"
+#include "logger.hpp"
 
 Texture::Texture() {}
 
@@ -37,7 +38,7 @@ void Texture::loadImage(std::string path) {
 
     if (!data) {
         stbi_image_free(data);
-        std::cout << "Texture failed to load at path: " << finalPath << std::endl;
+        Logger::Error("SHADER::PROGRAM::FILE_NOT_FOUND_FAILED: %s", finalPath);
         return;
     }
     GLenum format = GL_RGBA;
