@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include "camera.hpp"
-#include "shader_loader.hpp"
+#include "shaders.hpp"
 #include "light.hpp"
 #include "material.hpp"
 #include "input.hpp"
@@ -284,50 +284,32 @@ void Engine::Render(int width, int height) {
                                         static_cast<float>(width) / static_cast<float>(height),
                                         0.1f, 100.0f);
 
-        GLint objectColorLoc = shader.UniformLocation("objectColor");
-        GLint modelLoc = shader.UniformLocation("model");
-        GLint viewLoc = shader.UniformLocation("view");
-        GLint viewPosLoc = shader.UniformLocation("viewPos");
-        GLint projLoc = shader.UniformLocation("projection");
-        // loc for material
-        GLint ambientLoc =  shader.UniformLocation("material.ambient");
-        GLint diffuseLoc =  shader.UniformLocation("material.diffuse");
-        GLint specularLoc =  shader.UniformLocation("material.specular");
-        GLint shininessLoc =  shader.UniformLocation("material.shininess");
-        // loc for light
-        GLint lightPositionLoc =  shader.UniformLocation("light.position");
-        GLint lightAmbientLoc = shader.UniformLocation("light.ambient");
-        GLint lightSpecularLoc = shader.UniformLocation("light.specualar");
-        GLint lightDiffuseLoc = shader.UniformLocation("light.diffuse");
-
-
         instance->GetTransform()->Translate(glm::vec3(0.f, 0.f, -0.001f));
 
-
         // send color to shader
-        glUniform3fv(objectColorLoc, 1, glm::value_ptr(glm::vec3(0.53, 0.43, 0.23)));
+        shader.SetVec3("objectColor", glm::vec3(1, 1, 1));
+
         // send matrix transform to shader
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE,
-            glm::value_ptr(instance->GetTransform()->GetTransformMatrix()));
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        glUniform3fv(viewPosLoc, 1, glm::value_ptr(viewPos));
+        shader.SetMat4("model", instance->GetTransform()->GetTransformMatrix());
+        shader.SetMat4("view", view);
+        shader.SetVec3("viewPos", viewPos);
+
         // send material to shaders
-        glUniform3fv(ambientLoc, 1, glm::value_ptr(instance->m_Mat.m_Ambient));
-        glUniform3fv(diffuseLoc, 1, glm::value_ptr(instance->m_Mat.m_Diffuse));
-        glUniform3fv(specularLoc, 1, glm::value_ptr(instance->m_Mat.m_Specular));
-        glUniform1f(shininessLoc, instance->m_Mat.Shininess);
+        shader.SetVec3("material.ambient", instance->m_Mat.m_Ambient);
+        shader.SetVec3("material.diffuse", instance->m_Mat.m_Diffuse);
+        shader.SetVec3("material.specular", instance->m_Mat.m_Specular);
+        shader.SetVar("material.shininess", instance->m_Mat.Shininess);
+
         // send light to shaders
-        glUniform3fv(lightPositionLoc, 1, glm::value_ptr(envL.m_Position));
-        glUniform3fv(lightAmbientLoc, 1, glm::value_ptr(envL.m_Ambient));
-        glUniform3fv(lightSpecularLoc, 1, glm::value_ptr(envL.m_Specular));
-        glUniform3fv(lightDiffuseLoc, 1, glm::value_ptr(envL.m_Diffuse));
-
-
+        shader.SetVec3("light.position", envL.m_Position);
+        shader.SetVec3("light.ambient", envL.m_Ambient);
+        shader.SetVec3("light.diffuse", envL.m_Diffuse);
+        shader.SetVec3("light.specular", envL.m_Specular);
 
         // Note: currently we set the projection matrix each frame,
         // but since the projection matrix rarely changes it's
         // often best practice to set it outside the main loop only once.
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+        shader.SetMat4("projection", projection);
 
         glBindVertexArray(model->VAO);
 

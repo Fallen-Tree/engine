@@ -2,7 +2,7 @@
 #define SRC_MODEL_MODEL_HPP_
 
 #include <vector>
-#include "shader_loader.hpp"
+#include "shaders.hpp"
 
 class Model {
  private:
