@@ -22,6 +22,7 @@ add_library(ENGINE STATIC
             src/input/input.cpp
             src/texture/stb_image.cpp
             src/texture/texture.cpp
+            src/logging/logger.cpp
 )
 
 add_subdirectory(thirdparty/glfw)
@@ -32,3 +33,4 @@ target_link_libraries(ENGINE PUBLIC glfw glad OpenGL::GL)
 
 add_executable(main src/main.cpp)
 target_link_libraries(main PUBLIC ENGINE)
+
