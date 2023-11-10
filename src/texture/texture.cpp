@@ -7,14 +7,14 @@
 Texture::Texture() {}
 
 Texture::Texture(std::vector<std::string> paths) {
-    loadImage(paths);
+    loadImages(paths);
 }
 
 Texture::Texture(std::string path) {
     loadImage(path);
 }
 
-void Texture::loadImage(std::vector<std::string> paths) {
+void Texture::loadImages(std::vector<std::string> paths) {
     for (int i = 0; i < paths.size(); i++) {
         loadImage(paths[i]);
     }
@@ -33,8 +33,7 @@ void Texture::loadImage(std::string path) {
         reinterpret_cast<const char*>
         ((RESOURCE_DIR"/textures%s")), path.c_str());
     unsigned char *data = reinterpret_cast<unsigned char*>(
-        stbi_load(finalPath,
-        &width, &height, &nrComponents, 0));
+        stbi_load(finalPath, &width, &height, &nrComponents, 0));
 
     if (!data) {
         stbi_image_free(data);

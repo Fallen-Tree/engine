@@ -18,7 +18,7 @@ class Texture {
 
     explicit Texture(std::string path);
 
-    void loadImage(std::vector<std::string> paths);
+    void loadImages(std::vector<std::string> paths);
 
     void loadImage(std::string path);  
 
