@@ -292,10 +292,10 @@ void Engine::Render(int width, int height) {
         shader.SetVec3("material.ambient", instance->m_Mat.m_Ambient);
         shader.SetVar("material.shininess", instance->m_Mat.Shininess);
         // send light to shaders
-        shader.SetVec3("light.position", glm::value_ptr(envL.m_Position));
-        shader.SetVec3("light.ambient", glm::value_ptr(envL.m_Ambient));
-        shader.SetVec3("light.diffuse", glm::value_ptr(envL.m_Diffuse));
-        shader.SetVec3("light.specular", glm::value_ptr(envL.m_Specular));
+        shader.SetVec3("light.position", envL.m_Position);
+        shader.SetVec3("light.ambient", envL.m_Ambient);
+        shader.SetVec3("light.diffuse", envL.m_Diffuse);
+        shader.SetVec3("light.specular", envL.m_Specular);
         // send inf about texture
         glUniform1i(shader.UniformLocation("material.duffuse"), 0);
         glUniform1i(shader.UniformLocation("material.specular"), 1);
