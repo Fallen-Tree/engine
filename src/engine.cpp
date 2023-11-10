@@ -17,7 +17,6 @@
 const int maxValidKey = 350;
 
 Texture texture;
-unsigned int texture1;
 static Engine *s_Engine = nullptr;
 EnvLight envL;
 
