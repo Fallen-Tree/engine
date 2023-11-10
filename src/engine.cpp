@@ -42,7 +42,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
-bool firstMouse = true;
 
 const char *vertexShaderSource = "/vertex/standart.vshader";
 const char *fragmentShaderSource1 = "/fragment/green.fshader";
@@ -76,6 +75,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     m_Input.SetWindow(m_Window);
     m_Input.SetMode(MODE, VALUE);
+    m_Input.InitMouse();
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
