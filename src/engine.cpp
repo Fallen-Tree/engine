@@ -250,10 +250,10 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         glfwPollEvents();
         processInput(m_Window);
         m_Camera.Update(&m_Input, deltaTime);
-    
+
         while (static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime)) == lastRenderedFrame) {
         }
-        
+
         fpsFrames++;
         lastRenderedFrame = static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime));
         Render(SCR_WIDTH, SCR_HEIGHT);
