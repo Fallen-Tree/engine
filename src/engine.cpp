@@ -171,10 +171,10 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     testObj->m_RenderData->m_Model = testModel;
 
     testObj->m_RenderData->m_Mat = {
-        .m_Ambient = glm::vec3(0.2, 0.1, 0.2),
-        .m_Diffuse = glm::vec3(0.7, 0.6, 0.7),
-        .m_Specular = glm::vec3(0.6, 0.7, 0.6),
-        .m_Shininess = 0.6,
+        glm::vec3(0.2, 0.1, 0.2),
+        glm::vec3(0.7, 0.6, 0.7),
+        glm::vec3(0.6, 0.7, 0.6),
+        0.6,
     };
     testObj->m_Transform = new Transform(glm::vec3(0.f, 0.f, -3.f), glm::vec3(1.f, 1.f, 1.f), glm::mat4(1.0));
 
