@@ -11,7 +11,6 @@ class Model {
 
  public:
     // some variables
-    unsigned int VAO, VBO, EBO;
     ShaderProgram shader = ShaderProgram();
 
     // constructor of class.

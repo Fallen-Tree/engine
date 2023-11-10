@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <vector>
+#include <array>
 #include <iostream>
 
 #include "camera.hpp"
@@ -19,12 +20,11 @@ EnvLight envL;
 
 static Input *s_Input = nullptr;
 
-
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 Engine::Engine() {
-    m_objects = std::vector<Object *>();
+    m_Objects = std::vector<Object *>();
     m_Camera = Camera(glm::vec3(0.0f, 0.0f, 3.0f));
     s_Engine = this;
 }
@@ -34,7 +34,7 @@ Engine::~Engine() {
 }
 
 void Engine::AddObject(Object *a) {
-    m_objects.push_back(a);
+    m_Objects.push_back(a);
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -163,40 +163,46 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     };
 
     // init a model
-    Model * testModel = new Model(cubeVertices, cubeIndices);
+    Model *testModel = new Model(cubeVertices, cubeIndices);
     testModel->shader = shaderProgram;
-    // transformation stores information about angle, scale, rotate and tranlsation.
-    // Method makeTransform make mat4 transform(public var), after we send it to shaders.
-    ModelInstance * modelInstance = new ModelInstance(testModel, glm::vec3(0.f, 0.f, -3.f),
-                                                                 glm::vec3(1.f, 1.f, 1.f),
-                                                                 glm::mat4(1.0));
 
-    modelInstance->m_Mat.m_Ambient = glm::vec3(0.2, 0.1, 0.2);
-    modelInstance->m_Mat.m_Diffuse = glm::vec3(0.7, 0.6, 0.7);
-    modelInstance->m_Mat.m_Specular = glm::vec3(0.6, 0.7, 0.6);
-    modelInstance->m_Mat.Shininess = 0.6;
+    auto testObj = new Object();
+    testObj->m_RenderData = new RenderData();
+    testObj->m_RenderData->m_Model = testModel;
 
+    testObj->m_RenderData->m_Mat = {
+        .m_Ambient = glm::vec3(0.2, 0.1, 0.2),
+        .m_Diffuse = glm::vec3(0.7, 0.6, 0.7),
+        .m_Specular = glm::vec3(0.6, 0.7, 0.6),
+        .m_Shininess = 0.6,
+    };
+    testObj->m_Transform = new Transform(glm::vec3(0.f, 0.f, -3.f), glm::vec3(1.f, 1.f, 1.f), glm::mat4(1.0));
 
-    glGenVertexArrays(1, &modelInstance->GetModel()->VAO);
-    glGenBuffers(1, &modelInstance->GetModel()->VBO);
-    glGenBuffers(1, &modelInstance->GetModel()->EBO);
+    auto render_data = testObj->m_RenderData;
 
+    glGenVertexArrays(1, &render_data->VAO);
+    glGenBuffers(1, &render_data->VBO);
+    glGenBuffers(1, &render_data->EBO);
 
     // bind the Vertex Array Object first,
     // then bind and set vertex buffer(s),
     // and then configure vertex attributes(s).
 
-    glBindVertexArray(modelInstance->GetModel()->VAO);
+    glBindVertexArray(render_data->VAO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, modelInstance->GetModel()->VBO);
-    glBufferData(GL_ARRAY_BUFFER,
-        modelInstance->GetModel()->getLenArrPoints() * sizeof(float),
-        modelInstance->GetModel()->getPoints(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, render_data->VBO);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        render_data->m_Model->getLenArrPoints() * sizeof(float),
+        render_data->m_Model->getPoints(),
+        GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, modelInstance->GetModel()->EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-        modelInstance->GetModel()->getLenIndices() * sizeof(unsigned int),
-        modelInstance->GetModel()->getIndices(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_data->EBO);
+    glBufferData(
+        GL_ELEMENT_ARRAY_BUFFER,
+        render_data->m_Model->getLenIndices() * sizeof(unsigned int),
+        render_data->m_Model->getIndices(),
+        GL_STATIC_DRAW);
 
 
     // position attribute
@@ -220,8 +226,6 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     glBindVertexArray(0);
 
-    auto testObj = new Object();
-    testObj->m_modelInstance = modelInstance;
     AddObject(testObj);
     glEnable(GL_DEPTH_TEST);
 
@@ -244,9 +248,9 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
 
-    glDeleteVertexArrays(1, &modelInstance->GetModel()->VAO);
-    glDeleteBuffers(1, &modelInstance->GetModel()->VBO);
-    glDeleteBuffers(1, &modelInstance->GetModel()->EBO);
+    glDeleteVertexArrays(1, &render_data->VAO);
+    glDeleteBuffers(1, &render_data->VBO);
+    glDeleteBuffers(1, &render_data->EBO);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
@@ -260,17 +264,19 @@ void Engine::Render(int width, int height) {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (uint64_t i = 0; i < m_objects.size(); i++) {
-        auto object = m_objects[i];
-        if (!object->m_modelInstance)
+    for (uint64_t i = 0; i < m_Objects.size(); i++) {
+        auto object = m_Objects[i];
+        if (!object->m_RenderData || !object->m_Transform)
             continue;
-        auto instance = object->m_modelInstance;
+        auto data = object->m_RenderData;
+        auto transform = object->m_Transform;
 
-        auto model = instance->GetModel();
+        auto model = data->m_Model;
 
         float timeValue = glfwGetTime();
-        instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 0.f, 1.f));
-        instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 1.f, 0.f));
+        transform->Rotate(timeValue / 10000.0, glm::vec3(0.f, 0.f, 1.f));
+        transform->Rotate(timeValue / 10000.0, glm::vec3(0.f, 1.f, 0.f));
+        transform->Translate(glm::vec3(0.f, 0.f, -0.001f));
 
         ShaderProgram shader = model->shader;
         // draw our first triangle
@@ -300,22 +306,18 @@ void Engine::Render(int width, int height) {
         GLint lightSpecularLoc = shader.UniformLocation("light.specualar");
         GLint lightDiffuseLoc = shader.UniformLocation("light.diffuse");
 
-
-        instance->GetTransform()->Translate(glm::vec3(0.f, 0.f, -0.001f));
-
-
         // send color to shader
         glUniform3fv(objectColorLoc, 1, glm::value_ptr(glm::vec3(0.53, 0.43, 0.23)));
         // send matrix transform to shader
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE,
-            glm::value_ptr(instance->GetTransform()->GetTransformMatrix()));
+            glm::value_ptr(transform->GetTransformMatrix()));
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         glUniform3fv(viewPosLoc, 1, glm::value_ptr(viewPos));
         // send material to shaders
-        glUniform3fv(ambientLoc, 1, glm::value_ptr(instance->m_Mat.m_Ambient));
-        glUniform3fv(diffuseLoc, 1, glm::value_ptr(instance->m_Mat.m_Diffuse));
-        glUniform3fv(specularLoc, 1, glm::value_ptr(instance->m_Mat.m_Specular));
-        glUniform1f(shininessLoc, instance->m_Mat.Shininess);
+        glUniform3fv(ambientLoc, 1, glm::value_ptr(data->m_Mat.m_Ambient));
+        glUniform3fv(diffuseLoc, 1, glm::value_ptr(data->m_Mat.m_Diffuse));
+        glUniform3fv(specularLoc, 1, glm::value_ptr(data->m_Mat.m_Specular));
+        glUniform1f(shininessLoc, data->m_Mat.m_Shininess);
         // send light to shaders
         glUniform3fv(lightPositionLoc, 1, glm::value_ptr(envL.m_Position));
         glUniform3fv(lightAmbientLoc, 1, glm::value_ptr(envL.m_Ambient));
@@ -329,7 +331,7 @@ void Engine::Render(int width, int height) {
         // often best practice to set it outside the main loop only once.
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-        glBindVertexArray(model->VAO);
+        glBindVertexArray(data->VAO);
 
         glDrawElements(GL_TRIANGLES, model->getLenIndices(), GL_UNSIGNED_INT, 0);
     }
