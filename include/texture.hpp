@@ -18,9 +18,9 @@ class Texture {
 
     explicit Texture(std::string path);
 
-    void loadTexture(std::vector<std::string> paths);
+    void loadImage(std::vector<std::string> paths);
 
-    void loadTexture(std::string path);  
+    void loadImage(std::string path);  
 
     int countComponents();
 

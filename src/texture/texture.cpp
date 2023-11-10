@@ -1,6 +1,5 @@
 #include <glad/glad.h>
 #include <iostream>
-#include <filesystem>
 #include "texture.hpp"
 #include "stb_image.h"
 #include "config.hpp"
@@ -8,20 +7,20 @@
 Texture::Texture() {}
 
 Texture::Texture(std::vector<std::string> paths) {
-    loadTexture(paths);
+    loadImage(paths);
 }
 
 Texture::Texture(std::string path) {
-    loadTexture(path);
+    loadImage(path);
 }
 
-void Texture::loadTexture(std::vector<std::string> paths) {
+void Texture::loadImage(std::vector<std::string> paths) {
     for (int i = 0; i < paths.size(); i++) {
-        loadTexture(paths[i]);
+        loadImage(paths[i]);
     }
 }
 
-void Texture::loadTexture(std::string path) {
+void Texture::loadImage(std::string path) {
     if (m_Count >= MaxCountTexture) {
         std::cout << "failed to load texture at path" << path
             << "because of overflow buffer" << std::endl;
@@ -32,7 +31,7 @@ void Texture::loadTexture(std::string path) {
     char finalPath[512];
     snprintf(finalPath, sizeof(finalPath),
         reinterpret_cast<const char*>
-        (std::filesystem::absolute(RESOURCE_DIR"/textures%s").c_str()), path.c_str());
+        ((RESOURCE_DIR"/textures%s")), path.c_str());
     unsigned char *data = reinterpret_cast<unsigned char*>(
         stbi_load(finalPath,
         &width, &height, &nrComponents, 0));

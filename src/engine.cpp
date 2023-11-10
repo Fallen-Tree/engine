@@ -216,8 +216,8 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     glEnable(GL_DEPTH_TEST);
 
     // load and create a texture
-    texture.loadTexture("/wall.png");
-    texture.loadTexture("/wallspecular.png");
+    texture.loadImage("/wall.png");
+    texture.loadImage("/wallspecular.png");
 
     // render loop
     // -----------
