@@ -150,7 +150,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     };
 
     // init a model
-    Model * testModel = new Model(cubeVertices, 3);
+    Model * testModel = new Model(cubeVertices, 8);
     testModel->shader = shaderProgram;
     // transformation stores information about angle, scale, rotate and tranlsation.
     // Method makeTransform make mat4 transform(public var), after we send it to shaders.
@@ -158,8 +158,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
                                                                  glm::vec3(1.f, 1.f, 1.f),
                                                                  glm::mat4(1.0));
 
-    modelInstance->m_Mat.m_Ambient = glm::vec3(0.2, 0.2, 0.2);
-    modelInstance->m_Mat.Shininess = 4.f;
+    modelInstance->m_Mat.m_Shininess = 4.f;
 
 
     glGenVertexArrays(1, &modelInstance->GetModel()->VAO);
@@ -305,8 +304,7 @@ void Engine::Render(int width, int height) {
         shader.SetVec3("viewPos", viewPos);
 
         // send material to shaders
-        shader.SetVec3("material.ambient", instance->m_Mat.m_Ambient);
-        shader.SetVar("material.shininess", instance->m_Mat.Shininess);
+        shader.SetVar("material.shininess", instance->m_Mat.m_Shininess);
         // send light to shaders
         shader.SetVec3("light.position", envL.m_Position);
         shader.SetVec3("light.ambient", envL.m_Ambient);

@@ -5,7 +5,6 @@ in vec3 FragPos;
 in vec2 TexCoord;
 
 struct Material {
-    vec3 ambient;
     float shininess;
     sampler2D diffuse;
     sampler2D specular;
