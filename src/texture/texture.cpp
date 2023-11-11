@@ -24,7 +24,7 @@ void Texture::loadImages(std::vector<std::string> paths) {
 void Texture::loadImage(std::string path) {
     if (m_Count >= MaxCountTexture) {
         Logger::Error(
-            "SHADER::PROGRAM::FAILED_TO_LOAD_TEXTURE_AT_PATH_%s_BECAUSE_OVERFLOW\n", path);
+            "SHADER::PROGRAM::FAILED_TO_LOAD_TEXTURE_AT_PATH_%s_BECAUSE_OVERFLOW\n", path.c_str());
         return;
     }
 
