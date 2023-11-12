@@ -64,7 +64,6 @@ int Texture::countComponents() {
 
 unsigned int Texture::textureId(int idx) {
     if (idx < 0 || idx > m_Count) {
-        std::cout << "index out of bounds" << std::endl;
         Logger::Error("SHADER::PROGRAM:INDEX_OUT_OF_BOUNDS\n");
         exit(1);
     }
