@@ -10,6 +10,7 @@ struct GLFWwindow;
 class Object {
  public:
      ModelInstance *m_modelInstance;
+     Camera *m_Camera;
 };
 
 class Engine {
