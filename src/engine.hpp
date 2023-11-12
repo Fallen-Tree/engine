@@ -26,6 +26,7 @@ class Engine {
 
     // Switching between cameras
     void SwitchMainCamera();
+    // You have to switch to main camera yourself after using this method
     void SwitchObjectCamera(Object *o);
 
     void Run(int, int);
