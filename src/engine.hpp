@@ -24,14 +24,19 @@ class Engine {
         AddObject(static_cast<Object *>(a));
     }
 
+    // Switching between cameras
+    void SwitchMainCamera();
+    void SwitchObjectCamera(Object *o);
+
     void Run(int, int);
+    Camera *m_Camera;
     Input m_Input;
-    Camera m_Camera;
+
  private:
     void AddObject(Object *);
     void Render(int, int);
 
-
+    Camera m_MainCamera;
     std::vector<Object *> m_objects;
     GLFWwindow *m_Window;
 };

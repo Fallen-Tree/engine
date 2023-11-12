@@ -22,10 +22,22 @@ EnvLight envL;
 
 static Input *s_Input = nullptr;
 
+void Engine::SwitchMainCamera() {
+    m_Camera = &m_MainCamera;
+}
+
+void Engine::SwitchObjectCamera(Object *o) {
+    if (!o || !o->m_Camera) {
+        Logger::Warn("ENGINE::FAILED_TO_SWITCH_CAMERA_BECAUSE_OBJECT_IS_NULL\n");
+        return;
+    }
+    m_Camera = o->m_Camera;
+}
 
 Engine::Engine() {
     m_objects = std::vector<Object *>();
-    m_Camera = Camera(glm::vec3(0.0f, 0.0f, 3.0f));
+    m_MainCamera = Camera(glm::vec3(0.0f, 0.0f, 3.0f));
+    m_Camera = &m_MainCamera;
     s_Engine = this;
 }
 
@@ -249,7 +261,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         m_Input.Update();
         glfwPollEvents();
         processInput(m_Window);
-        m_Camera.Update(&m_Input, deltaTime);
+        m_Camera->Update(&m_Input, deltaTime);
 
         while (static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime)) == lastRenderedFrame) {
         }
@@ -294,11 +306,11 @@ void Engine::Render(int width, int height) {
         // draw our first triangle
         shader.Use();
 
-        glm::mat4 view = m_Camera.GetViewMatrix();
-        glm::vec3 viewPos = m_Camera.GetPosition();
+        glm::mat4 view = m_Camera->GetViewMatrix();
+        glm::vec3 viewPos = m_Camera->GetPosition();
 
         glm::mat4 projection = glm::perspective(
-                                        glm::radians(m_Camera.GetZoom()),
+                                        glm::radians(m_Camera->GetZoom()),
                                         static_cast<float>(width) / static_cast<float>(height),
                                         0.1f, 100.0f);
 
