@@ -10,6 +10,8 @@
 #include "light.hpp"
 #include "material.hpp"
 #include "input.hpp"
+#include "texture.hpp"
+#include "stb_image.h"
 #include "logger.hpp"
 
 // should send to all constants
@@ -17,6 +19,7 @@ const int maxValidKey = 350;
 const float fpsLimit = 500;
 const float fpsShowingInterval = 1.f;
 
+Texture texture;
 static Engine *s_Engine = nullptr;
 EnvLight envL;
 
@@ -101,69 +104,53 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     envL.m_Specular = glm::vec3(1.0f, 1.0f, 1.0f);
     envL.m_Position = glm::vec3(-0.2, -0.5, -1.2);
 
-
-
-    std::vector<GLuint> cubeIndices {
-        0, 1, 2,
-        3, 4, 5,
-        6, 7, 8,
-        9, 10, 11,
-        12, 13, 14,
-        15, 16, 17,
-        18, 19, 20,
-        21, 22, 23,
-        24, 25, 26,
-        27, 28, 29,
-        30, 31, 32,
-        33, 34, 35
-    };
-
     std::vector<GLfloat> cubeVertices {
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+          // positions          // normals           // texture coords
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
 
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
 
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
 
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
     };
 
     // init a model
-    Model * testModel = new Model(cubeVertices, cubeIndices);
+    Model * testModel = new Model(cubeVertices, 8);
     testModel->shader = shaderProgram;
     // transformation stores information about angle, scale, rotate and tranlsation.
     // Method makeTransform make mat4 transform(public var), after we send it to shaders.
@@ -171,10 +158,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
                                                                  glm::vec3(1.f, 1.f, 1.f),
                                                                  glm::mat4(1.0));
 
-    modelInstance->m_Mat.m_Ambient = glm::vec3(0.2, 0.1, 0.2);
-    modelInstance->m_Mat.m_Diffuse = glm::vec3(0.7, 0.6, 0.7);
-    modelInstance->m_Mat.m_Specular = glm::vec3(0.6, 0.7, 0.6);
-    modelInstance->m_Mat.Shininess = 0.6;
+    modelInstance->m_Mat.m_Shininess = 4.f;
 
 
     glGenVertexArrays(1, &modelInstance->GetModel()->VAO);
@@ -200,12 +184,16 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void*>(0));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(0));
     glEnableVertexAttribArray(0);
     // normal attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
         reinterpret_cast<void*>(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // texture coordinates
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+        reinterpret_cast<void*>(6    * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as
     // the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
@@ -225,6 +213,9 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     AddObject(testObj);
     glEnable(GL_DEPTH_TEST);
 
+    // load and create a texture
+    texture.loadImage("/wall.png");
+    texture.loadImage("/wallspecular.png");
 
     float lastFpsShowedTime = 0.f;
     int lastRenderedFrame = -1;
@@ -278,6 +269,9 @@ void Engine::Render(int width, int height) {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // bind textures on corresponding texture units
+    texture.bind();
+
     for (uint64_t i = 0; i < m_objects.size(); i++) {
         auto object = m_objects[i];
         if (!object->m_modelInstance)
@@ -304,25 +298,21 @@ void Engine::Render(int width, int height) {
 
         instance->GetTransform()->Translate(glm::vec3(0.f, 0.f, -0.001f));
 
-        // send color to shader
-        shader.SetVec3("objectColor", glm::vec3(1, 1, 1));
-
         // send matrix transform to shader
         shader.SetMat4("model", instance->GetTransform()->GetTransformMatrix());
         shader.SetMat4("view", view);
         shader.SetVec3("viewPos", viewPos);
 
         // send material to shaders
-        shader.SetVec3("material.ambient", instance->m_Mat.m_Ambient);
-        shader.SetVec3("material.diffuse", instance->m_Mat.m_Diffuse);
-        shader.SetVec3("material.specular", instance->m_Mat.m_Specular);
-        shader.SetVar("material.shininess", instance->m_Mat.Shininess);
-
+        shader.SetVar("material.shininess", instance->m_Mat.m_Shininess);
         // send light to shaders
         shader.SetVec3("light.position", envL.m_Position);
         shader.SetVec3("light.ambient", envL.m_Ambient);
         shader.SetVec3("light.diffuse", envL.m_Diffuse);
         shader.SetVec3("light.specular", envL.m_Specular);
+        // send inf about texture
+        glUniform1i(shader.UniformLocation("material.duffuse"), 0);
+        glUniform1i(shader.UniformLocation("material.specular"), 1);
 
         // Note: currently we set the projection matrix each frame,
         // but since the projection matrix rarely changes it's

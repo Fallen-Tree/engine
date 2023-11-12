@@ -20,6 +20,8 @@ add_library(ENGINE STATIC
             src/transform/transform.cpp
             src/camera/camera.cpp 
             src/input/input.cpp
+            src/texture/stb_image.cpp
+            src/texture/texture.cpp
             src/logging/logger.cpp
 )
 
