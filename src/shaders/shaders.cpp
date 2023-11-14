@@ -102,9 +102,9 @@ int ShaderProgram::Use() {
     return 0;
 }
 
-// ShaderProgram::~ShaderProgram() {
-//     glDeleteProgram(m_Program);
-// }
+ShaderProgram::~ShaderProgram() {
+    glDeleteProgram(m_Program);
+}
 
 int ShaderProgram::UniformLocation(const char* mode) {
     return glGetUniformLocation(m_Program, mode);

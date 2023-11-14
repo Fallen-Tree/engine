@@ -184,9 +184,11 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     glEnable(GL_DEPTH_TEST);
 
     // load and create a texture
-    texture.loadImage("/wall2.png");
-    texture.loadImage("/wall2specular.png");
-
+    texture.loadImage("/wall.png");
+    texture.loadImage("/wallspecular.png");
+    // texture.loadImage("/Cat_diffuse.jpg");
+    // texture.loadImage("/wall2.png");
+    // texture.loadImage("/wall2specular.png");
     float lastFpsShowedTime = 0.f;
     int lastRenderedFrame = -1;
     int fpsFrames = 0;

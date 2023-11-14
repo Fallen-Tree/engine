@@ -111,8 +111,8 @@ Model* Model::loadFromObjFile(std::ifstream &objFile) {  // assuming objFile alr
                 modelVertices.push_back(modelNormals[3 * normalsIndices[i]]);
                 modelVertices.push_back(modelNormals[3 * normalsIndices[i] + 1]);
                 modelVertices.push_back(modelNormals[3 * normalsIndices[i] + 2]);
-                // modelVertices.push_back(modelTextures[2 * texturesIndices[i]]);
-                // modelVertices.push_back(modelTextures[2 * texturesIndices[i] + 1]);
+                modelVertices.push_back(modelTextures[2 * texturesIndices[i]]);
+                modelVertices.push_back(modelTextures[2 * texturesIndices[i] + 1]);
             }
             for (int i = 1; i < faceIndices.size() - 1; ++i) {
                 modelIndices.push_back(faceIndices[0]);
