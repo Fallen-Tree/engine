@@ -22,22 +22,19 @@ EnvLight envL;
 
 static Input *s_Input = nullptr;
 
-void Engine::SwitchMainCamera() {
-    m_Camera = &m_MainCamera;
+Camera* Engine::SwitchCamera(Camera* newCamera) {
+    if (!newCamera) {
+        Logger::Error("ENGINE::ARGUMENT_IN_SWITCHCAMERA_NULL!\n");
+    }
+    Camera* toReturn = m_Camera;
+    m_Camera = newCamera;
+    return toReturn;
 }
 
-void Engine::SwitchObjectCamera(Object *o) {
-    if (!o || !o->m_Camera) {
-        Logger::Warn("ENGINE::FAILED_TO_SWITCH_CAMERA_BECAUSE_OBJECT_IS_NULL\n");
-        return;
-    }
-    m_Camera = o->m_Camera;
-}
 
 Engine::Engine() {
     m_objects = std::vector<Object *>();
-    m_MainCamera = Camera(glm::vec3(0.0f, 0.0f, 3.0f));
-    m_Camera = &m_MainCamera;
+    m_Camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
     s_Engine = this;
 }
 

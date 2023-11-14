@@ -24,10 +24,8 @@ class Engine {
         AddObject(static_cast<Object *>(a));
     }
 
-    // Switching between cameras
-    void SwitchMainCamera();
     // You have to switch to main camera yourself after using this method
-    void SwitchObjectCamera(Object *o);
+    Camera* SwitchCamera(Camera *newCamera);
 
     void Run(int, int);
     Camera *m_Camera;
@@ -37,7 +35,6 @@ class Engine {
     void AddObject(Object *);
     void Render(int, int);
 
-    Camera m_MainCamera;
     std::vector<Object *> m_objects;
     GLFWwindow *m_Window;
 };
