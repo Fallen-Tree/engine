@@ -1,8 +1,8 @@
 #pragma once
 
 #include <vector>
-#include <fstream>
-#include "shader_loader.hpp"
+// #include <fstream>
+#include "shaders.hpp"
 
 class Model {
  private:

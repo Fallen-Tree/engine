@@ -1,8 +1,9 @@
-#ifndef SRC_SHADERS_SHADER_LOADER_HPP_
-#define SRC_SHADERS_SHADER_LOADER_HPP_
+#pragma once
 
 #include <glad/glad.h>
 #include <string>
+
+#include <glm/glm.hpp>
 
 enum ShaderType {VertexShader = GL_VERTEX_SHADER, FragmentShader = GL_FRAGMENT_SHADER};
 
@@ -32,7 +33,10 @@ class ShaderProgram {
      ShaderProgram(Shader vShader, Shader fShader);
      int Use();
      int UniformLocation(const char* mode);
-    // ~ShaderProgram();
-};
 
-#endif  // SRC_SHADERS_SHADER_LOADER_HPP_
+     void SetVar(const char* name, const float value);
+     void SetVec3(const char* name, const glm::vec3 vec);
+     void SetMat4(const char* name, const glm::mat4 mat);
+
+     ~ShaderProgram();
+};

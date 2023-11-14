@@ -6,23 +6,26 @@
 #include <iostream>
 
 #include "camera.hpp"
-#include "shader_loader.hpp"
+#include "shaders.hpp"
 #include "light.hpp"
 #include "material.hpp"
 #include "input.hpp"
 #include "model.hpp"
+#include "texture.hpp"
+#include "stb_image.h"
+#include "logger.hpp"
 
 // should send to all constants
 const int maxValidKey = 350;
+const float fpsLimit = 500;
+const float fpsShowingInterval = 1.f;
 
+Texture texture;
 static Engine *s_Engine = nullptr;
 EnvLight envL;
 
 static Input *s_Input = nullptr;
 
-
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
 
 Engine::Engine() {
     m_objects = std::vector<Object *>();
@@ -104,6 +107,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // init a model
     Model * cubeModel = Model::loadFromFile(cubeSource);
     cubeModel->shader = shaderProgram;
+
     // transformation stores information about angle, scale, rotate and tranlsation.
     // Method makeTransform make mat4 transform(public var), after we send it to shaders.
     ModelInstance * cubeInstance = new ModelInstance(cubeModel, glm::vec3(0.f, 0.f, -3.f),
@@ -124,18 +128,13 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
                                                                  glm::vec3(0.2f, 0.2f, 0.2f),
                                                                  glm::mat4(1.0));
 
-    ModelInstance * modelInstance = catInstance;
+    ModelInstance * modelInstance = cubeInstance;
 
-    modelInstance->m_Mat.m_Ambient = glm::vec3(0.2, 0.1, 0.2);
-    modelInstance->m_Mat.m_Diffuse = glm::vec3(0.7, 0.6, 0.7);
-    modelInstance->m_Mat.m_Specular = glm::vec3(0.6, 0.7, 0.6);
-    modelInstance->m_Mat.Shininess = 0.6;
-
+    modelInstance->m_Mat.m_Shininess = 4.f;
 
     glGenVertexArrays(1, &modelInstance->GetModel()->VAO);
     glGenBuffers(1, &modelInstance->GetModel()->VBO);
     glGenBuffers(1, &modelInstance->GetModel()->EBO);
-
 
     // bind the Vertex Array Object first,
     // then bind and set vertex buffer(s),
@@ -155,12 +154,16 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void*>(0));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(0));
     glEnableVertexAttribArray(0);
     // normal attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
         reinterpret_cast<void*>(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // texture coordinates
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+        reinterpret_cast<void*>(6    * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as
     // the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
@@ -180,20 +183,41 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     AddObject(testObj);
     glEnable(GL_DEPTH_TEST);
 
+    // load and create a texture
+    texture.loadImage("/wall2.png");
+    texture.loadImage("/wall2specular.png");
+
+    float lastFpsShowedTime = 0.f;
+    int lastRenderedFrame = -1;
+    int fpsFrames = 0;
+    const float frameTime = 1.f / fpsLimit;
+    float deltaTime = 0.0f;
+    float lastTime = 0.0f;
+
     // render loop
     // -----------
     while (!glfwWindowShouldClose(m_Window)) {
-        float currentFrame = static_cast<float>(glfwGetTime());
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
+        float currentTime = static_cast<float>(glfwGetTime());
+        deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
+
+        if (currentTime - lastFpsShowedTime > fpsShowingInterval) {
+            Logger::Info("FPS: %d", static_cast<int>(fpsFrames / (currentTime - lastFpsShowedTime)));
+            lastFpsShowedTime = currentTime;
+            fpsFrames = 0;
+        }
 
         m_Input.Update();
         glfwPollEvents();
         processInput(m_Window);
-
-
-        Render(SCR_WIDTH, SCR_HEIGHT);
         m_Camera.Update(&m_Input, deltaTime);
+
+        while (static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime)) == lastRenderedFrame) {
+        }
+
+        fpsFrames++;
+        lastRenderedFrame = static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime));
+        Render(SCR_WIDTH, SCR_HEIGHT);
     }
 
     // optional: de-allocate all resources once they've outlived their purpose:
@@ -214,6 +238,9 @@ void Engine::Render(int width, int height) {
     // ------
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // bind textures on corresponding texture units
+    texture.bind();
 
     for (uint64_t i = 0; i < m_objects.size(); i++) {
         auto object = m_objects[i];
@@ -239,50 +266,28 @@ void Engine::Render(int width, int height) {
                                         static_cast<float>(width) / static_cast<float>(height),
                                         0.1f, 100.0f);
 
-        GLint objectColorLoc = shader.UniformLocation("objectColor");
-        GLint modelLoc = shader.UniformLocation("model");
-        GLint viewLoc = shader.UniformLocation("view");
-        GLint viewPosLoc = shader.UniformLocation("viewPos");
-        GLint projLoc = shader.UniformLocation("projection");
-        // loc for material
-        GLint ambientLoc =  shader.UniformLocation("material.ambient");
-        GLint diffuseLoc =  shader.UniformLocation("material.diffuse");
-        GLint specularLoc =  shader.UniformLocation("material.specular");
-        GLint shininessLoc =  shader.UniformLocation("material.shininess");
-        // loc for light
-        GLint lightPositionLoc =  shader.UniformLocation("light.position");
-        GLint lightAmbientLoc = shader.UniformLocation("light.ambient");
-        GLint lightSpecularLoc = shader.UniformLocation("light.specualar");
-        GLint lightDiffuseLoc = shader.UniformLocation("light.diffuse");
-
-
         instance->GetTransform()->Translate(glm::vec3(0.f, 0.f, -0.001f));
 
-
-        // send color to shader
-        glUniform3fv(objectColorLoc, 1, glm::value_ptr(glm::vec3(1., 1., 1.)));
         // send matrix transform to shader
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE,
-            glm::value_ptr(instance->GetTransform()->GetTransformMatrix()));
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        glUniform3fv(viewPosLoc, 1, glm::value_ptr(viewPos));
+        shader.SetMat4("model", instance->GetTransform()->GetTransformMatrix());
+        shader.SetMat4("view", view);
+        shader.SetVec3("viewPos", viewPos);
+
         // send material to shaders
-        glUniform3fv(ambientLoc, 1, glm::value_ptr(instance->m_Mat.m_Ambient));
-        glUniform3fv(diffuseLoc, 1, glm::value_ptr(instance->m_Mat.m_Diffuse));
-        glUniform3fv(specularLoc, 1, glm::value_ptr(instance->m_Mat.m_Specular));
-        glUniform1f(shininessLoc, instance->m_Mat.Shininess);
+        shader.SetVar("material.shininess", instance->m_Mat.m_Shininess);
         // send light to shaders
-        glUniform3fv(lightPositionLoc, 1, glm::value_ptr(envL.m_Position));
-        glUniform3fv(lightAmbientLoc, 1, glm::value_ptr(envL.m_Ambient));
-        glUniform3fv(lightSpecularLoc, 1, glm::value_ptr(envL.m_Specular));
-        glUniform3fv(lightDiffuseLoc, 1, glm::value_ptr(envL.m_Diffuse));
-
-
+        shader.SetVec3("light.position", envL.m_Position);
+        shader.SetVec3("light.ambient", envL.m_Ambient);
+        shader.SetVec3("light.diffuse", envL.m_Diffuse);
+        shader.SetVec3("light.specular", envL.m_Specular);
+        // send inf about texture
+        glUniform1i(shader.UniformLocation("material.duffuse"), 0);
+        glUniform1i(shader.UniformLocation("material.specular"), 1);
 
         // Note: currently we set the projection matrix each frame,
         // but since the projection matrix rarely changes it's
         // often best practice to set it outside the main loop only once.
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+        shader.SetMat4("projection", projection);
 
         glBindVertexArray(model->VAO);
 
