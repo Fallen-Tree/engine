@@ -1,5 +1,5 @@
-#include "shader_loader.hpp"
 
+#include "shaders.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <string.h>
@@ -7,9 +7,9 @@
 #include <sstream>
 #include <fstream>
 #include <cstdarg>
+#include "logger.hpp"
 
-#include <glm/glm.hpp>
-
+#include "glm/ext.hpp"
 #include "config.hpp"
 
 int Shader::CheckSuccess() {
@@ -18,7 +18,7 @@ int Shader::CheckSuccess() {
     glGetShaderiv(m_Shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(m_Shader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
+        Logger::Error("SHADER::PROGRAM::LINKING_FAILED %s", infoLog);
     }
     return success;
 }
@@ -41,7 +41,7 @@ int Shader::LoadSourceFromFile(const char* path) {
         m_Source = shaderStream.str();
     }
     catch (std::ifstream::failure& e) {
-        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
+        Logger::Error("SHADER::FILE_NOT_SUCCESSFULLY_READ: %s", e.what());
     }
     return 0;
 }
@@ -64,6 +64,8 @@ Shader::Shader(ShaderType shaderType, const char* path) {
     Compile();
 }
 
+//             Shader Program
+
 int ShaderProgram::AttachShader(Shader shader) {
     glAttachShader(m_Program, shader.m_Shader);
     return 0;
@@ -77,7 +79,7 @@ int ShaderProgram::Link() {
     glGetProgramiv(m_Program, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(m_Program, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+        Logger::Error("SHADER::PROGRAM::LINKING_FAILED %s", infoLog);
         m_Program = 0;
         return 1;
     }
@@ -106,4 +108,19 @@ ShaderProgram::~ShaderProgram() {
 
 int ShaderProgram::UniformLocation(const char* mode) {
     return glGetUniformLocation(m_Program, mode);
+}
+
+void ShaderProgram::SetVar(const char* name, const float value) {
+    int loc = UniformLocation(name);
+    glUniform1f(loc, value);
+}
+
+void ShaderProgram::SetVec3(const char* name, glm::vec3 vec) {
+    int loc = UniformLocation(name);
+    glUniform3fv(loc, 1, glm::value_ptr(vec));
+}
+
+void ShaderProgram::SetMat4(const char* name, glm::mat4 mat) {
+    int loc = UniformLocation(name);
+    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(mat));
 }

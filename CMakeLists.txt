@@ -14,11 +14,14 @@ find_package(OpenGL REQUIRED)
 
 add_library(ENGINE STATIC 
             src/engine.cpp
-            src/shaders/shader_loader.cpp
+            src/shaders/shaders.cpp
             src/model/model.cpp 
             src/transform/transform.cpp
             src/camera/camera.cpp 
             src/input/input.cpp
+            src/texture/stb_image.cpp
+            src/texture/texture.cpp
+            src/logging/logger.cpp
 )
 
 add_subdirectory(thirdparty/glfw)
@@ -29,3 +32,4 @@ target_link_libraries(ENGINE PUBLIC glfw glad OpenGL::GL)
 
 add_executable(main src/main.cpp)
 target_link_libraries(main PUBLIC ENGINE)
+

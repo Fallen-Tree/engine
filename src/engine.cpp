@@ -7,21 +7,23 @@
 #include <iostream>
 
 #include "camera.hpp"
-#include "shader_loader.hpp"
+#include "shaders.hpp"
 #include "light.hpp"
 #include "material.hpp"
 #include "input.hpp"
+#include "texture.hpp"
+#include "stb_image.h"
+#include "logger.hpp"
 
 // should send to all constants
 const int maxValidKey = 350;
+const float fpsLimit = 500;
+const float fpsShowingInterval = 1.f;
 
 static Engine *s_Engine = nullptr;
 EnvLight envL;
 
 static Input *s_Input = nullptr;
-
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
 
 Engine::Engine() {
     m_Objects = std::vector<Object *>();
@@ -101,84 +103,72 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     envL.m_Specular = glm::vec3(1.0f, 1.0f, 1.0f);
     envL.m_Position = glm::vec3(-0.2, -0.5, -1.2);
 
-
-
-    std::vector<GLuint> cubeIndices {
-        0, 1, 2,
-        3, 4, 5,
-        6, 7, 8,
-        9, 10, 11,
-        12, 13, 14,
-        15, 16, 17,
-        18, 19, 20,
-        21, 22, 23,
-        24, 25, 26,
-        27, 28, 29,
-        30, 31, 32,
-        33, 34, 35
-    };
-
     std::vector<GLfloat> cubeVertices {
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+          // positions          // normals           // texture coords
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
 
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
 
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
 
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
     };
 
     // init a model
-    Model *testModel = new Model(cubeVertices, cubeIndices);
+    Model * testModel = new Model(cubeVertices, 8);
     testModel->shader = shaderProgram;
 
     auto testObj = new Object();
-    testObj->m_RenderData = new RenderData();
-    testObj->m_RenderData->m_Model = testModel;
+    testObj->renderData = new RenderData();
+    testObj->renderData->model = testModel;
 
-    testObj->m_RenderData->m_Mat = {
-        glm::vec3(0.2, 0.1, 0.2),
-        glm::vec3(0.7, 0.6, 0.7),
-        glm::vec3(0.6, 0.7, 0.6),
-        0.6,
+    // Maybe this can be less clunky?
+    // Perhaps variadic functions?
+    auto images = std::vector<std::string>(2);
+    images.push_back("/wall.png");
+    images.push_back("/wallspecular.png");
+    testObj->renderData->material = {
+        4.f,
+        Texture(images),
     };
-    testObj->m_Transform = new Transform(glm::vec3(0.f, 0.f, -3.f), glm::vec3(1.f, 1.f, 1.f), glm::mat4(1.0));
 
-    auto render_data = testObj->m_RenderData;
+    testObj->transform = new Transform(glm::vec3(0.f, 0.f, -3.f), glm::vec3(1.f, 1.f, 1.f), glm::mat4(1.0));
+
+    auto render_data = testObj->renderData;
 
     glGenVertexArrays(1, &render_data->VAO);
     glGenBuffers(1, &render_data->VBO);
@@ -193,25 +183,29 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     glBindBuffer(GL_ARRAY_BUFFER, render_data->VBO);
     glBufferData(
         GL_ARRAY_BUFFER,
-        render_data->m_Model->getLenArrPoints() * sizeof(float),
-        render_data->m_Model->getPoints(),
+        render_data->model->getLenArrPoints() * sizeof(float),
+        render_data->model->getPoints(),
         GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_data->EBO);
     glBufferData(
         GL_ELEMENT_ARRAY_BUFFER,
-        render_data->m_Model->getLenIndices() * sizeof(unsigned int),
-        render_data->m_Model->getIndices(),
+        render_data->model->getLenIndices() * sizeof(unsigned int),
+        render_data->model->getIndices(),
         GL_STATIC_DRAW);
 
 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void*>(0));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(0));
     glEnableVertexAttribArray(0);
     // normal attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
         reinterpret_cast<void*>(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // texture coordinates
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+        reinterpret_cast<void*>(6    * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as
     // the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
@@ -229,20 +223,37 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     AddObject(testObj);
     glEnable(GL_DEPTH_TEST);
 
+    float lastFpsShowedTime = 0.f;
+    int lastRenderedFrame = -1;
+    int fpsFrames = 0;
+    const float frameTime = 1.f / fpsLimit;
+    float deltaTime = 0.0f;
+    float lastTime = 0.0f;
+
     // render loop
     // -----------
     while (!glfwWindowShouldClose(m_Window)) {
-        float currentFrame = static_cast<float>(glfwGetTime());
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
+        float currentTime = static_cast<float>(glfwGetTime());
+        deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
+
+        if (currentTime - lastFpsShowedTime > fpsShowingInterval) {
+            Logger::Info("FPS: %d", static_cast<int>(fpsFrames / (currentTime - lastFpsShowedTime)));
+            lastFpsShowedTime = currentTime;
+            fpsFrames = 0;
+        }
 
         m_Input.Update();
         glfwPollEvents();
         processInput(m_Window);
-
-
-        Render(SCR_WIDTH, SCR_HEIGHT);
         m_Camera.Update(&m_Input, deltaTime);
+
+        while (static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime)) == lastRenderedFrame) {
+        }
+
+        fpsFrames++;
+        lastRenderedFrame = static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime));
+        Render(SCR_WIDTH, SCR_HEIGHT);
     }
 
     // optional: de-allocate all resources once they've outlived their purpose:
@@ -266,12 +277,12 @@ void Engine::Render(int width, int height) {
 
     for (uint64_t i = 0; i < m_Objects.size(); i++) {
         auto object = m_Objects[i];
-        if (!object->m_RenderData || !object->m_Transform)
+        if (!object->renderData || !object->transform)
             continue;
-        auto data = object->m_RenderData;
-        auto transform = object->m_Transform;
+        auto data = object->renderData;
+        auto transform = object->transform;
 
-        auto model = data->m_Model;
+        auto model = data->model;
 
         float timeValue = glfwGetTime();
         transform->Rotate(timeValue / 10000.0, glm::vec3(0.f, 0.f, 1.f));
@@ -290,46 +301,29 @@ void Engine::Render(int width, int height) {
                                         static_cast<float>(width) / static_cast<float>(height),
                                         0.1f, 100.0f);
 
-        GLint objectColorLoc = shader.UniformLocation("objectColor");
-        GLint modelLoc = shader.UniformLocation("model");
-        GLint viewLoc = shader.UniformLocation("view");
-        GLint viewPosLoc = shader.UniformLocation("viewPos");
-        GLint projLoc = shader.UniformLocation("projection");
-        // loc for material
-        GLint ambientLoc =  shader.UniformLocation("material.ambient");
-        GLint diffuseLoc =  shader.UniformLocation("material.diffuse");
-        GLint specularLoc =  shader.UniformLocation("material.specular");
-        GLint shininessLoc =  shader.UniformLocation("material.shininess");
-        // loc for light
-        GLint lightPositionLoc =  shader.UniformLocation("light.position");
-        GLint lightAmbientLoc = shader.UniformLocation("light.ambient");
-        GLint lightSpecularLoc = shader.UniformLocation("light.specualar");
-        GLint lightDiffuseLoc = shader.UniformLocation("light.diffuse");
+        transform->Translate(glm::vec3(0.f, 0.f, -0.001f));
 
-        // send color to shader
-        glUniform3fv(objectColorLoc, 1, glm::value_ptr(glm::vec3(0.53, 0.43, 0.23)));
         // send matrix transform to shader
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE,
-            glm::value_ptr(transform->GetTransformMatrix()));
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        glUniform3fv(viewPosLoc, 1, glm::value_ptr(viewPos));
+        shader.SetMat4("model", transform->GetTransformMatrix());
+        shader.SetMat4("view", view);
+        shader.SetVec3("viewPos", viewPos);
+
         // send material to shaders
-        glUniform3fv(ambientLoc, 1, glm::value_ptr(data->m_Mat.m_Ambient));
-        glUniform3fv(diffuseLoc, 1, glm::value_ptr(data->m_Mat.m_Diffuse));
-        glUniform3fv(specularLoc, 1, glm::value_ptr(data->m_Mat.m_Specular));
-        glUniform1f(shininessLoc, data->m_Mat.m_Shininess);
+        shader.SetVar("material.shininess", data->material.shininess);
         // send light to shaders
-        glUniform3fv(lightPositionLoc, 1, glm::value_ptr(envL.m_Position));
-        glUniform3fv(lightAmbientLoc, 1, glm::value_ptr(envL.m_Ambient));
-        glUniform3fv(lightSpecularLoc, 1, glm::value_ptr(envL.m_Specular));
-        glUniform3fv(lightDiffuseLoc, 1, glm::value_ptr(envL.m_Diffuse));
-
-
+        shader.SetVec3("light.position", envL.m_Position);
+        shader.SetVec3("light.ambient", envL.m_Ambient);
+        shader.SetVec3("light.diffuse", envL.m_Diffuse);
+        shader.SetVec3("light.specular", envL.m_Specular);
+        // send inf about texture
+        data->material.texture.bind();
+        glUniform1i(shader.UniformLocation("material.duffuse"), 0);
+        glUniform1i(shader.UniformLocation("material.specular"), 1);
 
         // Note: currently we set the projection matrix each frame,
         // but since the projection matrix rarely changes it's
         // often best practice to set it outside the main loop only once.
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+        shader.SetMat4("projection", projection);
 
         glBindVertexArray(data->VAO);
 
@@ -359,7 +353,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
-
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
 // ----------------------------------------------------------------------

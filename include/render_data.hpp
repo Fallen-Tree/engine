@@ -5,7 +5,7 @@
 
 struct RenderData {
     // TODO(theblek): Replace w/ proper resource-management system w/ handles
-    Model *m_Model;
-    Material m_Mat;
+    Model *model;
+    Material material;
     unsigned int VAO, VBO, EBO;
 };

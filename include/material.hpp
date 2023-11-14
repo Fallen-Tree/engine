@@ -2,10 +2,9 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "texture.hpp"
 
 struct Material{
-    glm::vec3 m_Ambient;
-    glm::vec3 m_Diffuse;
-    glm::vec3 m_Specular;
-    float m_Shininess;
+    float shininess;
+    Texture texture;
 };

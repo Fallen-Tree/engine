@@ -5,12 +5,13 @@
 #include "camera.hpp"
 #include "input.hpp"
 
+
 struct GLFWwindow;
 
 class Object {
  public:
-     Transform *m_Transform;
-     RenderData *m_RenderData;
+     Transform *transform;
+     RenderData *renderData;
 };
 
 class Engine {
