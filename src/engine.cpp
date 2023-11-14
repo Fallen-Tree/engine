@@ -298,7 +298,7 @@ void Engine::Render(int width, int height) {
         shader.SetVec3("material.ambient", instance->m_Mat.m_Ambient);
         shader.SetVec3("material.diffuse", instance->m_Mat.m_Diffuse);
         shader.SetVec3("material.specular", instance->m_Mat.m_Specular);
-        shader.SetVar("material.shininess", instance->m_Mat.Shininess);
+        shader.SetFloat("material.shininess", instance->m_Mat.Shininess);
 
         // send light to shaders
         shader.SetVec3("light.position", envL.m_Position);
