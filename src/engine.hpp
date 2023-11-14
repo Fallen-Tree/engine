@@ -4,6 +4,7 @@
 #include "camera.hpp"
 #include "input.hpp"
 
+
 struct GLFWwindow;
 
 class Object {
