@@ -315,7 +315,7 @@ void Engine::Render(int width, int height) {
 
         // send color to shader
         shader.SetVec3("objectColor", glm::vec3(1, 1, 1));
-
+Camera* Engine::SwitchCamera(Camera* newCamera) { 
         // send matrix transform to shader
         shader.SetMat4("model", instance->GetTransform()->GetTransformMatrix());
         shader.SetMat4("view", view);
