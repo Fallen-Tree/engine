@@ -12,7 +12,7 @@
 Model* Model::loadFromFile(const char* filePath) {
     std::filesystem::path fileExtension = ((std::filesystem::path) filePath).extension();
     if (fileExtension != ".obj") {
-        std::cout << "INCORRECT::FILE::FORMAT::" << fileExtension << std::endl;
+        Logger::Error("MODEL::LOADER::INCORRECT::FILE::FORMAT::%s", fileExtension);
         return 0;
     }
     char finalPath[512];
@@ -21,7 +21,7 @@ Model* Model::loadFromFile(const char* filePath) {
     objFile.open(finalPath);
 
     if (objFile.fail()) {
-        std::cout << "FAILED::TO::OPEN::FILE::" << finalPath << std::endl;
+        Logger::Error("MODEL::LOADER::FAILED::TO::OPEN::FILE::%s", finalPath);
         return 0;
     }
     return loadFromObjFile(objFile);
@@ -87,7 +87,7 @@ Model* Model::loadFromObjFile(std::ifstream &objFile) {  // assuming objFile alr
                         } else if (currentField == 2) {
                             normalsIndices.push_back(index);
                         } else {
-                            // incorrect file
+                            Logger::Error("MODEL::LOADER::PARSE::ERROR");
                         }
                         indexString = "";
                         currentField++;
@@ -120,7 +120,7 @@ Model* Model::loadFromObjFile(std::ifstream &objFile) {  // assuming objFile alr
                 modelIndices.push_back(faceIndices[i + 1]);
             }
         } else {
-            // not a valid key at the start of the string
+            Logger::Error("MODEL::LOADER::INVALID::KEY::'%s'", key);
         }
     }
     objFile.close();
