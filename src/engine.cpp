@@ -52,9 +52,7 @@ void processInput(GLFWwindow *window);
 
 
 const char *vertexShaderSource = "/vertex/standart.vshader";
-const char *fragmentShaderSource1 = "/fragment/green.fshader";
-const char *fragmentShaderSource2 = "/fragment/red.fshader";
-const char *fragmentShaderSource3 = "/fragment/blue.fshader";
+const char *fragmentShaderSource = "/fragment/standart.fshader";
 
 void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     scrWidth = SCR_WIDTH;
@@ -102,11 +100,9 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     // build and compile our shader program ------------------------------------
     Shader vShader = Shader(VertexShader, vertexShaderSource);
-    Shader fShader1 = Shader(FragmentShader, fragmentShaderSource1);
-    Shader fShader2 = Shader(FragmentShader, fragmentShaderSource2);
-    Shader fShader3 = Shader(FragmentShader, fragmentShaderSource3);
+    Shader fShader = Shader(FragmentShader, fragmentShaderSource);
 
-    ShaderProgram shaderProgram = ShaderProgram(vShader, fShader2);
+    ShaderProgram shaderProgram = ShaderProgram(vShader, fShader);
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -163,7 +159,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     // init a model
     Model * testModel = new Model(cubeVertices, 8);
-    testModel->shader = shaderProgram;
+    testModel->shader = &shaderProgram;
 
     auto testObj = new Object();
     testObj->renderData = new RenderData();
@@ -310,9 +306,9 @@ void Engine::Render(int scr_width, int scr_height) {
 
         transform->Rotate(glm::radians(0.1f), glm::radians(0.1f), glm::radians(0.1f));
 
-        ShaderProgram shader = model->shader;
+        ShaderProgram * shader = model->shader;
         // draw our first triangle
-        shader.Use();
+        shader->Use();
 
         glm::mat4 view = m_Camera.GetViewMatrix();
         glm::vec3 viewPos = m_Camera.GetPosition();
@@ -326,26 +322,25 @@ void Engine::Render(int scr_width, int scr_height) {
         transform->Translate(glm::vec3(0.f, 0.f, -0.001f));
 
       // send matrix transform to shader
-        shader.SetMat4("model", transform->GetTransformMatrix());
-        shader.SetMat4("view", view);
-        shader.SetVec3("viewPos", viewPos);
+        shader->SetMat4("model", transform->GetTransformMatrix());
+        shader->SetMat4("view", view);
+        shader->SetVec3("viewPos", viewPos);
 
         // send material to shaders
-        shader.SetFloat("material.shininess", instance->m_Mat.shininess);
+        shader->SetFloat("material.shininess", data->material.shininess);
         // send light to shaders
-        shader.SetVec3("light.position", envL.m_Position);
-        shader.SetVec3("light.ambient", envL.m_Ambient);
-        shader.SetVec3("light.diffuse", envL.m_Diffuse);
-        shader.SetVec3("light.specular", envL.m_Specular);
+        shader->SetVec3("light.position", envL.m_Position);
+        shader->SetVec3("light.ambient", envL.m_Ambient);
+        shader->SetVec3("light.diffuse", envL.m_Diffuse);
+        shader->SetVec3("light.specular", envL.m_Specular);
         // send inf about texture
         data->material.texture.bind();
-        glUniform1i(shader.UniformLocation("material.duffuse"), 0);
-        glUniform1i(shader.UniformLocation("material.specular"), 1);
-
+        shader->SetInt("material.duffuse", 0);
+        shader->SetInt("material.specular", 1);
         // Note: currently we set the projection matrix each frame,
         // but since the projection matrix rarely changes it's
         // often best practice to set it outside the main loop only once.
-        shader.SetMat4("projection", projection);
+        shader->SetMat4("projection", projection);
 
         glBindVertexArray(data->VAO);
 

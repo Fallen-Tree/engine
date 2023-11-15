@@ -103,6 +103,7 @@ int ShaderProgram::Use() {
 }
 
 ShaderProgram::~ShaderProgram() {
+    Logger::Warn("deleted program");
     glDeleteProgram(m_Program);
 }
 
