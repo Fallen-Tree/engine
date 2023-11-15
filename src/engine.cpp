@@ -46,7 +46,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
-const char *cubeSource = "/cube.obj";
+const char *cubeSource = "/cube2.obj";
 const char *catSource = "/cat.obj";
 const char *benchSource = "/bench.obj";
 
@@ -184,7 +184,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     glEnable(GL_DEPTH_TEST);
 
     // load and create a texture
-    texture.loadImage("/wall.png");
+    texture.loadImage("/wall2.png");
     texture.loadImage("/wallspecular.png");
     // texture.loadImage("/Cat_diffuse.jpg");
     // texture.loadImage("/wall2.png");
@@ -268,7 +268,7 @@ void Engine::Render(int width, int height) {
                                         static_cast<float>(width) / static_cast<float>(height),
                                         0.1f, 100.0f);
 
-        instance->GetTransform()->Translate(glm::vec3(0.f, 0.f, -0.001f));
+        instance->GetTransform()->Translate(glm::vec3(0.f, 0.f, -1.0f) * timeValue);
 
         // send matrix transform to shader
         shader.SetMat4("model", instance->GetTransform()->GetTransformMatrix());
