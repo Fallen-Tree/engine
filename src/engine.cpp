@@ -14,20 +14,25 @@
 #include "stb_image.h"
 #include "logger.hpp"
 
+
+int viewportWidth, viewportHeight;
+// Left bottom corner coordinates of viewport
+int viewportStartX, viewportStartY;
+// For resoliton and initial window size. 1600x900 for example.
+int scrWidth, scrHeight;
+
 // should send to all constants
 const int maxValidKey = 350;
 const float fpsLimit = 500;
 const float fpsShowingInterval = 1.f;
 
-Texture texture;
 static Engine *s_Engine = nullptr;
 EnvLight envL;
 
 static Input *s_Input = nullptr;
 
-
 Engine::Engine() {
-    m_objects = std::vector<Object *>();
+    m_Objects = std::vector<Object *>();
     m_Camera = Camera(glm::vec3(0.0f, 0.0f, 3.0f));
     s_Engine = this;
 }
@@ -37,7 +42,7 @@ Engine::~Engine() {
 }
 
 void Engine::AddObject(Object *a) {
-    m_objects.push_back(a);
+    m_Objects.push_back(a);
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -52,6 +57,13 @@ const char *fragmentShaderSource2 = "/fragment/red.fshader";
 const char *fragmentShaderSource3 = "/fragment/blue.fshader";
 
 void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
+    scrWidth = SCR_WIDTH;
+    scrHeight = SCR_HEIGHT;
+    viewportWidth = SCR_WIDTH;
+    viewportHeight = SCR_HEIGHT;
+    viewportStartX = 0;
+    viewportStartY = 0;
+
     // glfw: initialize and configure
     // ------------------------------
     glfwInit();
@@ -152,35 +164,47 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // init a model
     Model * testModel = new Model(cubeVertices, 8);
     testModel->shader = shaderProgram;
-    // transformation stores information about angle, scale, rotate and tranlsation.
-    // Method makeTransform make mat4 transform(public var), after we send it to shaders.
-    ModelInstance * modelInstance = new ModelInstance(testModel, glm::vec3(0.f, 0.f, -3.f),
-                                                                 glm::vec3(1.f, 1.f, 1.f),
-                                                                 glm::mat4(1.0));
 
-    modelInstance->m_Mat.m_Shininess = 4.f;
+    auto testObj = new Object();
+    testObj->renderData = new RenderData();
+    testObj->renderData->model = testModel;
 
+    // Maybe this can be less clunky?
+    // Perhaps variadic functions?
+    auto images = std::vector<std::string>(2);
+    images.push_back("/wall.png");
+    images.push_back("/wallspecular.png");
+    testObj->renderData->material = {
+        4.f,
+        Texture(images),
+    };
 
-    glGenVertexArrays(1, &modelInstance->GetModel()->VAO);
-    glGenBuffers(1, &modelInstance->GetModel()->VBO);
-    glGenBuffers(1, &modelInstance->GetModel()->EBO);
+    testObj->transform = new Transform(glm::vec3(0.f, 0.f, -3.f), glm::vec3(1.f, 1.f, 1.f), glm::mat4(1.0));
 
+    auto render_data = testObj->renderData;
 
+    glGenVertexArrays(1, &render_data->VAO);
+    glGenBuffers(1, &render_data->VBO);
+    glGenBuffers(1, &render_data->EBO);
     // bind the Vertex Array Object first,
     // then bind and set vertex buffer(s),
     // and then configure vertex attributes(s).
 
-    glBindVertexArray(modelInstance->GetModel()->VAO);
+    glBindVertexArray(render_data->VAO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, modelInstance->GetModel()->VBO);
-    glBufferData(GL_ARRAY_BUFFER,
-        modelInstance->GetModel()->getLenArrPoints() * sizeof(float),
-        modelInstance->GetModel()->getPoints(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, render_data->VBO);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        render_data->model->getLenArrPoints() * sizeof(float),
+        render_data->model->getPoints(),
+        GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, modelInstance->GetModel()->EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-        modelInstance->GetModel()->getLenIndices() * sizeof(unsigned int),
-        modelInstance->GetModel()->getIndices(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_data->EBO);
+    glBufferData(
+        GL_ELEMENT_ARRAY_BUFFER,
+        render_data->model->getLenIndices() * sizeof(unsigned int),
+        render_data->model->getIndices(),
+        GL_STATIC_DRAW);
 
 
     // position attribute
@@ -208,14 +232,8 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     glBindVertexArray(0);
 
-    auto testObj = new Object();
-    testObj->m_modelInstance = modelInstance;
     AddObject(testObj);
     glEnable(GL_DEPTH_TEST);
-
-    // load and create a texture
-    texture.loadImage("/wall.png");
-    texture.loadImage("/wallspecular.png");
 
     float lastFpsShowedTime = 0.f;
     int lastRenderedFrame = -1;
@@ -253,9 +271,9 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
 
-    glDeleteVertexArrays(1, &modelInstance->GetModel()->VAO);
-    glDeleteBuffers(1, &modelInstance->GetModel()->VBO);
-    glDeleteBuffers(1, &modelInstance->GetModel()->EBO);
+    glDeleteVertexArrays(1, &render_data->VAO);
+    glDeleteBuffers(1, &render_data->VBO);
+    glDeleteBuffers(1, &render_data->EBO);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
@@ -263,26 +281,34 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     return;
 }
 
-void Engine::Render(int width, int height) {
+void Engine::Render(int scr_width, int scr_height) {
     // render
     // ------
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
+    // Coloring all window (black)
+    glClearColor(0.f, 0.f, 0.f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // bind textures on corresponding texture units
-    texture.bind();
+    // Coloring only viewport (sky)
+    glEnable(GL_SCISSOR_TEST);
+    glScissor(viewportStartX, viewportStartY, viewportWidth, viewportHeight);
+    glClearColor(0.5f, 0.8f, 0.9f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_SCISSOR_TEST);
 
-    for (uint64_t i = 0; i < m_objects.size(); i++) {
-        auto object = m_objects[i];
-        if (!object->m_modelInstance)
+    for (uint64_t i = 0; i < m_Objects.size(); i++) {
+        auto object = m_Objects[i];
+        if (!object->renderData || !object->transform)
             continue;
-        auto instance = object->m_modelInstance;
 
-        auto model = instance->GetModel();
+        auto data = object->renderData;
+        auto transform = object->transform;
+
+        auto model = data->model;
 
         float timeValue = glfwGetTime();
-        instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 0.f, 1.f));
-        instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 1.f, 0.f));
+
+        transform->Rotate(glm::radians(0.1f), glm::radians(0.1f), glm::radians(0.1f));
 
         ShaderProgram shader = model->shader;
         // draw our first triangle
@@ -293,24 +319,26 @@ void Engine::Render(int width, int height) {
 
         glm::mat4 projection = glm::perspective(
                                         glm::radians(m_Camera.GetZoom()),
-                                        static_cast<float>(width) / static_cast<float>(height),
+                                        static_cast<float>(scr_width) / static_cast<float>(scr_height),
                                         0.1f, 100.0f);
 
-        instance->GetTransform()->Translate(glm::vec3(0.f, 0.f, -0.001f));
 
-        // send matrix transform to shader
-        shader.SetMat4("model", instance->GetTransform()->GetTransformMatrix());
+        transform->Translate(glm::vec3(0.f, 0.f, -0.001f));
+
+      // send matrix transform to shader
+        shader.SetMat4("model", transform->GetTransformMatrix());
         shader.SetMat4("view", view);
         shader.SetVec3("viewPos", viewPos);
 
         // send material to shaders
-        shader.SetFloat("material.shininess", instance->m_Mat.m_Shininess);
+        shader.SetFloat("material.shininess", instance->m_Mat.shininess);
         // send light to shaders
         shader.SetVec3("light.position", envL.m_Position);
         shader.SetVec3("light.ambient", envL.m_Ambient);
         shader.SetVec3("light.diffuse", envL.m_Diffuse);
         shader.SetVec3("light.specular", envL.m_Specular);
         // send inf about texture
+        data->material.texture.bind();
         glUniform1i(shader.UniformLocation("material.duffuse"), 0);
         glUniform1i(shader.UniformLocation("material.specular"), 1);
 
@@ -319,7 +347,7 @@ void Engine::Render(int width, int height) {
         // often best practice to set it outside the main loop only once.
         shader.SetMat4("projection", projection);
 
-        glBindVertexArray(model->VAO);
+        glBindVertexArray(data->VAO);
 
         glDrawElements(GL_TRIANGLES, model->getLenIndices(), GL_UNSIGNED_INT, 0);
     }
@@ -345,9 +373,28 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
-    glViewport(0, 0, width, height);
-}
 
+
+    // width and height have to be the same resolution as scr_width and scr_height
+    viewportWidth = width;
+    viewportHeight = height;
+
+    float current = static_cast<float>(width) / static_cast<float>(height);
+    float expected = static_cast<float>(scrWidth) / static_cast<float>(scrHeight);
+
+    if (current > expected) {
+        viewportWidth = scrWidth * height / scrHeight;
+    } else {
+        viewportHeight = scrHeight * width / scrWidth;
+    }
+
+    Logger::Info("Window resized, current viewport width and height: %d, %d.", viewportWidth, viewportHeight);
+
+    viewportStartX = (width - viewportWidth) / 2;
+    viewportStartY = (height - viewportHeight) / 2;
+
+    glViewport(viewportStartX, viewportStartY, viewportWidth, viewportHeight);
+}
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
 // ----------------------------------------------------------------------
