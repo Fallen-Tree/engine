@@ -281,8 +281,7 @@ void Engine::Render(int width, int height) {
         auto model = instance->GetModel();
 
         float timeValue = glfwGetTime();
-        instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 0.f, 1.f));
-        instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 1.f, 0.f));
+        instance->GetTransform()->Rotate(glm::radians(0.1f), glm::radians(0.1f), glm::radians(0.1f));
 
         ShaderProgram shader = model->shader;
         // draw our first triangle
