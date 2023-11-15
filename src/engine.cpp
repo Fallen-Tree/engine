@@ -15,9 +15,10 @@
 #include "logger.hpp"
 
 
-// For screen resizing
 int viewportWidth, viewportHeight;
+// Left bottom corner coordinates of viewport
 int viewportStartX, viewportStartY;
+// For resoliton and initial window size. 1600x900 for example.
 int scrWidth, scrHeight;
 
 // should send to all constants
@@ -317,8 +318,6 @@ void Engine::Render(int scr_width, int scr_height) {
                                         glm::radians(m_Camera.GetZoom()),
                                         static_cast<float>(scr_width) / static_cast<float>(scr_height),
                                         0.1f, 100.0f);
-
-       // instance->GetTransform()->Translate(glm::vec3(0.f, 0.f, -0.001f));
 
         // send matrix transform to shader
         shader.SetMat4("model", instance->GetTransform()->GetTransformMatrix());
