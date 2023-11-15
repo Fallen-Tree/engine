@@ -24,7 +24,6 @@ class Engine {
         AddObject(static_cast<Object *>(a));
     }
 
-    // You have to switch to main camera yourself after using this method
     Camera* SwitchCamera(Camera *newCamera);
 
     void Run(int, int);
