@@ -2,7 +2,9 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "texture.hpp"
 
 struct Material{
-        float m_Shininess;
+    float shininess;
+    Texture texture;
 };
