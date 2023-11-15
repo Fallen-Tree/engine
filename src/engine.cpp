@@ -14,6 +14,13 @@
 #include "stb_image.h"
 #include "logger.hpp"
 
+
+int viewportWidth, viewportHeight;
+// Left bottom corner coordinates of viewport
+int viewportStartX, viewportStartY;
+// For resoliton and initial window size. 1600x900 for example.
+int scrWidth, scrHeight;
+
 // should send to all constants
 const int maxValidKey = 350;
 const float fpsLimit = 500;
@@ -50,6 +57,13 @@ const char *fragmentShaderSource2 = "/fragment/red.fshader";
 const char *fragmentShaderSource3 = "/fragment/blue.fshader";
 
 void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
+    scrWidth = SCR_WIDTH;
+    scrHeight = SCR_HEIGHT;
+    viewportWidth = SCR_WIDTH;
+    viewportHeight = SCR_HEIGHT;
+    viewportStartX = 0;
+    viewportStartY = 0;
+
     // glfw: initialize and configure
     // ------------------------------
     glfwInit();
@@ -172,7 +186,6 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     glGenVertexArrays(1, &render_data->VAO);
     glGenBuffers(1, &render_data->VBO);
     glGenBuffers(1, &render_data->EBO);
-
     // bind the Vertex Array Object first,
     // then bind and set vertex buffer(s),
     // and then configure vertex attributes(s).
@@ -268,16 +281,26 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     return;
 }
 
-void Engine::Render(int width, int height) {
+void Engine::Render(int scr_width, int scr_height) {
     // render
     // ------
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
+    // Coloring all window (black)
+    glClearColor(0.f, 0.f, 0.f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Coloring only viewport (sky)
+    glEnable(GL_SCISSOR_TEST);
+    glScissor(viewportStartX, viewportStartY, viewportWidth, viewportHeight);
+    glClearColor(0.5f, 0.8f, 0.9f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_SCISSOR_TEST);
 
     for (uint64_t i = 0; i < m_Objects.size(); i++) {
         auto object = m_Objects[i];
         if (!object->renderData || !object->transform)
             continue;
+
         auto data = object->renderData;
         auto transform = object->transform;
 
@@ -296,12 +319,13 @@ void Engine::Render(int width, int height) {
 
         glm::mat4 projection = glm::perspective(
                                         glm::radians(m_Camera.GetZoom()),
-                                        static_cast<float>(width) / static_cast<float>(height),
+                                        static_cast<float>(scr_width) / static_cast<float>(scr_height),
                                         0.1f, 100.0f);
+
 
         transform->Translate(glm::vec3(0.f, 0.f, -0.001f));
 
-        // send matrix transform to shader
+      // send matrix transform to shader
         shader.SetMat4("model", transform->GetTransformMatrix());
         shader.SetMat4("view", view);
         shader.SetVec3("viewPos", viewPos);
@@ -349,7 +373,27 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
-    glViewport(0, 0, width, height);
+
+
+    // width and height have to be the same resolution as scr_width and scr_height
+    viewportWidth = width;
+    viewportHeight = height;
+
+    float current = static_cast<float>(width) / static_cast<float>(height);
+    float expected = static_cast<float>(scrWidth) / static_cast<float>(scrHeight);
+
+    if (current > expected) {
+        viewportWidth = scrWidth * height / scrHeight;
+    } else {
+        viewportHeight = scrHeight * width / scrWidth;
+    }
+
+    Logger::Info("Window resized, current viewport width and height: %d, %d.", viewportWidth, viewportHeight);
+
+    viewportStartX = (width - viewportWidth) / 2;
+    viewportStartY = (height - viewportHeight) / 2;
+
+    glViewport(viewportStartX, viewportStartY, viewportWidth, viewportHeight);
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
