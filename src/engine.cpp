@@ -185,7 +185,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     // load and create a texture
     texture.loadImage("/wall2.png");
-    texture.loadImage("/wallspecular.png");
+    texture.loadImage("/wall2specular.png");
     // texture.loadImage("/Cat_diffuse.jpg");
     // texture.loadImage("/wall2.png");
     // texture.loadImage("/wall2specular.png");
@@ -252,9 +252,9 @@ void Engine::Render(int width, int height) {
 
         auto model = instance->GetModel();
 
-        float timeValue = glfwGetTime();
-        instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 0.f, 1.f));
-        instance->GetTransform()->Rotate(timeValue / 10000.0, glm::vec3(0.f, 1.f, 0.f));
+        float timeValue = glfwGetTime() / 1000; // time value in seconds
+        instance->GetTransform()->Rotate(timeValue * 0.1f, glm::vec3(0.f, 0.f, 1.f));
+        instance->GetTransform()->Rotate(timeValue * 0.1f, glm::vec3(0.f, 1.f, 0.f));
 
         ShaderProgram shader = model->shader;
         // draw our first triangle
@@ -268,7 +268,7 @@ void Engine::Render(int width, int height) {
                                         static_cast<float>(width) / static_cast<float>(height),
                                         0.1f, 100.0f);
 
-        instance->GetTransform()->Translate(glm::vec3(0.f, 0.f, -1.0f) * timeValue);
+        instance->GetTransform()->Translate(glm::vec3(0.f, 0.f, -0.01f) * timeValue);
 
         // send matrix transform to shader
         shader.SetMat4("model", instance->GetTransform()->GetTransformMatrix());
