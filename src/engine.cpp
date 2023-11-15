@@ -3,7 +3,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <vector>
-#include <array>
 #include <iostream>
 
 #include "camera.hpp"
