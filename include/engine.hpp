@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
-#include "modelInstance.hpp"
+#include "render_data.hpp"
+#include "transform.hpp"
 #include "camera.hpp"
 #include "input.hpp"
 
@@ -9,8 +10,8 @@ struct GLFWwindow;
 
 class Object {
  public:
-     ModelInstance *m_modelInstance;
-     Camera *m_Camera;
+     Transform *transform;
+     RenderData *renderData;
 };
 
 class Engine {
@@ -24,16 +25,15 @@ class Engine {
         AddObject(static_cast<Object *>(a));
     }
 
-    Camera* SwitchCamera(Camera *newCamera);
-
     void Run(int, int);
-    Camera *m_Camera;
     Input m_Input;
+    Camera m_Camera;
 
  private:
     void AddObject(Object *);
     void Render(int, int);
 
-    std::vector<Object *> m_objects;
+
+    std::vector<Object *> m_Objects;
     GLFWwindow *m_Window;
 };

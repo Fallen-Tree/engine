@@ -15,7 +15,6 @@ add_library(ENGINE STATIC
             src/engine.cpp
             src/shaders/shaders.cpp
             src/model/model.cpp 
-            src/model/modelInstance.cpp
             src/transform/transform.cpp
             src/camera/camera.cpp 
             src/input/input.cpp

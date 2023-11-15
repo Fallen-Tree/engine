@@ -12,6 +12,7 @@ class Transform {
     glm::mat4 m_Rotation;
 
  public:
+    Transform() = default;
     explicit Transform(glm::vec3 translation, glm::vec3 scale, float radiansDegree, glm::vec3 rotationAxis);
     explicit Transform(glm::vec3 translation, glm::vec3 scale, glm::mat4 rotationMatrix);
 
