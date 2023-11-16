@@ -171,7 +171,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     // Maybe this can be less clunky?
     // Perhaps variadic functions?
-    auto images = std::vector<std::string>(2);
+    auto images = std::vector<std::string>();
     images.push_back("/wall.png");
     images.push_back("/wallspecular.png");
     testObj->renderData->material = {
