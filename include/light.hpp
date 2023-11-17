@@ -7,12 +7,12 @@ struct Light {
     glm::vec3 ambient;
     glm::vec3 diffuse;
     glm::vec3 specular;
-}; 
+};
 
 struct PointLight : Light {
     glm::vec3 position;
-    float constant; 
-    float linear; 
+    float constant;
+    float linear;
     float quadratic;
 };
 
@@ -20,7 +20,8 @@ struct DirLight : Light {
     glm::vec3 direction;
 };
 
-struct SpotLight : DirLight, PointLight {
+struct SpotLight : PointLight {
+    glm::vec3 direction;
     float cutOff;
     float outerCutOff;
 };

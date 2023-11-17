@@ -27,7 +27,7 @@ const float fpsLimit = 500;
 const float fpsShowingInterval = 1.f;
 
 static Engine *s_Engine = nullptr;
-std::vector<PointLight> pointLights = std::vector<PointLight>(1);
+std::vector<PointLight> pointLights = std::vector<PointLight>(3);
 DirLight dirLight;
 SpotLight spotLight;
 
@@ -120,6 +120,11 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     pointLights[0].constant = 1;
     pointLights[0].linear = 0.09f;
     pointLights[0].quadratic = 0.032f;
+
+    pointLights[1] = pointLights[0];
+    pointLights[1].position = glm::vec3(2.3f, -3.3f, -4.0f);
+    pointLights[2] = pointLights[0];
+    pointLights[2].position = glm::vec3(0.0f,  0.0f, -3.0f);
 
     dirLight.ambient = glm::vec3(0.05f, 0.05f, 0.05f);
     dirLight.diffuse = glm::vec3(0.4f, 0.4f, 0.4f);
@@ -250,7 +255,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO,
     // but this rarely happens. Modifying other VAOs requires a call to glBindVertexArray anyways
-    // so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
+    // so we generally don't unbind VAOs (nor VBOs) when it's not direcspotLighttly necessary.
     glBindVertexArray(0);
 
     AddObject(testObj);
@@ -362,11 +367,38 @@ void Engine::Render(int scr_width, int scr_height) {
         shader.SetVar("pointLights[0].linear", pointLights[0].linear);
         shader.SetVar("pointLights[0].quadratic", pointLights[0].quadratic);
         shader.SetVar("pointLights[0].constant", pointLights[0].constant);
+
+        shader.SetVec3("pointLights[1].position", pointLights[1].position);
+        shader.SetVec3("pointLights[1].ambient", pointLights[1].ambient);
+        shader.SetVec3("pointLights[1].diffuse", pointLights[1].diffuse);
+        shader.SetVec3("pointLights[1].specular", pointLights[1].specular);
+        shader.SetVar("pointLights[1].linear", pointLights[1].linear);
+        shader.SetVar("pointLights[1].quadratic", pointLights[1].quadratic);
+        shader.SetVar("pointLights[1].constant", pointLights[1].constant);
+
+        shader.SetVec3("pointLights[2].position", pointLights[2].position);
+        shader.SetVec3("pointLights[2].ambient", pointLights[2].ambient);
+        shader.SetVec3("pointLights[2].diffuse", pointLights[2].diffuse);
+        shader.SetVec3("pointLights[2].specular", pointLights[2].specular);
+        shader.SetVar("pointLights[2].linear", pointLights[2].linear);
+        shader.SetVar("pointLights[2].quadratic", pointLights[2].quadratic);
+        shader.SetVar("pointLights[2].constant", pointLights[2].constant);
         // directionLight
         shader.SetVec3("dirLight.ambient", dirLight.ambient);
         shader.SetVec3("dirLight.specular", dirLight.specular);
         shader.SetVec3("dirLight.direction", dirLight.direction);
         shader.SetVec3("dirLight.diffuse", dirLight.diffuse);
+        // spotLight
+        shader.SetVec3("spotLight[0].diffuse", spotLight.diffuse);
+        shader.SetVec3("spotLight[0].direction", m_Camera.GetFront());
+        shader.SetVec3("spotLight[0].ambient", spotLight.ambient);
+        shader.SetVec3("spotLight[0].position", m_Camera.GetPosition());
+        shader.SetVec3("spotLight[0].specular", spotLight.specular);
+        shader.SetVar("spotLight[0].cutOff", spotLight.cutOff);
+        shader.SetVar("spotLight[0].linear", spotLight.linear);
+        shader.SetVar("spotLight[0].outerCutOff", spotLight.outerCutOff);
+        shader.SetVar("spotLight[0].constant", spotLight.constant);
+        shader.SetVar("spotLight[0].quadratic", spotLight.quadratic);
         // send inf about texture
         data->material.texture.bind();
         glUniform1i(shader.UniformLocation("material.duffuse"), 0);
