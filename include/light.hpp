@@ -11,9 +11,9 @@ struct Light {
 
 struct PointLight : Light {
     glm::vec3 position;
-    float constDistСoeff;
-    float linearDistСoeff;
-    float quadraticDistСoeff;
+    float constDistCoeff;
+    float linearDistCoeff;
+    float quadraticDistCoeff;
 };
 
 struct DirLight : Light {
