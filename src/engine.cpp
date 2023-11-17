@@ -400,9 +400,9 @@ void Engine::Render(int scr_width, int scr_height) {
         shader.SetVec3("dirLight.diffuse", dirLight.diffuse);
         // spotLight
         shader.SetVec3("spotLight[0].diffuse", spotLight.diffuse);
-        shader.SetVec3("spotLight[0].direction", m_Camera.GetFront());
+        shader.SetVec3("spotLight[0].direction", camera->GetFront());
         shader.SetVec3("spotLight[0].ambient", spotLight.ambient);
-        shader.SetVec3("spotLight[0].position", m_Camera.GetPosition());
+        shader.SetVec3("spotLight[0].position", camera->GetPosition());
         shader.SetVec3("spotLight[0].specular", spotLight.specular);
         shader.SetVar("spotLight[0].cutOff", spotLight.cutOff);
         shader.SetVar("spotLight[0].linear", spotLight.linear);
