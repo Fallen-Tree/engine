@@ -3,9 +3,24 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-struct EnvLight{
-    glm::vec3 m_Position;
-    glm::vec3 m_Ambient;
-    glm::vec3 m_Diffuse;
-    glm::vec3 m_Specular;
+struct Light {
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+}; 
+
+struct PointLight : Light {
+    glm::vec3 position;
+    float constant; 
+    float linear; 
+    float quadratic;
+};
+
+struct DirLight : Light {
+    glm::vec3 direction;
+};
+
+struct SpotLight : DirLight, PointLight {
+    float cutOff;
+    float outerCutOff;
 };
