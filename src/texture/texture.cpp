@@ -38,7 +38,7 @@ void Texture::loadImage(std::string path) {
 
     if (!data) {
         stbi_image_free(data);
-        Logger::Error("TEXTURE::PROGRAM::FILE_NOT_FOUND_FAILED: %s", finalPath);
+        Logger::Error("TEXTURE::LOADER::PROGRAM::FILE_NOT_FOUND_FAILED: %s", finalPath);
         return;
     }
     GLenum format = GL_RGBA;
