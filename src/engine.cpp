@@ -27,7 +27,9 @@ const float fpsLimit = 500;
 const float fpsShowingInterval = 1.f;
 
 static Engine *s_Engine = nullptr;
-EnvLight envL;
+std::vector<PointLight> pointLights = std::vector<PointLight>(3);
+DirLight dirLight;
+std::vector<SpotLight> spotLight = std::vector<SpotLight>(1);
 
 static Input *s_Input = nullptr;
 
@@ -121,10 +123,34 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
 
-    envL.m_Ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-    envL.m_Diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
-    envL.m_Specular = glm::vec3(1.0f, 1.0f, 1.0f);
-    envL.m_Position = glm::vec3(-0.2, -0.5, -1.2);
+    pointLights[0].ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+    pointLights[0].diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
+    pointLights[0].specular = glm::vec3(1.0f, 1.0f, 1.0f);
+    pointLights[0].position = glm::vec3(-0.2, -0.5, -1.2);
+    pointLights[0].constDistCoeff = 1;
+    pointLights[0].linearDistCoeff = 0.09f;
+    pointLights[0].quadraticDistCoeff = 0.032f;
+
+    pointLights[1] = pointLights[0];
+    pointLights[1].position = glm::vec3(2.3f, -3.3f, -4.0f);
+    pointLights[2] = pointLights[0];
+    pointLights[2].position = glm::vec3(0.0f,  0.0f, -3.0f);
+
+    dirLight.ambient = glm::vec3(0.05f, 0.05f, 0.05f);
+    dirLight.diffuse = glm::vec3(0.4f, 0.4f, 0.4f);
+    dirLight.specular = glm::vec3(0.5f, 0.5f, 0.5f);
+    dirLight.direction = glm::vec3(-0.2f, -1.0f, -0.3f);
+
+    spotLight[0].ambient = glm::vec3(0.0f, 0.0f, 0.0f);
+    spotLight[0].diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
+    spotLight[0].specular = glm::vec3(1.0f, 1.0f, 1.0f);
+    spotLight[0].constDistCoeff = 1.0f;
+    spotLight[0].linearDistCoeff = 0.09f;
+    spotLight[0].quadraticDistCoeff = 0.032f;
+    spotLight[0].cutOff = glm::cos(glm::radians(12.5f));
+    spotLight[0].outerCutOff = glm::cos(glm::radians(15.0f));
+
+
 
     std::vector<GLfloat> cubeVertices {
           // positions          // normals           // texture coords
@@ -343,10 +369,54 @@ void Engine::Render(int scr_width, int scr_height) {
         // send material to shaders
         shader.SetVar("material.shininess", data->material.shininess);
         // send light to shaders
-        shader.SetVec3("light.position", envL.m_Position);
-        shader.SetVec3("light.ambient", envL.m_Ambient);
-        shader.SetVec3("light.diffuse", envL.m_Diffuse);
-        shader.SetVec3("light.specular", envL.m_Specular);
+        // pointLight
+        char str[100];
+        for (int i = 0; i < pointLights.size(); i++) {
+            snprintf(str, sizeof(str), "pointLights[%d].position", i);
+            shader.SetVec3(str, pointLights[i].position);
+            snprintf(str, sizeof(str), "pointLights[%d].ambient", i);
+            shader.SetVec3(str, pointLights[i].ambient);
+            snprintf(str, sizeof(str), "pointLights[%d].diffuse", i);
+            shader.SetVec3(str, pointLights[i].diffuse);
+            snprintf(str, sizeof(str), "pointLights[%d].specular", i);
+            shader.SetVec3(str, pointLights[i].specular);
+            snprintf(str, sizeof(str), "pointLights[%d].linearDistCoeff", i);
+            shader.SetVar(str, pointLights[i].linearDistCoeff);
+            snprintf(str, sizeof(str), "pointLights[%d].quadraticDistCoeff", i);
+            shader.SetVar(str, pointLights[i].quadraticDistCoeff);
+            snprintf(str, sizeof(str), "pointLights[%d].constDistCoeff", i);
+            shader.SetVar(str, pointLights[i].constDistCoeff);
+        }
+        glUniform1i(shader.UniformLocation("lenArrPointL"), pointLights.size());
+        // directionLight
+        shader.SetVec3("dirLight.ambient", dirLight.ambient);
+        shader.SetVec3("dirLight.specular", dirLight.specular);
+        shader.SetVec3("dirLight.direction", dirLight.direction);
+        shader.SetVec3("dirLight.diffuse", dirLight.diffuse);
+        // spotLight
+        for (int i = 0; i < spotLight.size(); i++) {
+            snprintf(str, sizeof(str), "spotLight[%d].diffuse", i);
+            shader.SetVec3(str, spotLight[i].diffuse);
+            snprintf(str, sizeof(str), "spotLight[%d].direction", i);
+            shader.SetVec3(str, camera->GetFront());
+            snprintf(str, sizeof(str), "spotLight[%d].ambient", i);
+            shader.SetVec3(str, spotLight[i].ambient);
+            snprintf(str, sizeof(str), "spotLight[%d].position", i);
+            shader.SetVec3(str, camera->GetPosition());
+            snprintf(str, sizeof(str), "spotLight[%d].specular", i);
+            shader.SetVec3(str, spotLight[i].specular);
+            snprintf(str, sizeof(str), "spotLight[%d].cutOff", i);
+            shader.SetVar(str, spotLight[i].cutOff);
+            snprintf(str, sizeof(str), "spotLight[%d].linearDistCoeff", i);
+            shader.SetVar(str, spotLight[i].linearDistCoeff);
+            snprintf(str, sizeof(str), "spotLight[%d].outerCutOff", i);
+            shader.SetVar(str, spotLight[i].outerCutOff);
+            snprintf(str, sizeof(str), "spotLight[%d].constDistCoeff", i);
+            shader.SetVar(str, spotLight[i].constDistCoeff);
+            snprintf(str, sizeof(str), "spotLight[%d].quadraticDistCoeff", i);
+            shader.SetVar(str, spotLight[i].quadraticDistCoeff);
+        }
+        glUniform1i(shader.UniformLocation("lenArrSpotL"), spotLight.size());
         // send inf about texture
         data->material.texture.bind();
         glUniform1i(shader.UniformLocation("material.duffuse"), 0);
