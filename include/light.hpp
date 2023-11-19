@@ -1,11 +1,10 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "math_types.hpp"
 
 struct EnvLight{
-    glm::vec3 m_Position;
-    glm::vec3 m_Ambient;
-    glm::vec3 m_Diffuse;
-    glm::vec3 m_Specular;
+    Vec3 m_Position;
+    Vec3 m_Ambient;
+    Vec3 m_Diffuse;
+    Vec3 m_Specular;
 };

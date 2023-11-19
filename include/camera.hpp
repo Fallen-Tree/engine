@@ -2,12 +2,8 @@
 #define SRC_CAMERA_CAMERA_HPP_
 
 #include <glad/glad.h>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
+#include "math_types.hpp"
 #include "input.hpp"
-
 
 // Defines several possible options for camera movement.
 // Used as abstraction to stay away from window-system specific input methods
@@ -31,26 +27,23 @@ const float MINPITCH = -89.0f;
 const float MAXFOV = 45.0f;
 const float MINFOV = 1.0f;
 
-
-
-
 class Camera {
  public:
     // constructor with vectors
-    explicit Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, -3.0f),
-                    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
+    explicit Camera(Vec3 position = Vec3(0.0f, 0.0f, -3.0f),
+                    Vec3 up = Vec3(0.0f, 1.0f, 0.0f),
                     float yaw = YAW, float pitch = PITCH);
 
-    void SetPosition(glm::vec3 position = glm::vec3(0.0f, 0.0f, -3.0f),
-                    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
+    void SetPosition(Vec3 position = Vec3(0.0f, 0.0f, -3.0f),
+                    Vec3 up = Vec3(0.0f, 1.0f, 0.0f),
                     float yaw = YAW, float pitch = PITCH);
 
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
-    glm::mat4 GetViewMatrix();
+    Mat4 GetViewMatrix();
 
     float GetZoom();
 
-    glm::vec3 GetPosition();
+    Vec3 GetPosition();
 
     // processes input received from any keyboard-like input system.
     // Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
@@ -71,11 +64,11 @@ class Camera {
 
  private:
     // camera Attributes
-    glm::vec3 m_Position;
-    glm::vec3 m_Front;
-    glm::vec3 m_Up;
-    glm::vec3 m_Right;
-    glm::vec3 m_WorldUp;
+    Vec3 m_Position;
+    Vec3 m_Front;
+    Vec3 m_Up;
+    Vec3 m_Right;
+    Vec3 m_WorldUp;
 
     // euler Angles
     float m_Yaw;

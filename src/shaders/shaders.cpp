@@ -115,12 +115,12 @@ void ShaderProgram::SetVar(const char* name, const float value) {
     glUniform1f(loc, value);
 }
 
-void ShaderProgram::SetVec3(const char* name, glm::vec3 vec) {
+void ShaderProgram::SetVec3(const char* name, Vec3 vec) {
     int loc = UniformLocation(name);
     glUniform3fv(loc, 1, glm::value_ptr(vec));
 }
 
-void ShaderProgram::SetMat4(const char* name, glm::mat4 mat) {
+void ShaderProgram::SetMat4(const char* name, Mat4 mat) {
     int loc = UniformLocation(name);
     glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(mat));
 }

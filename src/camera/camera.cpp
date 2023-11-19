@@ -1,35 +1,37 @@
 #include "camera.hpp"
 #include "input.hpp"
+#include "math_types.hpp"
+#include <glm/gtc/matrix_transform.hpp>
 
-Camera::Camera(glm::vec3 position,
-                glm::vec3 up, float yaw,
+Camera::Camera(Vec3 position,
+                Vec3 up, float yaw,
                 float pitch) {
     this->m_Position = position;
     this->m_WorldUp = up;
     this->m_Yaw = yaw;
     this->m_Pitch = pitch;
-    this->m_Front = glm::vec3(0.0f, 0.0f, -1.0f);
+    this->m_Front = Vec3(0.0f, 0.0f, -1.0f);
     this->m_MovementSpeed = SPEED;
     this->m_MouseSensitivity = SENSITIVITY;
     this->m_Zoom = ZOOM;
     UpdateCameraVectors();
 }
 
-void Camera::SetPosition(glm::vec3 position,
-                glm::vec3 up, float yaw,
+void Camera::SetPosition(Vec3 position,
+                Vec3 up, float yaw,
                 float pitch) {
     this->m_Position = position;
     this->m_WorldUp = up;
     this->m_Yaw = yaw;
     this->m_Pitch = pitch;
-    this->m_Front = glm::vec3(0.0f, 0.0f, -1.0f);
+    this->m_Front = Vec3(0.0f, 0.0f, -1.0f);
     this->m_Zoom = ZOOM;
     UpdateCameraVectors();
 }
 
 // returns the view matrix calculated using Euler Angles and the LookAt
 // Matrix
-glm::mat4 Camera::GetViewMatrix() {
+Mat4 Camera::GetViewMatrix() {
     return glm::lookAt(this->m_Position, this->m_Position + this->m_Front, this->m_Up);
 }
 
@@ -37,7 +39,7 @@ float Camera::GetZoom() {
     return this->m_Zoom;
 }
 
-glm::vec3 Camera::GetPosition() {
+Vec3 Camera::GetPosition() {
     return this->m_Position;
 }
 
@@ -83,7 +85,7 @@ void Camera::ProcessMouseScroll(float yoffset) {
 // calculates the front vector from the Camera's (updated) Euler Angles
 void Camera::UpdateCameraVectors() {
     // calculate the new Front vector
-    glm::vec3 front;
+    Vec3 front;
     front.x = cos(glm::radians(m_Yaw)) * cos(glm::radians(m_Pitch));
     front.y = sin(glm::radians(m_Pitch));
     front.z = sin(glm::radians(m_Yaw)) * cos(glm::radians(m_Pitch));

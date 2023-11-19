@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 
+#include "math_types.hpp"
 #include "camera.hpp"
 #include "shaders.hpp"
 #include "light.hpp"
@@ -33,7 +34,7 @@ static Input *s_Input = nullptr;
 
 Engine::Engine() {
     m_Objects = std::vector<Object *>();
-    m_Camera = Camera(glm::vec3(0.0f, 0.0f, 3.0f));
+    m_Camera = Camera(Vec3(0.0f, 0.0f, 3.0f));
     s_Engine = this;
 }
 
@@ -111,10 +112,10 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
 
-    envL.m_Ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-    envL.m_Diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
-    envL.m_Specular = glm::vec3(1.0f, 1.0f, 1.0f);
-    envL.m_Position = glm::vec3(-0.2, -0.5, -1.2);
+    envL.m_Ambient = Vec3(0.2f, 0.2f, 0.2f);
+    envL.m_Diffuse = Vec3(0.5f, 0.5f, 0.5f);
+    envL.m_Specular = Vec3(1.0f, 1.0f, 1.0f);
+    envL.m_Position = Vec3(-0.2, -0.5, -1.2);
 
     std::vector<GLfloat> cubeVertices {
           // positions          // normals           // texture coords
@@ -179,7 +180,10 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         Texture(images),
     };
 
-    testObj->transform = new Transform(glm::vec3(0.f, 0.f, -3.f), glm::vec3(1.f, 1.f, 1.f), glm::mat4(1.0));
+    testObj->transform = new Transform(
+        Vec3(0.f, 0.f, -3.f),
+        Vec3(1.f, 1.f, 1.f),
+        Mat4(1.0));
 
     auto render_data = testObj->renderData;
 
@@ -314,16 +318,16 @@ void Engine::Render(int scr_width, int scr_height) {
         // draw our first triangle
         shader.Use();
 
-        glm::mat4 view = m_Camera.GetViewMatrix();
-        glm::vec3 viewPos = m_Camera.GetPosition();
+        Mat4 view = m_Camera.GetViewMatrix();
+        Vec3 viewPos = m_Camera.GetPosition();
 
-        glm::mat4 projection = glm::perspective(
+        Mat4 projection = glm::perspective(
                                         glm::radians(m_Camera.GetZoom()),
                                         static_cast<float>(scr_width) / static_cast<float>(scr_height),
                                         0.1f, 100.0f);
 
 
-        transform->Translate(glm::vec3(0.f, 0.f, -0.001f));
+        transform->Translate(Vec3(0.f, 0.f, -0.001f));
 
       // send matrix transform to shader
         shader.SetMat4("model", transform->GetTransformMatrix());

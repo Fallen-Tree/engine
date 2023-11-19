@@ -3,7 +3,7 @@
 #include <glad/glad.h>
 #include <string>
 
-#include <glm/glm.hpp>
+#include "math_types.hpp"
 
 enum ShaderType {VertexShader = GL_VERTEX_SHADER, FragmentShader = GL_FRAGMENT_SHADER};
 
@@ -31,8 +31,8 @@ class ShaderProgram {
      int UniformLocation(const char* mode);
 
      void SetVar(const char* name, const float value);
-     void SetVec3(const char* name, const glm::vec3 vec);
-     void SetMat4(const char* name, const glm::mat4 mat);
+     void SetVec3(const char* name, const Vec3 vec);
+     void SetMat4(const char* name, const Mat4 mat);
 
      ~ShaderProgram();
 };
