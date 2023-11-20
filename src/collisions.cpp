@@ -1,24 +1,23 @@
 #include "math_types.hpp"
 #include "glm/common.hpp"
 
-Plane plane_from_triangle(Triangle triangle) {
-    Plane plane;
-    plane.normal = triangle.normal;
-    plane.d = -glm::dot(plane.normal, triangle.verts[0]);
-    return plane;
+Plane::Plane(Triangle triangle) {
+    normal = triangle.normal;
+    d = -glm::dot(normal, triangle.verts[0]);
 }
 
-Vec3 aabb_closest_point(AABB aabb, Vec3 point) {
-    Vec3 result = point;
-    result.x = glm::clamp(point.x, aabb.min.x, aabb.max.x);
-    result.y = glm::clamp(point.y, aabb.min.y, aabb.max.y);
-    result.z = glm::clamp(point.z, aabb.min.z, aabb.max.z);
+Vec3 AABB::ClosestPoint(Vec3 point) {
+    Vec3 result = {
+        glm::clamp(point.x, min.x, max.x),
+        glm::clamp(point.y, min.y, max.y),
+        glm::clamp(point.z, min.z, max.z),
+    };
     return result;
 }
 
-bool aabb_plane_test(AABB aabb, Plane plane) {
-    Vec3 center = (aabb.min + aabb.max) / 2.0f;
-    Vec3 extents = (aabb.max - aabb.min) / 2.0f;
+bool AABB::PlaneTest(Plane plane) {
+    Vec3 center = (min + max) / 2.0f;
+    Vec3 extents = (max - min) / 2.0f;
 
     float r = extents.x * glm::abs(plane.normal.x) +
         extents.y * glm::abs(plane.normal.y) +
@@ -28,15 +27,15 @@ bool aabb_plane_test(AABB aabb, Plane plane) {
     return glm::abs(c_dist) <= r;
 }
 
-bool aabb_aabb_test(AABB lhs, AABB rhs) {
-    return lhs.max.x >= rhs.min.x && rhs.max.x >= lhs.min.x &&
-        lhs.max.y >= rhs.min.y && rhs.max.y >= lhs.min.y &&
-        lhs.max.z >= rhs.min.z && rhs.max.z >= lhs.min.z;
+bool AABB::AABBTest(AABB rhs) {
+    return max.x >= rhs.min.x && rhs.max.x >= min.x &&
+        max.y >= rhs.min.y && rhs.max.y >= min.y &&
+        max.z >= rhs.min.z && rhs.max.z >= min.z;
 }
 
-bool aabb_triangle_test(AABB aabb, Triangle tri) {
-    Vec3 center = (aabb.min + aabb.max) / 2.0f;
-    Vec3 length = (aabb.max - aabb.min) / 2.0f;
+bool AABB::TriangleTest(Triangle tri) {
+    Vec3 center = (min + max) / 2.0f;
+    Vec3 length = (max - min) / 2.0f;
 
     Vec3 verts[3] = {
         tri.verts[0] - center,
@@ -97,5 +96,5 @@ bool aabb_triangle_test(AABB aabb, Triangle tri) {
         return false;
     }
 
-    return aabb_plane_test(aabb, plane_from_triangle(tri));
+    return PlaneTest(Plane(tri));
 }

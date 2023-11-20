@@ -8,13 +8,19 @@ typedef glm::fvec4 Vec4;
 typedef glm::fmat3 Mat3;
 typedef glm::fmat4 Mat4;
 
+struct Plane;
+struct Triangle;
+struct Sphere;
+struct Ray;
+struct AABB;
+
 struct AABB {
     Vec3 min, max;
-};
 
-struct Plane {
-    Vec3 normal;
-    float d;
+    Vec3 ClosestPoint(Vec3);
+    bool PlaneTest(Plane);
+    bool AABBTest(AABB);
+    bool TriangleTest(Triangle);
 };
 
 struct Sphere {
@@ -30,4 +36,12 @@ struct Triangle {
 struct Ray {
     Vec3 direction;
     Vec3 origin;
+};
+
+struct Plane {
+    Vec3 normal;
+    float d;
+
+    Plane() = default;
+    explicit Plane(Triangle t);
 };
