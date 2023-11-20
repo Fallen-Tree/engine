@@ -16,6 +16,28 @@ Vec3 AABB::ClosestPoint(Vec3 point) {
     return result;
 }
 
+float AABB::Distance2(Vec3 point) {
+    float res = 0.0f;
+    if (point.x < min.x) {
+        res += (point.x - min.x) * (point.x - min.x);
+    } else if (point.x > max.x) {
+        res += (point.x - max.x) * (point.x - max.x);
+    }
+
+    if (point.y < min.y) {
+        res += (point.y - min.y) * (point.y - min.y);
+    } else if (point.y > max.y) {
+        res += (point.y - max.y) * (point.y - max.y);
+    }
+
+    if (point.z < min.z) {
+        res += (point.z - min.z) * (point.z - min.z);
+    } else if (point.z > max.z) {
+        res += (point.z - max.z) * (point.z - max.z);
+    }
+    return res;
+}
+
 bool AABB::CollidePlane(Plane plane) {
     Vec3 center = (min + max) / 2.0f;
     Vec3 extents = (max - min) / 2.0f;
@@ -102,4 +124,8 @@ bool AABB::CollideTriangle(Triangle tri) {
 
 bool Sphere::CollideSphere(Sphere other) {
     return glm::length2(other.center - center) <= (radius + other.radius) * (radius + other.radius);
+}
+
+bool Sphere::CollideAABB(AABB aabb) {
+    return aabb.Distance2(center) <= radius * radius;
 }
