@@ -18,14 +18,16 @@ struct AABB {
     Vec3 min, max;
 
     Vec3 ClosestPoint(Vec3);
-    bool PlaneTest(Plane);
-    bool AABBTest(AABB);
-    bool TriangleTest(Triangle);
+    bool CollidePlane(Plane);
+    bool CollideAABB(AABB);
+    bool CollideTriangle(Triangle);
 };
 
 struct Sphere {
     Vec3 center;
     float radius;
+
+    bool CollideSphere(Sphere);
 };
 
 struct Triangle {

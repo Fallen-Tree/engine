@@ -1,5 +1,6 @@
 #include "math_types.hpp"
-#include "glm/common.hpp"
+#include <glm/common.hpp>
+#include <glm/gtx/norm.hpp>
 
 Plane::Plane(Triangle triangle) {
     normal = triangle.normal;
@@ -15,7 +16,7 @@ Vec3 AABB::ClosestPoint(Vec3 point) {
     return result;
 }
 
-bool AABB::PlaneTest(Plane plane) {
+bool AABB::CollidePlane(Plane plane) {
     Vec3 center = (min + max) / 2.0f;
     Vec3 extents = (max - min) / 2.0f;
 
@@ -27,13 +28,13 @@ bool AABB::PlaneTest(Plane plane) {
     return glm::abs(c_dist) <= r;
 }
 
-bool AABB::AABBTest(AABB rhs) {
+bool AABB::CollideAABB(AABB rhs) {
     return max.x >= rhs.min.x && rhs.max.x >= min.x &&
         max.y >= rhs.min.y && rhs.max.y >= min.y &&
         max.z >= rhs.min.z && rhs.max.z >= min.z;
 }
 
-bool AABB::TriangleTest(Triangle tri) {
+bool AABB::CollideTriangle(Triangle tri) {
     Vec3 center = (min + max) / 2.0f;
     Vec3 length = (max - min) / 2.0f;
 
@@ -96,5 +97,9 @@ bool AABB::TriangleTest(Triangle tri) {
         return false;
     }
 
-    return PlaneTest(Plane(tri));
+    return CollidePlane(Plane(tri));
+}
+
+bool Sphere::CollideSphere(Sphere other) {
+    return glm::length2(other.center - center) <= (radius + other.radius) * (radius + other.radius);
 }
