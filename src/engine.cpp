@@ -13,7 +13,7 @@
 #include "texture.hpp"
 #include "stb_image.h"
 #include "logger.hpp"
-
+#include "non_skeletal_animation.hpp"
 
 int viewportWidth, viewportHeight;
 // Left bottom corner coordinates of viewport
@@ -217,6 +217,20 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     testObj->transform = new Transform(glm::vec3(0.f, 0.f, -3.f), glm::vec3(1.f, 1.f, 1.f), glm::mat4(1.0));
 
+    testObj->nonSkeletalAnimation = new NonSkeletalAnimation();
+    testObj->nonSkeletalAnimation
+        ->addAnimation(
+            *(new Transform(glm::vec3(0.f, 0.f, -10.f), glm::vec3(1.f, 1.f, 1.f), glm::mat4(1.0))),
+            3)
+        ->addAnimation(
+            *(new Transform(glm::vec3(0.f, 0.f, -10.f), glm::vec3(5.f, 5.f, 5.f), glm::mat4(1.0))),
+            2)
+        ->addAnimation(
+            *(new Transform(glm::vec3(0.f, 0.f, -10.f), glm::vec3(5.f, 5.f, 5.f),
+            glm::rotate(glm::mat4(1.0), glm::radians(45.f), glm::vec3(1.f, 0.f, 1.f)))),
+            1);
+
+
     auto render_data = testObj->renderData;
 
     glGenVertexArrays(1, &render_data->VAO);
@@ -295,6 +309,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         glfwPollEvents();
         processInput(m_Window);
         camera->Update(&m_Input, deltaTime);
+        updateObjects(deltaTime);
 
         while (static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime)) == lastRenderedFrame) {
         }
@@ -315,6 +330,15 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // ------------------------------------------------------------------
     glfwTerminate();
     return;
+}
+
+void Engine::updateObjects(float deltaTime) {
+    for (int i = 0; i < m_Objects.size(); i++) {
+        auto object = m_Objects[i];
+        if (object->nonSkeletalAnimation) {
+            object->nonSkeletalAnimation->applyAnimations(object->transform, deltaTime);
+        }
+    }
 }
 
 void Engine::Render(int scr_width, int scr_height) {
@@ -344,8 +368,6 @@ void Engine::Render(int scr_width, int scr_height) {
 
         float timeValue = glfwGetTime();
 
-        transform->Rotate(glm::radians(0.1f), glm::radians(0.1f), glm::radians(0.1f));
-
         ShaderProgram shader = model->shader;
         // draw our first triangle
         shader.Use();
@@ -357,9 +379,6 @@ void Engine::Render(int scr_width, int scr_height) {
                                         glm::radians(camera->GetZoom()),
                                         static_cast<float>(scr_width) / static_cast<float>(scr_height),
                                         0.1f, 100.0f);
-
-
-        transform->Translate(glm::vec3(0.f, 0.f, -0.001f));
 
       // send matrix transform to shader
         shader.SetMat4("model", transform->GetTransformMatrix());

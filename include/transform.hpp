@@ -15,6 +15,8 @@ class Transform {
     Transform() = default;
     explicit Transform(glm::vec3 translation, glm::vec3 scale, float radiansDegree, glm::vec3 rotationAxis);
     explicit Transform(glm::vec3 translation, glm::vec3 scale, glm::mat4 rotationMatrix);
+    
+    void SetTransform(Transform transform);
 
     // Translation
     void SetTranslation(glm::vec3 translation);

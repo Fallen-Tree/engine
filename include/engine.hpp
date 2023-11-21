@@ -4,7 +4,7 @@
 #include "transform.hpp"
 #include "camera.hpp"
 #include "input.hpp"
-
+#include "non_skeletal_animation.hpp"
 
 struct GLFWwindow;
 
@@ -12,6 +12,7 @@ class Object {
  public:
      Transform *transform;
      RenderData *renderData;
+     NonSkeletalAnimation *nonSkeletalAnimation;
 };
 
 class Engine {
@@ -33,7 +34,7 @@ class Engine {
  private:
     void AddObject(Object *);
     void Render(int, int);
-
+    void updateObjects(float);   
 
     std::vector<Object *> m_Objects;
     GLFWwindow *m_Window;
