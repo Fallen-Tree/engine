@@ -130,6 +130,10 @@ bool Sphere::CollideAABB(AABB aabb) {
     return aabb.Distance2(center) <= radius * radius;
 }
 
+bool Sphere::CollideTriangle(Triangle t) {
+    return t.Distance2(center) <= radius * radius;
+}
+
 Vec3 Triangle::ClosestPoint(Vec3 point) {
     Vec3 ab = b - a;
     Vec3 ac = c - a;
@@ -174,4 +178,8 @@ Vec3 Triangle::ClosestPoint(Vec3 point) {
     float w = 1 - u - v;
 
     return u*a + v*b + w*c;
+}
+
+float Triangle::Distance2(Vec3 point) {
+    return glm::length2(point - ClosestPoint(point));
 }

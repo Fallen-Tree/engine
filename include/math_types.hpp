@@ -31,6 +31,7 @@ struct Sphere {
 
     bool CollideSphere(Sphere);
     bool CollideAABB(AABB);
+    bool CollideTriangle(Triangle);
 };
 
 struct Triangle {
