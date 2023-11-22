@@ -16,7 +16,7 @@ class Object {
 
 class Engine {
  public:
-    Engine();
+    Engine(int,int);
     ~Engine();
 
     // TODO(theblek): Ensure inlining for release builds
@@ -24,6 +24,8 @@ class Engine {
     void AddObject(T *a) {
         AddObject(static_cast<Object *>(a));
     }
+
+    void initModel();
 
     Camera* SwitchCamera(Camera* newCamera);
     void Run(int, int);
