@@ -25,8 +25,6 @@ class Engine {
         AddObject(static_cast<Object *>(a));
     }
 
-    void initModel();
-
     Camera* SwitchCamera(Camera* newCamera);
     void Run(int, int);
     Input m_Input;
