@@ -220,14 +220,14 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     testObj->nonSkeletalAnimation = new NonSkeletalAnimation();
     testObj->nonSkeletalAnimation
         ->addAnimation(
-            *(new Transform(glm::vec3(0.f, 0.f, -10.f), glm::vec3(1.f, 1.f, 1.f), glm::mat4(1.0))),
+            Transform(glm::vec3(0.f, 0.f, -10.f), glm::vec3(1.f, 1.f, 1.f), glm::mat4(1.0)),
             3)
         ->addAnimation(
-            *(new Transform(glm::vec3(0.f, 0.f, -10.f), glm::vec3(5.f, 5.f, 5.f), glm::mat4(1.0))),
+            Transform(glm::vec3(0.f, 0.f, -10.f), glm::vec3(5.f, 5.f, 5.f), glm::mat4(1.0)),
             2)
         ->addAnimation(
-            *(new Transform(glm::vec3(0.f, 0.f, -10.f), glm::vec3(5.f, 5.f, 5.f),
-            glm::rotate(glm::mat4(1.0), glm::radians(45.f), glm::vec3(1.f, 0.f, 1.f)))),
+            Transform(glm::vec3(0.f, 0.f, -10.f), glm::vec3(5.f, 5.f, 5.f),
+            glm::rotate(glm::mat4(1.0), glm::radians(45.f), glm::vec3(1.f, 0.f, 1.f))),
             1);
 
 

@@ -1,10 +1,6 @@
 #include "logger.hpp"
 #include "non_skeletal_animation.hpp"
 
-NonSkeletalAnimation::NonSkeletalAnimation() {
-    // this->m_ObjectTransform = transform;
-}
-
 NonSkeletalAnimation* NonSkeletalAnimation::addAnimation(Transform transform, float time) {
     this->m_AnimationsQueue.push({transform, time});
     return this;
@@ -23,15 +19,13 @@ void NonSkeletalAnimation::applyAnimations(Transform* transform, float deltaTime
         auto current = this->m_AnimationsQueue.front();
 
         if (deltaTime >= current.second) {
-            // ставим в конечную точку и продолжаем while
-
+            // Set transform to final Destination and continuing while loop
             transform->SetTransform(current.first);
             deltaTime -= current.second;
 
             this->m_AnimationsQueue.pop();
         } else {
-            // двигаем на deltaTime и выходим
-
+            // Moving current animation for deltaTime seconds and ending while loop
             // Translate
             transform->SetTranslation(transform->GetTranslation() +
                                       (current.first.GetTranslation() - transform->GetTranslation()) *
