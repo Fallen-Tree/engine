@@ -34,8 +34,11 @@ struct Sphere {
 };
 
 struct Triangle {
-    Vec3 verts[3];
+    Vec3 a, b, c;
     Vec3 normal;
+
+    Vec3 ClosestPoint(Vec3);
+    float Distance2(Vec3);
 };
 
 struct Ray {
