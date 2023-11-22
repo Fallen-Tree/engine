@@ -7,7 +7,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "input.hpp"
-
+#include "engine_config.hpp"
+#include "user_config.hpp"
 
 // Defines several possible options for camera movement.
 // Used as abstraction to stay away from window-system specific input methods
@@ -19,19 +20,11 @@ enum Camera_Movement {
 };
 
 // Initial (Default) camera values
-const float YAW         = -90.0f;
-const float PITCH       =  0.0f;
-const float SPEED       =  2.5f;
-const float SENSITIVITY =  0.1f;
-const float ZOOM        =  45.0f;
 
-const float MAXPITCH = 89.0f;
-const float MINPITCH = -89.0f;
-
-const float MAXFOV = 45.0f;
-const float MINFOV = 1.0f;
-
-
+const float YAW         =  DFL_YAW;
+const float PITCH       =  DFL_PITCH;
+const float SPEED       =  2.5f; // One day we will change camera speed 
+const float ZOOM        =  DFL_ZOOM;
 
 
 class Camera {

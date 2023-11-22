@@ -2,12 +2,11 @@
 
 #include <vector>
 #include <string>
-
-const int MaxCountTexture = 16;
+#include "engine_config.hpp"
 
 class Texture {
  private:
-    unsigned int m_TextureId[MaxCountTexture];
+    unsigned int m_TextureId[MAXCOUNTTEXTURE];
     int m_Count = 0;
 
  public:

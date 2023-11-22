@@ -1,5 +1,6 @@
 #include "camera.hpp"
 #include "input.hpp"
+#include "user_config.hpp"
 
 Camera::Camera(glm::vec3 position,
                 glm::vec3 up, float yaw,
@@ -10,7 +11,7 @@ Camera::Camera(glm::vec3 position,
     this->m_Pitch = pitch;
     this->m_Front = glm::vec3(0.0f, 0.0f, -1.0f);
     this->m_MovementSpeed = SPEED;
-    this->m_MouseSensitivity = SENSITIVITY;
+    this->m_MouseSensitivity = SENSIVITY;
     this->m_Zoom = ZOOM;
     UpdateCameraVectors();
 }
