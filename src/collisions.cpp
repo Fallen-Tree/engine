@@ -1,3 +1,4 @@
+#include "logger.hpp"
 #include "math_types.hpp"
 #include <glm/common.hpp>
 #include <glm/gtx/norm.hpp>
@@ -134,6 +135,9 @@ bool Sphere::CollideTriangle(Triangle t) {
     return t.Distance2(center) <= radius * radius;
 }
 
+// This function can be made faster pretty easy
+// If it'll prove to be slow - I will rewrite
+// TODO(theblek): rewrite this with dot products. See the book.
 Vec3 Triangle::ClosestPoint(Vec3 point) {
     Vec3 ab = b - a;
     Vec3 ac = c - a;
@@ -182,4 +186,78 @@ Vec3 Triangle::ClosestPoint(Vec3 point) {
 
 float Triangle::Distance2(Vec3 point) {
     return glm::length2(point - ClosestPoint(point));
+}
+
+bool Triangle::CollideTriangle(Triangle triangle) {
+    Plane aPlane = Plane(*this);
+    float sdistb[3] = {
+        glm::dot(aPlane.normal, triangle.a) + aPlane.d,
+        glm::dot(aPlane.normal, triangle.b) + aPlane.d,
+        glm::dot(aPlane.normal, triangle.c) + aPlane.d,
+    };
+    
+    if (glm::abs(sdistb[0]) == 0 && glm::abs(sdistb[1]) == 0 && glm::abs(sdistb[2]) == 0) {
+        Logger::Error("Coplanar case for triangle-triangle collision is not handled");
+        return false;
+    }
+
+    if (sdistb[0] * sdistb[1] > 0 && sdistb[1] * sdistb[2] > 0) {
+        return false;
+    }
+    Plane bPlane = Plane(*this);
+    float sdista[3] = {
+        glm::dot(aPlane.normal, triangle.a) + aPlane.d,
+        glm::dot(aPlane.normal, triangle.b) + aPlane.d,
+        glm::dot(aPlane.normal, triangle.c) + aPlane.d,
+    };
+
+    if (glm::abs(sdista[0]) == 0 && glm::abs(sdista[1]) == 0 && glm::abs(sdista[2]) == 0) {
+        Logger::Error("Coplanar case for triangle-triangle collision is not handled");
+        return false;
+    }
+
+    if (sdista[0] * sdista[1] > 0 && sdista[1] * sdista[2] > 0) {
+        return false;
+    }
+
+    Vec3 intersectDir = glm::cross(aPlane.normal, bPlane.normal);
+    int projectionIndex = 2;
+    float maxAxis = glm::max(glm::max(intersectDir[0], intersectDir[1]), intersectDir[2]);
+    if (intersectDir[0] == maxAxis) {
+        projectionIndex = 0;
+    } else if (intersectDir[1] == maxAxis) {
+        projectionIndex = 1;
+    }
+
+    auto findInterval = [=](float sdist[3], Vec3 points[3]) -> std::pair<float, float> {
+        int otherSideVertex = 1;
+        int oneSideVertices[2] = {0, 2};
+        if (sdist[0] * sdist[1] > 0) {
+            otherSideVertex = 2;
+            oneSideVertices[1] = 1;
+        } else if (sdist[1] * sdist[2] > 0) {
+            otherSideVertex = 0;
+            oneSideVertices[0] = 1;
+        }
+
+        float proj[3] = {
+            points[0][projectionIndex],
+            points[1][projectionIndex],
+            points[2][projectionIndex],
+        };
+        int v = oneSideVertices[0];
+        float t1 = proj[v] +
+            (proj[otherSideVertex] - proj[v]) * sdist[v] / (sdist[v] - sdist[otherSideVertex]);
+        v = oneSideVertices[1];
+        float t2 = proj[v] +
+            (proj[otherSideVertex] - proj[v]) * sdist[v] / (sdist[v] - sdist[otherSideVertex]);
+        return std::make_pair(t1, t2);
+    };
+
+    // TODO(theblek): fix that. Maybe go back to array in triangle
+    // VERY FUCKING BAD                  v
+    auto [t1, t2] = findInterval(sdista, &a);
+    auto [t3, t4] = findInterval(sdistb, &triangle.a);
+    return (glm::max(t1, t2) > t3 && t3 > glm::min(t1, t2))
+        || (glm::max(t1, t2) > t4 && t4 > glm::min(t1, t2));
 }

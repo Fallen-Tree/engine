@@ -40,6 +40,8 @@ struct Triangle {
 
     Vec3 ClosestPoint(Vec3);
     float Distance2(Vec3);
+
+    bool CollideTriangle(Triangle);
 };
 
 struct Ray {
