@@ -18,4 +18,3 @@ bool Collide(Sphere, Triangle);
 bool Collide(Triangle, Sphere);
 
 bool Collide(Triangle, Triangle);
-

@@ -19,19 +19,11 @@ struct AABB {
 
     Vec3 ClosestPoint(Vec3);
     float Distance2(Vec3);
-
-    bool CollidePlane(Plane);
-    bool CollideAABB(AABB);
-    bool CollideTriangle(Triangle);
 };
 
 struct Sphere {
     Vec3 center;
     float radius;
-
-    bool CollideSphere(Sphere);
-    bool CollideAABB(AABB);
-    bool CollideTriangle(Triangle);
 };
 
 struct Triangle {
@@ -40,8 +32,6 @@ struct Triangle {
 
     Vec3 ClosestPoint(Vec3);
     float Distance2(Vec3);
-
-    bool CollideTriangle(Triangle);
 };
 
 struct Ray {
