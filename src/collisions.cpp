@@ -1,47 +1,15 @@
 #include "logger.hpp"
-#include "math_types.hpp"
+#include "collisions.hpp"
 #include <glm/common.hpp>
 #include <glm/gtx/norm.hpp>
 
-Plane::Plane(Triangle triangle) {
-    normal = triangle.normal;
-    d = -glm::dot(normal, triangle.a);
+bool Collide(Plane p, AABB a) {
+    return Collide(a, p);
 }
 
-Vec3 AABB::ClosestPoint(Vec3 point) {
-    Vec3 result = {
-        glm::clamp(point.x, min.x, max.x),
-        glm::clamp(point.y, min.y, max.y),
-        glm::clamp(point.z, min.z, max.z),
-    };
-    return result;
-}
-
-float AABB::Distance2(Vec3 point) {
-    float res = 0.0f;
-    if (point.x < min.x) {
-        res += (point.x - min.x) * (point.x - min.x);
-    } else if (point.x > max.x) {
-        res += (point.x - max.x) * (point.x - max.x);
-    }
-
-    if (point.y < min.y) {
-        res += (point.y - min.y) * (point.y - min.y);
-    } else if (point.y > max.y) {
-        res += (point.y - max.y) * (point.y - max.y);
-    }
-
-    if (point.z < min.z) {
-        res += (point.z - min.z) * (point.z - min.z);
-    } else if (point.z > max.z) {
-        res += (point.z - max.z) * (point.z - max.z);
-    }
-    return res;
-}
-
-bool AABB::CollidePlane(Plane plane) {
-    Vec3 center = (min + max) / 2.0f;
-    Vec3 extents = (max - min) / 2.0f;
+bool Collide(AABB aabb, Plane plane) {
+    Vec3 center = (aabb.min + aabb.max) / 2.0f;
+    Vec3 extents = (aabb.max - aabb.min) / 2.0f;
 
     float r = extents.x * glm::abs(plane.normal.x) +
         extents.y * glm::abs(plane.normal.y) +
@@ -51,15 +19,19 @@ bool AABB::CollidePlane(Plane plane) {
     return glm::abs(c_dist) <= r;
 }
 
-bool AABB::CollideAABB(AABB rhs) {
-    return max.x >= rhs.min.x && rhs.max.x >= min.x &&
-        max.y >= rhs.min.y && rhs.max.y >= min.y &&
-        max.z >= rhs.min.z && rhs.max.z >= min.z;
+bool Collide(AABB lhs, AABB rhs) {
+    return lhs.max.x >= rhs.min.x && rhs.max.x >= lhs.min.x &&
+        lhs.max.y >= rhs.min.y && rhs.max.y >= lhs.min.y &&
+        lhs.max.z >= rhs.min.z && rhs.max.z >= lhs.min.z;
 }
 
-bool AABB::CollideTriangle(Triangle tri) {
-    Vec3 center = (min + max) / 2.0f;
-    Vec3 length = (max - min) / 2.0f;
+bool Collide(Triangle t, AABB a) {
+    return Collide(a, t);
+}
+
+bool Collide(AABB aabb, Triangle tri) {
+    Vec3 center = (aabb.min + aabb.max) / 2.0f;
+    Vec3 length = (aabb.max - aabb.min) / 2.0f;
 
     Vec3 verts[3] = {
         tri.a - center,
@@ -120,82 +92,37 @@ bool AABB::CollideTriangle(Triangle tri) {
         return false;
     }
 
-    return CollidePlane(Plane(tri));
+    return Collide(aabb, Plane(tri));
 }
 
-bool Sphere::CollideSphere(Sphere other) {
-    return glm::length2(other.center - center) <= (radius + other.radius) * (radius + other.radius);
+bool Collide(Sphere s1, Sphere s2) {
+    return glm::length2(s1.center - s2.center) <= (s1.radius + s2.radius) * (s1.radius + s2.radius);
 }
 
-bool Sphere::CollideAABB(AABB aabb) {
-    return aabb.Distance2(center) <= radius * radius;
+bool Collide(AABB aabb, Sphere s) {
+    return Collide(s, aabb);
 }
 
-bool Sphere::CollideTriangle(Triangle t) {
-    return t.Distance2(center) <= radius * radius;
+bool Collide(Sphere s, AABB aabb) {
+    return aabb.Distance2(s.center) <= s.radius * s.radius;
 }
 
-// This function can be made faster pretty easy
-// If it'll prove to be slow - I will rewrite
-// TODO(theblek): rewrite this with dot products. See the book.
-Vec3 Triangle::ClosestPoint(Vec3 point) {
-    Vec3 ab = b - a;
-    Vec3 ac = c - a;
-    Vec3 bc = c - b;
-
-    float snom = glm::dot(point - a, ab);
-    float tnom = glm::dot(point - a, ac);
-    if (snom <= 0.0f && tnom <= 0.0f) {
-        return a;
-    }
-
-    float sdenom = glm::dot(point - b, a - b);
-    float unom = glm::dot(point - b, bc);
-    if (sdenom <= 0.0f && unom <= 0.0f) {
-        return b;
-    }
-
-    float udenom = glm::dot(point - c, b - c);
-    float tdenom = glm::dot(point - c, a - c);
-    if (udenom <= 0.0f && tdenom <= 0.0f) {
-        return c;
-    }
-
-    float va = glm::dot(normal, glm::cross(a - point, b - point));
-    if (va <= 0.0f && snom >= 0.0f && sdenom >= 0.0f) {
-        return a + snom / (snom + sdenom) * ab;
-    }
-
-    float vb = glm::dot(normal, glm::cross(b - point, c - point));
-    if (vb <= 0.0f && unom >= 0.0f && udenom >= 0.0f) {
-        return a + unom / (unom + udenom) * bc;
-    }
-
-    float vc = glm::dot(normal, glm::cross(c - point, a - point));
-    if (vc <= 0.0f && tnom >= 0.0f && tdenom >= 0.0f) {
-        return a + tnom / (tnom + tdenom) * ac;
-    }
-
-    // Inside
-    float u = va / (va + vb + vc);
-    float v = vb / (va + vb + vc);
-    float w = 1 - u - v;
-
-    return u*a + v*b + w*c;
+bool Collide(Triangle t, Sphere s) {
+    return Collide(s, t);
 }
 
-float Triangle::Distance2(Vec3 point) {
-    return glm::length2(point - ClosestPoint(point));
+bool Collide(Sphere s, Triangle t) {
+    return t.Distance2(s.center) <= s.radius * s.radius;
 }
 
-bool Triangle::CollideTriangle(Triangle triangle) {
-    Plane aPlane = Plane(*this);
+bool Collide(Triangle t1, Triangle t2) {
+    Plane aPlane = Plane(t1);
     float sdistb[3] = {
-        glm::dot(aPlane.normal, triangle.a) + aPlane.d,
-        glm::dot(aPlane.normal, triangle.b) + aPlane.d,
-        glm::dot(aPlane.normal, triangle.c) + aPlane.d,
+        glm::dot(aPlane.normal, t2.a) + aPlane.d,
+        glm::dot(aPlane.normal, t2.b) + aPlane.d,
+        glm::dot(aPlane.normal, t2.c) + aPlane.d,
     };
-    
+
     if (glm::abs(sdistb[0]) == 0 && glm::abs(sdistb[1]) == 0 && glm::abs(sdistb[2]) == 0) {
         Logger::Error("Coplanar case for triangle-triangle collision is not handled");
         return false;
@@ -204,11 +131,11 @@ bool Triangle::CollideTriangle(Triangle triangle) {
     if (sdistb[0] * sdistb[1] > 0 && sdistb[1] * sdistb[2] > 0) {
         return false;
     }
-    Plane bPlane = Plane(*this);
+    Plane bPlane = Plane(t2);
     float sdista[3] = {
-        glm::dot(aPlane.normal, triangle.a) + aPlane.d,
-        glm::dot(aPlane.normal, triangle.b) + aPlane.d,
-        glm::dot(aPlane.normal, triangle.c) + aPlane.d,
+        glm::dot(bPlane.normal, t1.a) + bPlane.d,
+        glm::dot(bPlane.normal, t1.b) + bPlane.d,
+        glm::dot(bPlane.normal, t1.c) + bPlane.d,
     };
 
     if (glm::abs(sdista[0]) == 0 && glm::abs(sdista[1]) == 0 && glm::abs(sdista[2]) == 0) {
@@ -256,8 +183,8 @@ bool Triangle::CollideTriangle(Triangle triangle) {
 
     // TODO(theblek): fix that. Maybe go back to array in triangle
     // VERY FUCKING BAD                  v
-    auto [t1, t2] = findInterval(sdista, &a);
-    auto [t3, t4] = findInterval(sdistb, &triangle.a);
-    return (glm::max(t1, t2) > t3 && t3 > glm::min(t1, t2))
-        || (glm::max(t1, t2) > t4 && t4 > glm::min(t1, t2));
+    auto [a1, a2] = findInterval(sdista, &t1.a);
+    auto [a3, a4] = findInterval(sdistb, &t2.a);
+    return (glm::max(a1, a2) > a3 && a3 > glm::min(a1, a2))
+        || (glm::max(a1, a2) > a4 && a4 > glm::min(a1, a2));
 }
