@@ -10,6 +10,7 @@
 #define DFL_ZOOM 45.f
 #define DFL_YAW -90.f
 #define DFL_PITCH 0.0f
+#define DFL_SPEED 2.5f; // One day we will change camera speed 
 
 // textures
 #define MAXCOUNTTEXTURE 16

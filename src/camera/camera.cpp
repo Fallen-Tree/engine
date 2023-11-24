@@ -10,9 +10,9 @@ Camera::Camera(glm::vec3 position,
     this->m_Yaw = yaw;
     this->m_Pitch = pitch;
     this->m_Front = glm::vec3(0.0f, 0.0f, -1.0f);
-    this->m_MovementSpeed = SPEED;
+    this->m_MovementSpeed = DFL_SPEED;
     this->m_MouseSensitivity = SENSIVITY;
-    this->m_Zoom = ZOOM;
+    this->m_Zoom = DFL_ZOOM;
     UpdateCameraVectors();
 }
 
@@ -24,7 +24,7 @@ void Camera::SetPosition(glm::vec3 position,
     this->m_Yaw = yaw;
     this->m_Pitch = pitch;
     this->m_Front = glm::vec3(0.0f, 0.0f, -1.0f);
-    this->m_Zoom = ZOOM;
+    this->m_Zoom = DFL_ZOOM;
     UpdateCameraVectors();
 }
 

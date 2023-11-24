@@ -19,24 +19,16 @@ enum Camera_Movement {
     RIGHT
 };
 
-// Initial (Default) camera values
-
-const float YAW         =  DFL_YAW;
-const float PITCH       =  DFL_PITCH;
-const float SPEED       =  2.5f; // One day we will change camera speed 
-const float ZOOM        =  DFL_ZOOM;
-
-
 class Camera {
  public:
     // constructor with vectors
     explicit Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, -3.0f),
                     glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
-                    float yaw = YAW, float pitch = PITCH);
+                    float yaw = DFL_YAW, float pitch = DFL_PITCH);
 
     void SetPosition(glm::vec3 position = glm::vec3(0.0f, 0.0f, -3.0f),
                     glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
-                    float yaw = YAW, float pitch = PITCH);
+                    float yaw = DFL_YAW, float pitch = DFL_PITCH);
 
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
     glm::mat4 GetViewMatrix();
