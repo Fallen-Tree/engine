@@ -41,6 +41,10 @@ glm::vec3 Camera::GetPosition() {
     return this->m_Position;
 }
 
+glm::vec3 Camera::GetFront() {
+    return this->m_Front;
+}
+
 // processes input received from any keyboard-like input system. Accepts
 // input parameter in the form of camera defined ENUM (to abstract it from
 // windowing systems)

@@ -24,7 +24,7 @@ void Texture::loadImages(std::vector<std::string> paths) {
 void Texture::loadImage(std::string path) {
     if (m_Count >= MaxCountTexture) {
         Logger::Error(
-            "SHADER::PROGRAM::FAILED_TO_LOAD_TEXTURE_AT_PATH_%s_BECAUSE_OVERFLOW\n", path.c_str());
+            "TEXTURE::PROGRAM::LOADER::FAILED_TO_LOAD_TEXTURE_AT_PATH_%s_BECAUSE_OVERFLOW", path.c_str());
         return;
     }
 
@@ -38,7 +38,7 @@ void Texture::loadImage(std::string path) {
 
     if (!data) {
         stbi_image_free(data);
-        Logger::Error("SHADER::PROGRAM::FILE_NOT_FOUND_FAILED: %s\n", finalPath);
+        Logger::Error("TEXTURE::LOADER::PROGRAM::FILE_NOT_FOUND_FAILED: %s", finalPath);
         return;
     }
     GLenum format = GL_RGBA;
@@ -64,7 +64,7 @@ int Texture::countComponents() {
 
 unsigned int Texture::textureId(int idx) {
     if (idx < 0 || idx > m_Count) {
-        Logger::Error("SHADER::PROGRAM:INDEX_OUT_OF_BOUNDS\n");
+        Logger::Error("TEXTURE::PROGRAM:INDEX_OUT_OF_BOUNDS");
         exit(1);
     }
     return m_TextureId[idx];

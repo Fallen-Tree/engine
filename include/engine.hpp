@@ -25,9 +25,10 @@ class Engine {
         AddObject(static_cast<Object *>(a));
     }
 
+    Camera* SwitchCamera(Camera* newCamera);
     void Run(int, int);
     Input m_Input;
-    Camera m_Camera;
+    Camera* camera;
 
  private:
     void AddObject(Object *);
