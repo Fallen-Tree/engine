@@ -4,7 +4,7 @@
 #include "transform.hpp"
 #include "camera.hpp"
 #include "input.hpp"
-#include "non_skeletal_animation.hpp"
+#include "animation.hpp"
 
 struct GLFWwindow;
 
@@ -12,7 +12,7 @@ class Object {
  public:
      Transform *transform;
      RenderData *renderData;
-     NonSkeletalAnimation *nonSkeletalAnimation;
+     Animation *animation;
 };
 
 class Engine {

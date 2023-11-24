@@ -13,7 +13,7 @@
 #include "texture.hpp"
 #include "stb_image.h"
 #include "logger.hpp"
-#include "non_skeletal_animation.hpp"
+#include "animation.hpp"
 
 int viewportWidth, viewportHeight;
 // Left bottom corner coordinates of viewport
@@ -217,8 +217,8 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     testObj->transform = new Transform(glm::vec3(0.f, 0.f, -3.f), glm::vec3(1.f, 1.f, 1.f), glm::mat4(1.0));
 
-    testObj->nonSkeletalAnimation = new NonSkeletalAnimation();
-    testObj->nonSkeletalAnimation
+    testObj->animation = new Animation();
+    testObj->animation
         ->addAnimation(
             Transform(glm::vec3(0.f, 0.f, -10.f), glm::vec3(1.f, 1.f, 1.f), glm::mat4(1.0)),
             3)
@@ -335,8 +335,8 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 void Engine::updateObjects(float deltaTime) {
     for (int i = 0; i < m_Objects.size(); i++) {
         auto object = m_Objects[i];
-        if (object->nonSkeletalAnimation) {
-            object->nonSkeletalAnimation->applyAnimations(object->transform, deltaTime);
+        if (object->animation) {
+            object->animation->applyAnimations(object->transform, deltaTime);
         }
     }
 }

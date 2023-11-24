@@ -1,4 +1,4 @@
-#pragma once
+  #pragma once
 
 #include <glm/glm.hpp>
 #include <queue>
@@ -6,13 +6,13 @@
 #include "transform.hpp"
 
 
-class NonSkeletalAnimation {
+class Animation {
  private:
   std::queue<std::pair<Transform, float>> m_AnimationsQueue; // pair<destinationTransform, time of anim>
 
  public:
-    NonSkeletalAnimation* addAnimation(Transform transform, float time);
-    NonSkeletalAnimation* stopAnimations();
+    Animation* addAnimation(Transform transform, float time);
+    Animation* stopAnimations();
 
     void applyAnimations(Transform*, float);
 };

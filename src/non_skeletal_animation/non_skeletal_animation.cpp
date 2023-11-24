@@ -1,48 +1,50 @@
 #include "logger.hpp"
-#include "non_skeletal_animation.hpp"
+#include "animation.hpp"
 
-NonSkeletalAnimation* NonSkeletalAnimation::addAnimation(Transform transform, float time) {
-    this->m_AnimationsQueue.push({transform, time});
+Animation* Animation::addAnimation(Transform transform, float time) {
+    m_AnimationsQueue.push({transform, time});
     return this;
 }
 
-NonSkeletalAnimation* NonSkeletalAnimation::stopAnimations() {
-    while (!this->m_AnimationsQueue.empty()) {
+Animation* Animation::stopAnimations() {
+    while (!m_AnimationsQueue.empty()) {
         m_AnimationsQueue.pop();
     }
 
     return this;
 }
 
-void NonSkeletalAnimation::applyAnimations(Transform* transform, float deltaTime) {
-    while (!this->m_AnimationsQueue.empty()) {
-        auto current = this->m_AnimationsQueue.front();
+void Animation::applyAnimations(Transform* transform, float deltaTime) {
 
-        if (deltaTime >= current.second) {
-            // Set transform to final Destination and continuing while loop
-            transform->SetTransform(current.first);
-            deltaTime -= current.second;
+    // Process completely finished animations
+    while (!m_AnimationsQueue.empty()) {
+        auto currentAnim = m_AnimationsQueue.front();
+        if (deltaTime >= currentAnim.second) {
+            *transform = currentAnim.first;
+            deltaTime -= currentAnim.second;
 
-            this->m_AnimationsQueue.pop();
+            m_AnimationsQueue.pop();
         } else {
-            // Moving current animation for deltaTime seconds and ending while loop
-            // Translate
-            transform->SetTranslation(transform->GetTranslation() +
-                                      (current.first.GetTranslation() - transform->GetTranslation()) *
-                                          (deltaTime / current.second));
-
-            // Rotate
-            transform->SetRotation(transform->GetRotation() +
-                                     (current.first.GetRotation() - transform->GetRotation()) *
-                                         (deltaTime / current.second));
-
-            // Scale
-            transform->SetScale(transform->GetScale() +
-                                     (current.first.GetScale() - transform->GetScale()) *
-                                         (deltaTime / current.second));
-
-            this->m_AnimationsQueue.front().second -= deltaTime;
             break;
         }
     }
+
+    if (m_AnimationsQueue.empty()) return;
+
+    auto currentAnim = m_AnimationsQueue.front();
+    float timeCoeff = deltaTime / currentAnim.second;
+
+    // Translate    
+    glm::vec3 translateDiff = currentAnim.first.GetTranslation() - transform->GetTranslation();
+    transform->SetTranslation(transform->GetTranslation() + translateDiff * timeCoeff);
+
+    // Rotate
+    glm::mat4 rotateDiff = currentAnim.first.GetRotation() - transform->GetRotation();
+    transform->SetRotation(transform->GetRotation() + rotateDiff * timeCoeff);
+
+    // Scale
+    glm::vec3 scaleDiff = currentAnim.first.GetScale() - transform->GetScale();
+    transform->SetScale(transform->GetScale() + scaleDiff * timeCoeff);
+
+    m_AnimationsQueue.front().second -= deltaTime;
 }
