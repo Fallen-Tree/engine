@@ -3,20 +3,20 @@
 #define RESOURCE_DIR "./resources"
 
 // Camera
-#define MAXPITCH 89.0f
-#define MINPITCH -89.0f
-#define MAXFOV 45.0f
-#define MINFOV 1.0f
+#define MAX_PITCH 89.0f
+#define MIN_PITCH -89.0f
+#define MAX_FOV 45.0f
+#define MIN_FOV 1.0f
 #define DFL_ZOOM 45.f
 #define DFL_YAW -90.f
 #define DFL_PITCH 0.0f
-#define DFL_SPEED 2.5f; // One day we will change camera speed 
+#define DFL_SPEED 2.5f
 
 // textures
-#define MAXCOUNTTEXTURE 16
+#define MAX_COUNT_TEXTURE 16
 
 // engine
-#define FPSSHOWINGINTERVAL 1.f
+#define FPS_SHOWING_INTERVAL 1.f
 
 // input
-#define MAXVALIDKEY 350
+#define MAX_VALID_KEY 350

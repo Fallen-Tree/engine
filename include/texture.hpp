@@ -6,7 +6,7 @@
 
 class Texture {
  private:
-    unsigned int m_TextureId[MAXCOUNTTEXTURE];
+    unsigned int m_TextureId[MAX_COUNT_TEXTURE];
     int m_Count = 0;
 
  public:

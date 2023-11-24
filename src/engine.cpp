@@ -270,7 +270,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     float lastFpsShowedTime = 0.f;
     int lastRenderedFrame = -1;
     int fpsFrames = 0;
-    const float frameTime = 1.f / FPSLIMIT;
+    const float frameTime = 1.f / FPS_LIMIT;
     float deltaTime = 0.0f;
     float lastTime = 0.0f;
 
@@ -281,7 +281,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         deltaTime = currentTime - lastTime;
         lastTime = currentTime;
 
-        if (currentTime - lastFpsShowedTime > FPSSHOWINGINTERVAL) {
+        if (currentTime - lastFpsShowedTime > FPS_SHOWING_INTERVAL) {
             Logger::Info("FPS: %d", static_cast<int>(fpsFrames / (currentTime - lastFpsShowedTime)));
             lastFpsShowedTime = currentTime;
             fpsFrames = 0;
@@ -439,7 +439,7 @@ void processInput(GLFWwindow *window) {
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (key > 0 && key < MAXVALIDKEY && action == GLFW_PRESS) {
+    if (key > 0 && key < MAX_VALID_KEY && action == GLFW_PRESS) {
         s_Engine->m_Input.ButtonPress(key);
     }
 }

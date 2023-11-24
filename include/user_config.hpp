@@ -4,4 +4,4 @@
 #define SENSIVITY 0.1f
 
 // Engine
-#define FPSLIMIT 500
+#define FPS_LIMIT 500
