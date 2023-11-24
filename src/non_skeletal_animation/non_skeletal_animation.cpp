@@ -15,7 +15,6 @@ Animation* Animation::stopAnimations() {
 }
 
 void Animation::applyAnimations(Transform* transform, float deltaTime) {
-
     // Process completely finished animations
     while (!m_AnimationsQueue.empty()) {
         auto currentAnim = m_AnimationsQueue.front();
@@ -34,7 +33,7 @@ void Animation::applyAnimations(Transform* transform, float deltaTime) {
     auto currentAnim = m_AnimationsQueue.front();
     float timeCoeff = deltaTime / currentAnim.second;
 
-    // Translate    
+    // Translate
     glm::vec3 translateDiff = currentAnim.first.GetTranslation() - transform->GetTranslation();
     transform->SetTranslation(transform->GetTranslation() + translateDiff * timeCoeff);
 
