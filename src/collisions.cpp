@@ -248,26 +248,7 @@ bool BoxCollider::Collide(Transform self, Collider *other, Transform otherTransf
         };
         return CollidePrimitive(global, otherGlobal);
     } else if (auto *c = dynamic_cast<MeshCollider *>(other); c != nullptr) {
-        // WARNING: This makes assumptions about data layout
-        Model *model = c->model;
-        Mat3 modelMat = otherTransform.GetTransformMatrix();
-        int stride = 8;
-        auto loadPos = [=](int id) {
-            return Vec3 {
-                model->getPoints()[id * stride],
-                model->getPoints()[id * stride + 1],
-                model->getPoints()[id * stride + 2],
-            } * modelMat;
-        };
-        for (int i = 0; i < model->getLenIndices(); i+=3) {
-            int aId = model->getIndices()[i];
-            int bId = model->getIndices()[i+1];
-            int cId = model->getIndices()[i+2];
-            Triangle t = Triangle(loadPos(aId), loadPos(bId), loadPos(cId));
-            if (CollidePrimitive(t, global)) {
-                return true;
-            }
-        }
+        CollidePrimitive(global, c->model, otherTransform);
     }
     Logger::Warn("Unknown collider type: %s", typeid(other).name());
     return false;
@@ -294,26 +275,7 @@ bool SphereCollider::Collide(Transform self, Collider *other, Transform otherTra
         };
         return CollidePrimitive(global, otherGlobal);
     } else if (auto *c = dynamic_cast<MeshCollider *>(other); c != nullptr) {
-        // WARNING: This makes assumptions about data layout
-        Model *model = c->model;
-        Mat3 modelMat = otherTransform.GetTransformMatrix();
-        int stride = 8;
-        auto loadPos = [=](int id) {
-            return Vec3 {
-                model->getPoints()[id * stride],
-                model->getPoints()[id * stride + 1],
-                model->getPoints()[id * stride + 2],
-            } * modelMat;
-        };
-        for (int i = 0; i < model->getLenIndices(); i+=3) {
-            int aId = model->getIndices()[i];
-            int bId = model->getIndices()[i+1];
-            int cId = model->getIndices()[i+2];
-            Triangle t = Triangle(loadPos(aId), loadPos(bId), loadPos(cId));
-            if (CollidePrimitive(t, global)) {
-                return true;
-            }
-        }
+        CollidePrimitive(global, c->model, otherTransform);
     }
     Logger::Warn("Unknown collider type: %s", typeid(other).name());
     return false;
@@ -329,51 +291,13 @@ bool MeshCollider::Collide(Transform self, Collider *other, Transform otherTrans
             c->box.min + otherTransform.GetTranslation(),
             c->box.max + otherTransform.GetTranslation(),
         };
-        // WARNING: This makes assumptions about data layout
-        Mat3 modelMat = otherTransform.GetTransformMatrix();
-        int stride = 8;
-        auto loadPos = [=](int id) {
-            return Vec3 {
-                model->getPoints()[id * stride],
-                model->getPoints()[id * stride + 1],
-                model->getPoints()[id * stride + 2],
-            } * modelMat;
-        };
-        for (int i = 0; i < model->getLenIndices(); i+=3) {
-            int aId = model->getIndices()[i];
-            int bId = model->getIndices()[i+1];
-            int cId = model->getIndices()[i+2];
-            Triangle t = Triangle(loadPos(aId), loadPos(bId), loadPos(cId));
-            if (CollidePrimitive(t, global)) {
-                return true;
-            }
-        }
-        return false;
+        return CollidePrimitive(global, model, self);
     } else if (auto *c = dynamic_cast<SphereCollider *>(other); c != nullptr) {
         Sphere global = Sphere {
             c->sphere.center + otherTransform.GetTranslation(),
             c->sphere.radius,
         };
-        // WARNING: This makes assumptions about data layout
-        Mat3 modelMat = otherTransform.GetTransformMatrix();
-        int stride = 8;
-        auto loadPos = [=](int id) {
-            return Vec3 {
-                model->getPoints()[id * stride],
-                model->getPoints()[id * stride + 1],
-                model->getPoints()[id * stride + 2],
-            } * modelMat;
-        };
-        for (int i = 0; i < model->getLenIndices(); i+=3) {
-            int aId = model->getIndices()[i];
-            int bId = model->getIndices()[i+1];
-            int cId = model->getIndices()[i+2];
-            Triangle t = Triangle(loadPos(aId), loadPos(bId), loadPos(cId));
-            if (CollidePrimitive(t, global)) {
-                return true;
-            }
-        }
-        return false;
+        return CollidePrimitive(global, model, self);
     } else if (auto *c = dynamic_cast<MeshCollider *>(other); c != nullptr) {
         // WARNING: This makes assumptions about data layout
         Vec3 globalPos = otherTransform.GetTranslation();
@@ -391,14 +315,8 @@ bool MeshCollider::Collide(Transform self, Collider *other, Transform otherTrans
                 loadPos(c->model, i),
                 loadPos(c->model, i + 1),
                 loadPos(c->model, i + 2));
-            for (int j = 0; j < model->getLenIndices(); j+=3) {
-                Triangle t2 = Triangle(
-                    loadPos(model, j),
-                    loadPos(model, j + 1),
-                    loadPos(model, j + 2));
-                if (CollidePrimitive(t1, t2)) {
-                    return true;
-                }
+            if (CollidePrimitive(t1, model, self)) {
+                return true;
             }
         }
         return false;
