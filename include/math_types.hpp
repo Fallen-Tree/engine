@@ -30,6 +30,8 @@ struct Triangle {
     Vec3 a, b, c;
     Vec3 normal;
 
+    explicit Triangle(Vec3, Vec3, Vec3);
+
     Vec3 ClosestPoint(Vec3);
     float Distance2(Vec3);
 };
@@ -45,4 +47,5 @@ struct Plane {
 
     Plane() = default;
     explicit Plane(Triangle t);
+    explicit Plane(Vec3 normal, Vec3 point);
 };

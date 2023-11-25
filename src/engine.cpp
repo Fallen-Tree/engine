@@ -14,6 +14,7 @@
 #include "texture.hpp"
 #include "stb_image.h"
 #include "logger.hpp"
+#include "collisions.hpp"
 
 
 int viewportWidth, viewportHeight;
@@ -168,11 +169,12 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     auto testObj = new Object();
     testObj->renderData = new RenderData();
-    testObj->renderData->model = testModel;
+    auto renderData = testObj->renderData;
+    renderData->model = testModel;
 
     // Maybe this can be less clunky?
     // Perhaps variadic functions?
-    auto images = std::vector<std::string>(2);
+    auto images = std::vector<std::string>();
     images.push_back("/wall.png");
     images.push_back("/wallspecular.png");
     testObj->renderData->material = {
@@ -185,29 +187,39 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         Vec3(1.f, 1.f, 1.f),
         Mat4(1.0));
 
-    auto render_data = testObj->renderData;
+    testObj->collider = new BoxCollider(AABB {
+        Vec3{-0.5, -0.5, -0.5},
+        Vec3{0.5, 0.5, 0.5},
+    });
 
-    glGenVertexArrays(1, &render_data->VAO);
-    glGenBuffers(1, &render_data->VBO);
-    glGenBuffers(1, &render_data->EBO);
+    auto secondObj = new Object();
+    secondObj->transform = new Transform();
+    secondObj->collider = new BoxCollider(AABB {
+        Vec3{0.49, 0.49, -5},
+        Vec3{1, 1, -4},
+    });
+
+    glGenVertexArrays(1, &renderData->VAO);
+    glGenBuffers(1, &renderData->VBO);
+    glGenBuffers(1, &renderData->EBO);
     // bind the Vertex Array Object first,
     // then bind and set vertex buffer(s),
     // and then configure vertex attributes(s).
 
-    glBindVertexArray(render_data->VAO);
+    glBindVertexArray(renderData->VAO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, render_data->VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, renderData->VBO);
     glBufferData(
         GL_ARRAY_BUFFER,
-        render_data->model->getLenArrPoints() * sizeof(float),
-        render_data->model->getPoints(),
+        renderData->model->getLenArrPoints() * sizeof(float),
+        renderData->model->getPoints(),
         GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_data->EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderData->EBO);
     glBufferData(
         GL_ELEMENT_ARRAY_BUFFER,
-        render_data->model->getLenIndices() * sizeof(unsigned int),
-        render_data->model->getIndices(),
+        renderData->model->getLenIndices() * sizeof(unsigned int),
+        renderData->model->getIndices(),
         GL_STATIC_DRAW);
 
 
@@ -264,6 +276,16 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         processInput(m_Window);
         m_Camera.Update(&m_Input, deltaTime);
 
+        if (!testObj->collider->Collide(*testObj->transform, secondObj->collider, *secondObj->transform)) {
+            Logger::Info("No collision :(");
+            Logger::Info(
+                "(%f, %f, %f)",
+                testObj->transform->GetTranslation().x,
+                testObj->transform->GetTranslation().y,
+                testObj->transform->GetTranslation().z);
+            testObj->transform->Translate(Vec3(0.f, 0.f, -0.001f));
+        }
+
         while (static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime)) == lastRenderedFrame) {
         }
 
@@ -275,9 +297,9 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
 
-    glDeleteVertexArrays(1, &render_data->VAO);
-    glDeleteBuffers(1, &render_data->VBO);
-    glDeleteBuffers(1, &render_data->EBO);
+    glDeleteVertexArrays(1, &renderData->VAO);
+    glDeleteBuffers(1, &renderData->VBO);
+    glDeleteBuffers(1, &renderData->EBO);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
@@ -312,7 +334,7 @@ void Engine::Render(int scr_width, int scr_height) {
 
         float timeValue = glfwGetTime();
 
-        transform->Rotate(glm::radians(0.1f), glm::radians(0.1f), glm::radians(0.1f));
+        /* transform->Rotate(glm::radians(0.1f), glm::radians(0.1f), glm::radians(0.1f)); */
 
         ShaderProgram shader = model->shader;
         // draw our first triangle
@@ -325,10 +347,6 @@ void Engine::Render(int scr_width, int scr_height) {
                                         glm::radians(m_Camera.GetZoom()),
                                         static_cast<float>(scr_width) / static_cast<float>(scr_height),
                                         0.1f, 100.0f);
-
-
-        transform->Translate(Vec3(0.f, 0.f, -0.001f));
-
       // send matrix transform to shader
         shader.SetMat4("model", transform->GetTransformMatrix());
         shader.SetMat4("view", view);

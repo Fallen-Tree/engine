@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include "collisions.hpp"
 #include "render_data.hpp"
 #include "transform.hpp"
 #include "camera.hpp"
@@ -12,6 +13,7 @@ class Object {
  public:
      Transform *transform;
      RenderData *renderData;
+     Collider *collider;
 };
 
 class Engine {

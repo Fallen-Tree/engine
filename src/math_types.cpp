@@ -1,10 +1,15 @@
 #pragma once
 
 #include "math_types.hpp"
+#include <glm/gtx/norm.hpp>
 
 Plane::Plane(Triangle triangle) {
-    normal = triangle.normal;
-    d = -glm::dot(normal, triangle.a);
+    Plane(triangle.normal, triangle.a);
+}
+
+Plane::Plane(Vec3 normal, Vec3 point) {
+    this->normal = normal;
+    d = -glm::dot(normal, point);
 }
 
 Vec3 AABB::ClosestPoint(Vec3 point) {
@@ -36,6 +41,13 @@ float AABB::Distance2(Vec3 point) {
         res += (point.z - max.z) * (point.z - max.z);
     }
     return res;
+}
+
+Triangle::Triangle(Vec3 a, Vec3 b, Vec3 c) {
+    this->a = a;
+    this->b = a;
+    this->c = c;
+    this->normal = glm::cross(a - b, a - c);
 }
 
 // This function can be made faster pretty easy

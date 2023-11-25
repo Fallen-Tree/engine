@@ -1,20 +1,33 @@
 #pragma once
 #include "math_types.hpp"
+#include "transform.hpp"
+#include "model.hpp"
 
-bool Collide(AABB, Plane);
-bool Collide(Plane, AABB);
+class Collider {
+ public:
+    virtual bool Collide(Transform self, Collider *other, Transform otherTransform) = 0;
+};
 
-bool Collide(AABB, AABB);
+class BoxCollider : public Collider {
+ public:
+    AABB box;
+    explicit BoxCollider(AABB);
 
-bool Collide(AABB, Triangle);
-bool Collide(Triangle, AABB);
+    bool Collide(Transform self, Collider *other, Transform otherTransform);
+};
 
-bool Collide(Sphere, Sphere);
+class SphereCollider : public Collider {
+ public:
+    Sphere sphere;
+    explicit SphereCollider(Sphere);
 
-bool Collide(Sphere, AABB);
-bool Collide(AABB, Sphere);
+    bool Collide(Transform self, Collider *other, Transform otherTransform);
+};
 
-bool Collide(Sphere, Triangle);
-bool Collide(Triangle, Sphere);
+class MeshCollider : public Collider {
+ public:
+    Model *model;
+    explicit MeshCollider(Model *);
 
-bool Collide(Triangle, Triangle);
+    bool Collide(Transform self, Collider *other, Transform otherTransform);
+};
