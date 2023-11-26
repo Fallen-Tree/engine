@@ -187,17 +187,17 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         Vec3(1.f, 1.f, 1.f),
         Mat4(1.0));
 
-    testObj->collider = new BoxCollider(AABB {
+    testObj->collider = new Collider{AABB {
         Vec3{-0.5, -0.5, -0.5},
         Vec3{0.5, 0.5, 0.5},
-    });
+    }};
 
     auto secondObj = new Object();
     secondObj->transform = new Transform();
-    secondObj->collider = new BoxCollider(AABB {
+    secondObj->collider = new Collider{AABB {
         Vec3{0.49, 0.49, -5},
         Vec3{1, 1, -4},
-    });
+    }};
 
     glGenVertexArrays(1, &renderData->VAO);
     glGenBuffers(1, &renderData->VBO);

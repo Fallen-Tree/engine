@@ -223,30 +223,6 @@ bool CollidePrimitive(T t, Model *model, Transform transform) {
     return false;
 }
 
-template<typename... Base>
-struct Visitor : Base... {
-    using Base::operator()...;
-};
-
-template<typename... T>
-Visitor(T...) -> Visitor<T...>;
-
-template<typename R, typename Variant, typename... Lambdas>
-R match(Variant &&variant, Lambdas &&... lambdas) {
-    return std::visit(Visitor(lambdas...), variant);
-}
-
-template<typename R, typename Variant, typename Visitor>
-R match2(Variant &&variant1, Variant &&variant2, Visitor &&visitor) {
-    return match(variant1,
-        [=](auto var1) {
-            match(variant2,
-                [=](auto var2) {
-                    visitor(var1, var2);
-                });
-        });
-}
-
 bool Collider::Collide(AABB lhs, Transform lhsTransform, AABB rhs, Transform rhsTransform) {
     auto lhsGlobal = AABB {
         lhs.min + lhsTransform.GetTranslation(),
