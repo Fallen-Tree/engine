@@ -1,33 +1,27 @@
 #pragma once
+#include <variant>
 #include "math_types.hpp"
 #include "transform.hpp"
 #include "model.hpp"
 
 class Collider {
  public:
-    virtual bool Collide(Transform self, Collider *other, Transform otherTransform) = 0;
-};
-
-class BoxCollider : public Collider {
- public:
-    AABB box;
-    explicit BoxCollider(AABB);
-
+    using InnerCollider = std::variant<AABB, Sphere, Model *>;
+    InnerCollider shape;
     bool Collide(Transform self, Collider *other, Transform otherTransform);
-};
 
-class SphereCollider : public Collider {
- public:
-    Sphere sphere;
-    explicit SphereCollider(Sphere);
+    bool Collide(AABB lhs, Transform lhsTransform, AABB rhs, Transform rhsTransform);
 
-    bool Collide(Transform self, Collider *other, Transform otherTransform);
-};
+    bool Collide(Model *lhs, Transform lhsTransform, AABB rhs, Transform rhsTransform);
+    bool Collide(AABB lhs, Transform lhsTransform, Model *rhs, Transform rhsTransform);
 
-class MeshCollider : public Collider {
- public:
-    Model *model;
-    explicit MeshCollider(Model *);
+    bool Collide(Sphere lhs, Transform lhsTransform, AABB rhs, Transform rhsTransform);
+    bool Collide(AABB lhs, Transform lhsTransform, Sphere rhs, Transform rhsTransform);
 
-    bool Collide(Transform self, Collider *other, Transform otherTransform);
+    bool Collide(Sphere lhs, Transform lhsTransform, Sphere rhs, Transform rhsTransform);
+
+    bool Collide(Model *lhs, Transform lhsTransform, Sphere rhs, Transform rhsTransform);
+    bool Collide(Sphere lhs, Transform lhsTransform, Model *rhs, Transform rhsTransform);
+
+    bool Collide(Model *lhs, Transform lhsTransform, Model *rhs, Transform rhsTransform);
 };

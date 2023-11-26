@@ -6,10 +6,7 @@
 #include <glm/gtx/norm.hpp>
 
 bool CollidePrimitive(AABB, Plane);
-bool CollidePrimitive(Plane p, AABB a) {
-    return CollidePrimitive(a, p);
-}
-
+bool CollidePrimitive(Plane p, AABB a) { return CollidePrimitive(a, p); }
 bool CollidePrimitive(AABB aabb, Plane plane) {
     Vec3 center = (aabb.min + aabb.max) / 2.0f;
     Vec3 extents = (aabb.max - aabb.min) / 2.0f;
@@ -226,101 +223,128 @@ bool CollidePrimitive(T t, Model *model, Transform transform) {
     return false;
 }
 
-BoxCollider::BoxCollider(AABB b) {
-    box = b;
+template<typename... Base>
+struct Visitor : Base... {
+    using Base::operator()...;
+};
+
+template<typename... T>
+Visitor(T...) -> Visitor<T...>;
+
+template<typename R, typename Variant, typename... Lambdas>
+R match(Variant &&variant, Lambdas &&... lambdas) {
+    return std::visit(Visitor(lambdas...), variant);
 }
 
-bool BoxCollider::Collide(Transform self, Collider *other, Transform otherTransform) {
-    AABB global = AABB {
-        box.min + self.GetTranslation(),
-        box.max + self.GetTranslation(),
+template<typename R, typename Variant, typename Visitor>
+R match2(Variant &&variant1, Variant &&variant2, Visitor &&visitor) {
+    return match(variant1,
+        [=](auto var1) {
+            match(variant2,
+                [=](auto var2) {
+                    visitor(var1, var2);
+                });
+        });
+}
+
+bool Collider::Collide(AABB lhs, Transform lhsTransform, AABB rhs, Transform rhsTransform) {
+    auto lhsGlobal = AABB {
+        lhs.min + lhsTransform.GetTranslation(),
+        lhs.max + lhsTransform.GetTranslation(),
     };
-    if (auto *c = dynamic_cast<BoxCollider *>(other); c != nullptr) {
-        AABB otherGlobal = AABB {
-            c->box.min + otherTransform.GetTranslation(),
-            c->box.max + otherTransform.GetTranslation(),
-        };
-        return CollidePrimitive(global, otherGlobal);
-    } else if (auto *c = dynamic_cast<SphereCollider *>(other); c != nullptr) {
-        Sphere otherGlobal = Sphere {
-            c->sphere.center + otherTransform.GetTranslation(),
-            c->sphere.radius,
-        };
-        return CollidePrimitive(global, otherGlobal);
-    } else if (auto *c = dynamic_cast<MeshCollider *>(other); c != nullptr) {
-        CollidePrimitive(global, c->model, otherTransform);
-    }
-    Logger::Warn("Unknown collider type: %s", typeid(other).name());
-    return false;
-}
-SphereCollider::SphereCollider(Sphere s) {
-    sphere = s;
-}
-
-bool SphereCollider::Collide(Transform self, Collider *other, Transform otherTransform) {
-    Sphere global = Sphere {
-        sphere.center + self.GetTranslation(),
-        sphere.radius,
+    auto rhsGlobal = AABB {
+        rhs.min + rhsTransform.GetTranslation(),
+        rhs.max + rhsTransform.GetTranslation(),
     };
-    if (auto *c = dynamic_cast<BoxCollider *>(other); c != nullptr) {
-        AABB otherGlobal = AABB {
-            c->box.min + otherTransform.GetTranslation(),
-            c->box.max + otherTransform.GetTranslation(),
-        };
-        return CollidePrimitive(global, otherGlobal);
-    } else if (auto *c = dynamic_cast<SphereCollider *>(other); c != nullptr) {
-        Sphere otherGlobal = Sphere {
-            c->sphere.center + otherTransform.GetTranslation(),
-            c->sphere.radius,
-        };
-        return CollidePrimitive(global, otherGlobal);
-    } else if (auto *c = dynamic_cast<MeshCollider *>(other); c != nullptr) {
-        CollidePrimitive(global, c->model, otherTransform);
-    }
-    Logger::Warn("Unknown collider type: %s", typeid(other).name());
-    return false;
+
+    return CollidePrimitive(lhsGlobal, rhsGlobal);
 }
 
-MeshCollider::MeshCollider(Model *m) {
-    model = m;
+bool Collider::Collide(Sphere lhs, Transform lhsTransform, AABB rhs, Transform rhsTransform) {
+    return Collide(rhs, rhsTransform, lhs, lhsTransform);
 }
 
-bool MeshCollider::Collide(Transform self, Collider *other, Transform otherTransform) {
-    if (auto *c = dynamic_cast<BoxCollider *>(other); c != nullptr) {
-        AABB global = AABB {
-            c->box.min + otherTransform.GetTranslation(),
-            c->box.max + otherTransform.GetTranslation(),
-        };
-        return CollidePrimitive(global, model, self);
-    } else if (auto *c = dynamic_cast<SphereCollider *>(other); c != nullptr) {
-        Sphere global = Sphere {
-            c->sphere.center + otherTransform.GetTranslation(),
-            c->sphere.radius,
-        };
-        return CollidePrimitive(global, model, self);
-    } else if (auto *c = dynamic_cast<MeshCollider *>(other); c != nullptr) {
-        // WARNING: This makes assumptions about data layout
-        Vec3 globalPos = otherTransform.GetTranslation();
-        int stride = 8;
-        auto loadPos = [=](Model *model, int i) {
-            int id = model->getIndices()[i];
-            return Vec3 {
-                model->getPoints()[id * stride],
-                model->getPoints()[id * stride + 1],
-                model->getPoints()[id * stride + 2],
-            } + globalPos;
-        };
-        for (int i = 0; i < c->model->getLenIndices(); i+=3) {
-            Triangle t1 = Triangle(
-                loadPos(c->model, i),
-                loadPos(c->model, i + 1),
-                loadPos(c->model, i + 2));
-            if (CollidePrimitive(t1, model, self)) {
-                return true;
-            }
+bool Collider::Collide(AABB lhs, Transform lhsTransform, Sphere rhs, Transform rhsTransform) {
+    auto lhsGlobal = AABB {
+        lhs.min + lhsTransform.GetTranslation(),
+        lhs.max + lhsTransform.GetTranslation(),
+    };
+    auto rhsGlobal = Sphere {
+        rhs.center + rhsTransform.GetTranslation(),
+        rhs.radius,
+    };
+
+    return CollidePrimitive(lhsGlobal, rhsGlobal);
+}
+
+bool Collider::Collide(Sphere lhs, Transform lhsTransform, Sphere rhs, Transform rhsTransform) {
+    auto lhsGlobal = Sphere {
+        lhs.center + lhsTransform.GetTranslation(),
+        lhs.radius,
+    };
+    auto rhsGlobal = Sphere {
+        rhs.center + rhsTransform.GetTranslation(),
+        rhs.radius,
+    };
+
+    return CollidePrimitive(lhsGlobal, rhsGlobal);
+}
+
+bool Collider::Collide(AABB lhs, Transform lhsTransform, Model *rhs, Transform rhsTransform) {
+    return Collide(rhs, rhsTransform, lhs, lhsTransform);
+}
+
+bool Collider::Collide(Model *lhs, Transform lhsTransform, AABB rhs, Transform rhsTransform) {
+    auto rhsGlobal = AABB {
+        rhs.min + rhsTransform.GetTranslation(),
+        rhs.max + rhsTransform.GetTranslation(),
+    };
+
+    return CollidePrimitive(rhsGlobal, lhs, lhsTransform);
+}
+
+bool Collider::Collide(Sphere lhs, Transform lhsTransform, Model *rhs, Transform rhsTransform) {
+    return Collide(rhs, rhsTransform, lhs, lhsTransform);
+}
+
+bool Collider::Collide(Model *lhs, Transform lhsTransform, Sphere rhs, Transform rhsTransform) {
+    auto rhsGlobal = Sphere {
+        rhs.center + rhsTransform.GetTranslation(),
+        rhs.radius,
+    };
+
+    return CollidePrimitive(rhsGlobal, lhs, lhsTransform);
+}
+
+bool Collider::Collide(Model *lhs, Transform lhsTransform, Model *rhs, Transform rhsTransform) {
+    // WARNING: This makes assumptions about data layout
+    Mat3 modelMat = lhsTransform.GetTransformMatrix();
+    int stride = 8;
+    auto loadPos = [=](Model *model, int i) {
+        int id = model->getIndices()[i];
+        return Vec3 {
+            model->getPoints()[id * stride],
+            model->getPoints()[id * stride + 1],
+            model->getPoints()[id * stride + 2],
+        } * modelMat;
+    };
+    for (int i = 0; i < lhs->getLenIndices(); i+=3) {
+        Triangle tri = Triangle(
+            loadPos(lhs, i),
+            loadPos(lhs, i + 1),
+            loadPos(lhs, i + 2));
+        if (CollidePrimitive(tri, rhs, rhsTransform)) {
+            return true;
         }
-        return false;
     }
-    Logger::Warn("Unknown collider type: %s", typeid(other).name());
     return false;
+}
+
+bool Collider::Collide(Transform self, Collider *other, Transform otherTransform) {
+    return std::visit([=](auto var1) {
+            return std::visit(
+                [=](auto var2) {
+                    return this->Collide(var1, self, var2, otherTransform);
+                }, other->shape);
+        }, shape);
 }
