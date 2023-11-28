@@ -1,8 +1,10 @@
 #include "render_data.hpp"
+#include "logger.hpp"
 
 void bindRenderData(RenderData* render_data) {
-    if (!render_data || !render_data->model)
-        return;
+    if (!render_data || !render_data->model) {
+        Logger::Error("RENDER_DATA::BINDER::RENDER_DATA_OR_MODEL_ARE_NULL");
+    }
     glGenVertexArrays(1, &render_data->VAO);
     glGenBuffers(1, &render_data->VBO);
     glGenBuffers(1, &render_data->EBO);
