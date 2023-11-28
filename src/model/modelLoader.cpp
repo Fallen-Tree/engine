@@ -4,6 +4,7 @@
 #include <fstream>
 #include <filesystem>
 #include <cstdarg>
+#include "logger.hpp"
 
 #include "config.hpp"
 
@@ -61,7 +62,7 @@ Model* Model::loadFromObjFile(std::ifstream &objFile) {  // assuming objFile alr
             float x, y;
             lineStream >> x >> y;
             modelTextures.push_back(x);
-            modelTextures.push_back(y);
+            modelTextures.push_back(-y);
         } else if (key == "f") {
             // add triangles
             std::vector<unsigned> pointsIndices(0);
@@ -119,8 +120,9 @@ Model* Model::loadFromObjFile(std::ifstream &objFile) {  // assuming objFile alr
                 modelIndices.push_back(faceIndices[i]);
                 modelIndices.push_back(faceIndices[i + 1]);
             }
+        } else if (key == "#") {
         } else {
-            Logger::Error("MODEL::LOADER::INVALID::KEY::'%s'", key);
+            Logger::Warn("MODEL::LOADER::INVALID::KEY::'%s'", key);
         }
     }
     objFile.close();

@@ -99,10 +99,10 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
 
-    envL.m_Ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-    envL.m_Diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
+    envL.m_Ambient = glm::vec3(0.3f, 0.3f, 0.3f);
+    envL.m_Diffuse = glm::vec3(0.8f, 0.8f, 0.8f);
     envL.m_Specular = glm::vec3(1.0f, 1.0f, 1.0f);
-    envL.m_Position = glm::vec3(-0.2, -0.5, -1.2);
+    envL.m_Position = glm::vec3(-0.2, 2.5, -1.2);
 
     // init a model
     Model * cubeModel = Model::loadFromFile(cubeSource);
@@ -120,6 +120,8 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     ModelInstance * catInstance = new ModelInstance(catModel, glm::vec3(0.f, 0.f, -3.f),
                                                                  glm::vec3(0.1f, 0.1f, 0.1f),
                                                                  glm::mat4(1.0));
+    catInstance->GetTransform()->Rotate(1.67f, glm::vec3(-1.f, 0.f, 0.f));
+
     Model * benchModel = Model::loadFromFile(benchSource);
     benchModel->shader = shaderProgram;
     // transformation stores information about angle, scale, rotate and tranlsation.
@@ -128,7 +130,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
                                                                  glm::vec3(0.2f, 0.2f, 0.2f),
                                                                  glm::mat4(1.0));
 
-    ModelInstance * modelInstance = cubeInstance;
+    ModelInstance * modelInstance = catInstance;
 
     modelInstance->m_Mat.m_Shininess = 4.f;
 
@@ -184,11 +186,10 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     glEnable(GL_DEPTH_TEST);
 
     // load and create a texture
-    texture.loadImage("/wall2.png");
-    texture.loadImage("/wall2specular.png");
-    // texture.loadImage("/Cat_diffuse.jpg");
     // texture.loadImage("/wall2.png");
     // texture.loadImage("/wall2specular.png");
+    texture.loadImage("/Cat_diffuse.png");
+    texture.loadImage("/Cat_specular.png");
     float lastFpsShowedTime = 0.f;
     int lastRenderedFrame = -1;
     int fpsFrames = 0;
@@ -243,7 +244,6 @@ void Engine::Render(int width, int height) {
 
     // bind textures on corresponding texture units
     texture.bind();
-
     for (uint64_t i = 0; i < m_objects.size(); i++) {
         auto object = m_objects[i];
         if (!object->m_modelInstance)
@@ -252,9 +252,10 @@ void Engine::Render(int width, int height) {
 
         auto model = instance->GetModel();
 
-        float timeValue = glfwGetTime() / 1000; // time value in seconds
-        instance->GetTransform()->Rotate(timeValue * 0.1f, glm::vec3(0.f, 0.f, 1.f));
-        instance->GetTransform()->Rotate(timeValue * 0.1f, glm::vec3(0.f, 1.f, 0.f));
+        float timeValue = glfwGetTime();  // time value in seconds
+        float rotationSpeed = 0.002f;
+        float moveSpeed = 0.f;
+        instance->GetTransform()->Rotate(rotationSpeed, glm::vec3(0.f, 0.f, 1.f));
 
         ShaderProgram shader = model->shader;
         // draw our first triangle
@@ -268,7 +269,7 @@ void Engine::Render(int width, int height) {
                                         static_cast<float>(width) / static_cast<float>(height),
                                         0.1f, 100.0f);
 
-        instance->GetTransform()->Translate(glm::vec3(0.f, 0.f, -0.01f) * timeValue);
+        instance->GetTransform()->Translate(glm::vec3(0.f, 0.f, -1.f) * moveSpeed);
 
         // send matrix transform to shader
         shader.SetMat4("model", instance->GetTransform()->GetTransformMatrix());
