@@ -21,6 +21,7 @@ add_library(ENGINE STATIC
             src/texture/stb_image.cpp
             src/texture/texture.cpp
             src/logging/logger.cpp
+            src/render_data/render_data.cpp
 )
 
 add_subdirectory(thirdparty/glfw)
