@@ -2,7 +2,7 @@
 #include <iostream>
 #include "texture.hpp"
 #include "stb_image.h"
-#include "config.hpp"
+#include "engine_config.hpp"
 #include "logger.hpp"
 
 Texture::Texture() {}
@@ -22,7 +22,7 @@ void Texture::loadImages(std::vector<std::string> paths) {
 }
 
 void Texture::loadImage(std::string path) {
-    if (m_Count >= MaxCountTexture) {
+    if (m_Count >= MAX_COUNT_TEXTURE) {
         Logger::Error(
             "TEXTURE::PROGRAM::LOADER::FAILED_TO_LOAD_TEXTURE_AT_PATH_%s_BECAUSE_OVERFLOW", path.c_str());
         return;
