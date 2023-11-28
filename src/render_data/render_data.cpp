@@ -1,6 +1,8 @@
 #include "render_data.hpp"
 
 void bindRenderData(RenderData* render_data) {
+    if (!render_data || !render_data->model)
+        return;
     glGenVertexArrays(1, &render_data->VAO);
     glGenBuffers(1, &render_data->VBO);
     glGenBuffers(1, &render_data->EBO);
