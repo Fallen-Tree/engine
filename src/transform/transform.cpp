@@ -13,12 +13,6 @@ Transform::Transform(glm::vec3 translation, glm::vec3 scale, glm::mat4 rotation)
     this->m_Rotation = rotation;
 }
 
-void Transform::SetTransform(Transform transform) {
-    this->m_Translation = transform.GetTranslation();
-    this->m_Scale = transform.GetScale();
-    this->m_Rotation = transform.GetRotation();
-}
-
 // Translation
 void Transform::SetTranslation(glm::vec3 translation) {
     this->m_Translation = translation;

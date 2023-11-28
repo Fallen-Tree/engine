@@ -21,7 +21,7 @@ add_library(ENGINE STATIC
             src/texture/stb_image.cpp
             src/texture/texture.cpp
             src/logging/logger.cpp
-            src/non_skeletal_animation/non_skeletal_animation.cpp
+            src/animation/animation.cpp
 )
 
 add_subdirectory(thirdparty/glfw)
