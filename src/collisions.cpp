@@ -198,15 +198,17 @@ bool CollidePrimitive(Triangle t1, Triangle t2) {
 template<typename T>
 bool CollideModelAt(T t, Model *model, Transform transform) {
     // WARNING: This makes assumptions about data layout
-    Mat3 modelMat = transform.GetTransformMatrix();
+    Mat4 modelMat = transform.GetTransformMatrix();
     int stride = 8;
     auto loadPos = [=](int i) {
         int id = model->getIndices()[i];
-        return Vec3 {
+        Vec4 res = Vec4 {
             model->getPoints()[id * stride],
             model->getPoints()[id * stride + 1],
             model->getPoints()[id * stride + 2],
+            1.0
         } * modelMat;
+        return Vec3{ res.x / res.w, res.y / res.w, res.z / res.w };
     };
     for (int i = 0; i < model->getLenIndices(); i+=3) {
         Triangle tri = Triangle(loadPos(i), loadPos(i + 1), loadPos(i + 2));
@@ -217,22 +219,19 @@ bool CollideModelAt(T t, Model *model, Transform transform) {
     return false;
 }
 
-template<typename T>
-bool CollideModelAt(Model *model, Transform transform, T t) {
-    return CollidePrimitive(t, model, transform);
-}
-
 bool CollideModels(Model *model, Transform transform, Model *model2, Transform transform2) {
     // WARNING: This makes assumptions about data layout
-    Mat3 modelMat = transform.GetTransformMatrix();
+    Mat4 modelMat = transform.GetTransformMatrix();
     int stride = 8;
     auto loadPos = [=](int i) {
         int id = model->getIndices()[i];
-        return Vec3 {
+        Vec4 res = Vec4 {
             model->getPoints()[id * stride],
             model->getPoints()[id * stride + 1],
             model->getPoints()[id * stride + 2],
+            1.0
         } * modelMat;
+        return Vec3{ res.x / res.w, res.y / res.w, res.z / res.w };
     };
     for (int i = 0; i < model->getLenIndices(); i+=3) {
         Triangle tri = Triangle(loadPos(i), loadPos(i + 1), loadPos(i + 2));
@@ -255,7 +254,7 @@ bool CollideShifted(T lhs, Transform lhsTransform, Model *rhs, Transform rhsTran
 
 template<typename U>
 bool CollideShifted(Model *lhs, Transform lhsTransform, U rhs, Transform rhsTransform) {
-    return CollideModelAt(lhs, lhsTransform, rhs.Transformed(rhsTransform));
+    return CollideModelAt(rhs.Transformed(rhsTransform), lhs, lhsTransform);
 }
 
 bool CollideShifted(Model *lhs, Transform lhsTransform, Model *rhs, Transform rhsTransform) {
