@@ -10,7 +10,7 @@
 #include "logger.hpp"
 
 #include "glm/ext.hpp"
-#include "config.hpp"
+#include "engine_config.hpp"
 
 int Shader::CheckSuccess() {
     int success;
@@ -110,17 +110,42 @@ int ShaderProgram::UniformLocation(const char* mode) {
     return glGetUniformLocation(m_Program, mode);
 }
 
-void ShaderProgram::SetVar(const char* name, const float value) {
-    int loc = UniformLocation(name);
-    glUniform1f(loc, value);
+unsigned int ShaderProgram::GetLoc(const char* name) {
+    return UniformLocation(name);
+}
+
+void ShaderProgram::SetFloat(const char* name, const float value) { glUniform1f(GetLoc(name), value); }
+
+void ShaderProgram::SetInt(const char* name, const int value) { glUniform1i(GetLoc(name), value); }
+
+void ShaderProgram::SetVec2(const char* name, Vec2 vec) {
+    glUniform2fv(GetLoc(name), 1, glm::value_ptr(vec));
+}
+
+void ShaderProgram::SetVec2i(const char* name, Vec2Int vec) {
+    glUniform2iv(GetLoc(name), 1, glm::value_ptr(vec));
 }
 
 void ShaderProgram::SetVec3(const char* name, Vec3 vec) {
-    int loc = UniformLocation(name);
-    glUniform3fv(loc, 1, glm::value_ptr(vec));
+    glUniform3fv(GetLoc(name), 1, glm::value_ptr(vec));
+}
+
+void ShaderProgram::SetVec3i(const char* name, Vec3Int vec) {
+    glUniform3iv(GetLoc(name), 1, glm::value_ptr(vec));
+}
+
+void ShaderProgram::SetVec4(const char* name, Vec4 vec) {
+    glUniform4fv(GetLoc(name), 1, glm::value_ptr(vec));
+}
+
+void ShaderProgram::SetVec4i(const char* name, Vec4Int vec) {
+    glUniform4iv(GetLoc(name), 1, glm::value_ptr(vec));
+}
+
+void ShaderProgram::SetMat3(const char* name, Mat3 mat) {
+    glUniformMatrix3fv(GetLoc(name), 1, GL_FALSE, glm::value_ptr(mat));
 }
 
 void ShaderProgram::SetMat4(const char* name, Mat4 mat) {
-    int loc = UniformLocation(name);
-    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(mat));
+    glUniformMatrix4fv(GetLoc(name), 1, GL_FALSE, glm::value_ptr(mat));
 }

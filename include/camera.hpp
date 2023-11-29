@@ -4,6 +4,8 @@
 #include <glad/glad.h>
 #include "math_types.hpp"
 #include "input.hpp"
+#include "engine_config.hpp"
+#include "user_config.hpp"
 
 // Defines several possible options for camera movement.
 // Used as abstraction to stay away from window-system specific input methods
@@ -14,29 +16,16 @@ enum Camera_Movement {
     RIGHT
 };
 
-// Initial (Default) camera values
-const float YAW         = -90.0f;
-const float PITCH       =  0.0f;
-const float SPEED       =  2.5f;
-const float SENSITIVITY =  0.1f;
-const float ZOOM        =  45.0f;
-
-const float MAXPITCH = 89.0f;
-const float MINPITCH = -89.0f;
-
-const float MAXFOV = 45.0f;
-const float MINFOV = 1.0f;
-
 class Camera {
  public:
     // constructor with vectors
-    explicit Camera(Vec3 position = Vec3(0.0f, 0.0f, -3.0f),
-                    Vec3 up = Vec3(0.0f, 1.0f, 0.0f),
-                    float yaw = YAW, float pitch = PITCH);
+    explicit Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, -3.0f),
+                    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
+                    float yaw = DFL_YAW, float pitch = DFL_PITCH);
 
-    void SetPosition(Vec3 position = Vec3(0.0f, 0.0f, -3.0f),
-                    Vec3 up = Vec3(0.0f, 1.0f, 0.0f),
-                    float yaw = YAW, float pitch = PITCH);
+    void SetPosition(glm::vec3 position = glm::vec3(0.0f, 0.0f, -3.0f),
+                    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
+                    float yaw = DFL_YAW, float pitch = DFL_PITCH);
 
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
     Mat4 GetViewMatrix();
@@ -44,6 +33,7 @@ class Camera {
     float GetZoom();
 
     Vec3 GetPosition();
+    Vec3 GetFront();
 
     // processes input received from any keyboard-like input system.
     // Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)

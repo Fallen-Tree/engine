@@ -23,6 +23,8 @@ add_library(ENGINE STATIC
             src/logging/logger.cpp
             src/collisions.cpp
             src/geometry_primitives.cpp
+            src/render_data/render_data.cpp
+            src/animation/animation.cpp
 )
 
 add_subdirectory(thirdparty/glfw)

@@ -1,6 +1,7 @@
 #include "camera.hpp"
 #include "input.hpp"
 #include "math_types.hpp"
+#include "user_config.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 
 Camera::Camera(Vec3 position,
@@ -11,9 +12,9 @@ Camera::Camera(Vec3 position,
     this->m_Yaw = yaw;
     this->m_Pitch = pitch;
     this->m_Front = Vec3(0.0f, 0.0f, -1.0f);
-    this->m_MovementSpeed = SPEED;
-    this->m_MouseSensitivity = SENSITIVITY;
-    this->m_Zoom = ZOOM;
+    this->m_MovementSpeed = DFL_SPEED;
+    this->m_MouseSensitivity = SENSIVITY;
+    this->m_Zoom = DFL_ZOOM;
     UpdateCameraVectors();
 }
 
@@ -25,7 +26,7 @@ void Camera::SetPosition(Vec3 position,
     this->m_Yaw = yaw;
     this->m_Pitch = pitch;
     this->m_Front = Vec3(0.0f, 0.0f, -1.0f);
-    this->m_Zoom = ZOOM;
+    this->m_Zoom = DFL_ZOOM;
     UpdateCameraVectors();
 }
 
@@ -41,6 +42,10 @@ float Camera::GetZoom() {
 
 Vec3 Camera::GetPosition() {
     return this->m_Position;
+}
+
+glm::vec3 Camera::GetFront() {
+    return this->m_Front;
 }
 
 // processes input received from any keyboard-like input system. Accepts
@@ -66,8 +71,8 @@ void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constr
     // make sure that when pitch is out of bounds, screen doesn't get
     // flipped
     if (constrainPitch) {
-        if (this->m_Pitch > MAXPITCH)  this->m_Pitch = MAXPITCH;
-        if (this->m_Pitch < MINPITCH) this->m_Pitch = MINPITCH;
+        if (this->m_Pitch > MAX_PITCH)  this->m_Pitch = MAX_PITCH;
+        if (this->m_Pitch < MIN_PITCH) this->m_Pitch = MIN_PITCH;
     }
 
     // update Front, Right and Up Vectors using the updated Euler angles
@@ -78,8 +83,8 @@ void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constr
 // input on the vertical wheel-axis
 void Camera::ProcessMouseScroll(float yoffset) {
     this->m_Zoom -= static_cast<float>(yoffset);
-    if (this->m_Zoom < MINFOV) this->m_Zoom = MINFOV;
-    if (this->m_Zoom > MAXFOV) this->m_Zoom = MAXFOV;
+    if (this->m_Zoom < MIN_FOV) this->m_Zoom = MIN_FOV;
+    if (this->m_Zoom > MAX_FOV) this->m_Zoom = MAX_FOV;
 }
 
 // calculates the front vector from the Camera's (updated) Euler Angles

@@ -2,9 +2,25 @@
 
 #include "math_types.hpp"
 
-struct EnvLight{
-    Vec3 m_Position;
-    Vec3 m_Ambient;
-    Vec3 m_Diffuse;
-    Vec3 m_Specular;
+struct Light {
+    Vec3 ambient;
+    Vec3 diffuse;
+    Vec3 specular;
+};
+
+struct PointLight : Light {
+    Vec3 position;
+    float constDistCoeff;
+    float linearDistCoeff;
+    float quadraticDistCoeff;
+};
+
+struct DirLight : Light {
+    Vec3 direction;
+};
+
+struct SpotLight : PointLight {
+    Vec3 direction;
+    float cutOff;
+    float outerCutOff;
 };

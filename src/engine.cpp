@@ -15,8 +15,7 @@
 #include "stb_image.h"
 #include "logger.hpp"
 #include "collisions.hpp"
-#include "glm/gtx/string_cast.hpp"
-
+#include "animation.hpp"
 
 int viewportWidth, viewportHeight;
 // Left bottom corner coordinates of viewport
@@ -24,28 +23,21 @@ int viewportStartX, viewportStartY;
 // For resoliton and initial window size. 1600x900 for example.
 int scrWidth, scrHeight;
 
-// should send to all constants
-const int maxValidKey = 350;
-const float fpsLimit = 500;
-const float fpsShowingInterval = 1.f;
 
 static Engine *s_Engine = nullptr;
-EnvLight envL;
+std::vector<PointLight> pointLights = std::vector<PointLight>(3);
+DirLight dirLight;
+std::vector<SpotLight> spotLight = std::vector<SpotLight>(1);
 
 static Input *s_Input = nullptr;
 
-Engine::Engine() {
-    m_Objects = std::vector<Object *>();
-    m_Camera = Camera(Vec3(0.0f, 0.0f, 3.0f));
-    s_Engine = this;
-}
-
-Engine::~Engine() {
-    std::cout << "Goodbye";
-}
-
-void Engine::AddObject(Object *a) {
-    m_Objects.push_back(a);
+Camera* Engine::SwitchCamera(Camera* newCamera) {
+    if (!newCamera) {
+        Logger::Error("ENGINE::ARGUMENT_IN_SWITCHCAMERA_NULL!\n");
+    }
+    Camera* toReturn = camera;
+    camera = newCamera;
+    return toReturn;
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -53,21 +45,11 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
-
-const char *vertexShaderSource = "/vertex/standart.vshader";
-const char *fragmentShaderSource1 = "/fragment/green.fshader";
-const char *fragmentShaderSource2 = "/fragment/red.fshader";
-const char *fragmentShaderSource3 = "/fragment/blue.fshader";
-
-void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
-    scrWidth = SCR_WIDTH;
-    scrHeight = SCR_HEIGHT;
-    viewportWidth = SCR_WIDTH;
-    viewportHeight = SCR_HEIGHT;
-    viewportStartX = 0;
-    viewportStartY = 0;
-
-    // glfw: initialize and configure
+Engine::Engine(int SCR_WIDTH, int SCR_HEIGHT) {
+    m_Objects = std::vector<Object *>();
+    camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
+    s_Engine = this;
+        // glfw: initialize and configure
     // ------------------------------
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -91,9 +73,6 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     glfwSetScrollCallback(m_Window, scroll_callback);
     glfwSetKeyCallback(m_Window, key_callback);
 
-    m_Input.SetWindow(m_Window);
-    m_Input.SetMode(MODE, VALUE);
-    m_Input.InitMouse();
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -101,200 +80,69 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return;
     }
+}
+
+Engine::~Engine() {
+    // optional: de-allocate all resources once they've outlived their purpose:
+    // ------------------------------------------------------------------------
+    for (int i = 0; i < m_Objects.size(); i++) {
+        if (m_Objects[i] == nullptr || m_Objects[i]->renderData == nullptr)
+            continue;
+        glDeleteVertexArrays(1, &m_Objects[i]->renderData->VAO);
+        glDeleteBuffers(1, &m_Objects[i]->renderData->VBO);
+        glDeleteBuffers(1, &m_Objects[i]->renderData->EBO);
+    }
+    std::cout << "Goodbye";
+}
+
+void Engine::AddObject(Object *a) {
+    m_Objects.push_back(a);
+}
+
+void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
+    scrWidth = SCR_WIDTH;
+    scrHeight = SCR_HEIGHT;
+    viewportWidth = SCR_WIDTH;
+    viewportHeight = SCR_HEIGHT;
+    viewportStartX = 0;
+    viewportStartY = 0;
+    m_Input.SetWindow(m_Window);
+    m_Input.SetMode(MODE, VALUE);
+    m_Input.InitMouse();
 
 
-    // build and compile our shader program ------------------------------------
-    Shader vShader = Shader(VertexShader, vertexShaderSource);
-    Shader fShader1 = Shader(FragmentShader, fragmentShaderSource1);
-    Shader fShader2 = Shader(FragmentShader, fragmentShaderSource2);
-    Shader fShader3 = Shader(FragmentShader, fragmentShaderSource3);
+    pointLights[0].ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+    pointLights[0].diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
+    pointLights[0].specular = glm::vec3(1.0f, 1.0f, 1.0f);
+    pointLights[0].position = glm::vec3(-0.2, -0.5, -1.2);
+    pointLights[0].constDistCoeff = 1;
+    pointLights[0].linearDistCoeff = 0.09f;
+    pointLights[0].quadraticDistCoeff = 0.032f;
 
-    ShaderProgram shaderProgram = ShaderProgram(vShader, fShader2);
+    pointLights[1] = pointLights[0];
+    pointLights[1].position = glm::vec3(2.3f, -3.3f, -4.0f);
+    pointLights[2] = pointLights[0];
+    pointLights[2].position = glm::vec3(0.0f,  0.0f, -3.0f);
 
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
+    dirLight.ambient = glm::vec3(0.05f, 0.05f, 0.05f);
+    dirLight.diffuse = glm::vec3(0.4f, 0.4f, 0.4f);
+    dirLight.specular = glm::vec3(0.5f, 0.5f, 0.5f);
+    dirLight.direction = glm::vec3(-0.2f, -1.0f, -0.3f);
 
-    envL.m_Ambient = Vec3(0.2f, 0.2f, 0.2f);
-    envL.m_Diffuse = Vec3(0.5f, 0.5f, 0.5f);
-    envL.m_Specular = Vec3(1.0f, 1.0f, 1.0f);
-    envL.m_Position = Vec3(-0.2, -0.5, -1.2);
-
-    std::vector<GLfloat> cubeVertices {
-          // positions          // normals           // texture coords
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
-    };
-
-    // init a model
-    Model *cubeModel = new Model(cubeVertices, 8);
-    cubeModel->shader = shaderProgram;
-    Model *sphereModel = Model::GetSphere();
-    sphereModel->shader = shaderProgram;
-
-    // Maybe this can be less clunky?
-    // Perhaps variadic functions?
-    auto images = std::vector<std::string>();
-    images.push_back("/wall.png");
-    images.push_back("/wallspecular.png");
-    Material material = {
-        4.f,
-        Texture(images),
-    };
-
-    auto getSphereObj = [=](Transform transform) {
-        auto obj = new Object();
-        obj->renderData = new RenderData();
-        auto renderData = obj->renderData;
-        renderData->model = sphereModel;
-        renderData->material = material;
-        glGenVertexArrays(1, &renderData->VAO);
-        glGenBuffers(1, &renderData->VBO);
-        glGenBuffers(1, &renderData->EBO);
-
-        glBindVertexArray(renderData->VAO);
-
-        glBindBuffer(GL_ARRAY_BUFFER, renderData->VBO);
-        glBufferData(
-            GL_ARRAY_BUFFER,
-            renderData->model->getLenArrPoints() * sizeof(float),
-            renderData->model->getPoints(),
-            GL_STATIC_DRAW);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderData->EBO);
-        glBufferData(
-            GL_ELEMENT_ARRAY_BUFFER,
-            renderData->model->getLenIndices() * sizeof(unsigned int),
-            renderData->model->getIndices(),
-            GL_STATIC_DRAW);
-
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-            reinterpret_cast<void*>(0));
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-            reinterpret_cast<void*>(3 * sizeof(float)));
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-            reinterpret_cast<void*>(6 * sizeof(float)));
-        glEnableVertexAttribArray(2);
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-
-        obj->transform = new Transform(transform);
-
-        obj->collider = new Collider{Sphere{
-            Vec3(0.0),
-            1.0f,
-        }};
-        return obj;
-    };
-
-    Object *spheres[3] = {
-        getSphereObj(Transform(Vec3(-4, 0, 2.0), Vec3(1.0), 0, Vec3(1))),
-        getSphereObj(Transform(Vec3(0, 0, 2.0), Vec3(1.0), 0, Vec3(1))),
-        getSphereObj(Transform(Vec3(4, 0, 2.0), Vec3(1.0), 0, Vec3(1))),
-    };
-    AddObject(spheres[0]);
-    AddObject(spheres[1]);
-    AddObject(spheres[2]);
-
-    auto aabb = new Object();
-    aabb->renderData = new RenderData();
-    auto renderData = aabb->renderData;
-    renderData->model = cubeModel;
-    renderData->material = material;
-    glGenVertexArrays(1, &renderData->VAO);
-    glGenBuffers(1, &renderData->VBO);
-    glGenBuffers(1, &renderData->EBO);
-
-    glBindVertexArray(renderData->VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, renderData->VBO);
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        renderData->model->getLenArrPoints() * sizeof(float),
-        renderData->model->getPoints(),
-        GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderData->EBO);
-    glBufferData(
-        GL_ELEMENT_ARRAY_BUFFER,
-        renderData->model->getLenIndices() * sizeof(unsigned int),
-        renderData->model->getIndices(),
-        GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-        reinterpret_cast<void*>(0));
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-        reinterpret_cast<void*>(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-        reinterpret_cast<void*>(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-    aabb->transform = new Transform(Vec3(-4, 0, -3), Vec3(1.0), 0, Vec3(1));
-    aabb->collider = new Collider{AABB {
-        Vec3{-0.5, -0.5, -0.5},
-        Vec3{0.5, 0.5, 0.5},
-    }};
-    AddObject(aabb);
-
-    auto sphere = getSphereObj(Transform(Vec3(0, 0, -3), Vec3(1.0), 0, Vec3(1)));
-    AddObject(sphere);
-
-    auto mesh = getSphereObj(Transform(Vec3(4.0, 0, -3), Vec3(1.0), 0, Vec3(1)));
-    mesh->collider = new Collider{sphereModel};
-    AddObject(mesh);
-
+    spotLight[0].ambient = glm::vec3(0.0f, 0.0f, 0.0f);
+    spotLight[0].diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
+    spotLight[0].specular = glm::vec3(1.0f, 1.0f, 1.0f);
+    spotLight[0].constDistCoeff = 1.0f;
+    spotLight[0].linearDistCoeff = 0.09f;
+    spotLight[0].quadraticDistCoeff = 0.032f;
+    spotLight[0].cutOff = glm::cos(glm::radians(12.5f));
+    spotLight[0].outerCutOff = glm::cos(glm::radians(15.0f));
     glEnable(GL_DEPTH_TEST);
 
     float lastFpsShowedTime = 0.f;
     int lastRenderedFrame = -1;
     int fpsFrames = 0;
-    const float frameTime = 1.f / fpsLimit;
+    const float frameTime = 1.f / FPS_LIMIT;
     float deltaTime = 0.0f;
     float lastTime = 0.0f;
 
@@ -305,7 +153,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         deltaTime = currentTime - lastTime;
         lastTime = currentTime;
 
-        if (currentTime - lastFpsShowedTime > fpsShowingInterval) {
+        if (currentTime - lastFpsShowedTime > FPS_SHOWING_INTERVAL) {
             Logger::Info("FPS: %d", static_cast<int>(fpsFrames / (currentTime - lastFpsShowedTime)));
             lastFpsShowedTime = currentTime;
             fpsFrames = 0;
@@ -314,24 +162,8 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         m_Input.Update();
         glfwPollEvents();
         processInput(m_Window);
-        m_Camera.Update(&m_Input, deltaTime);
-
-        if (!spheres[0]->collider->Collide(
-                *spheres[0]->transform,
-                aabb->collider, *aabb->transform)) {
-            spheres[0]->transform->Translate(Vec3(0.f, 0.f, -0.001f));
-        }
-        if (!spheres[1]->collider->Collide(
-                *spheres[1]->transform,
-                sphere->collider, *sphere->transform)) {
-            spheres[1]->transform->Translate(Vec3(0.f, 0.f, -0.001f));
-        }
-
-        if (!spheres[2]->collider->Collide(
-                *spheres[2]->transform,
-                mesh->collider, *mesh->transform)) {
-            spheres[2]->transform->Translate(Vec3(0.f, 0.f, -0.001f));
-        }
+        camera->Update(&m_Input, deltaTime);
+        updateObjects(deltaTime);
 
         while (static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime)) == lastRenderedFrame) {
         }
@@ -341,17 +173,17 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         Render(SCR_WIDTH, SCR_HEIGHT);
     }
 
-    // optional: de-allocate all resources once they've outlived their purpose:
-    // ------------------------------------------------------------------------
-
-    glDeleteVertexArrays(1, &renderData->VAO);
-    glDeleteBuffers(1, &renderData->VBO);
-    glDeleteBuffers(1, &renderData->EBO);
-
-    // glfw: terminate, clearing all previously allocated GLFW resources.
-    // ------------------------------------------------------------------
     glfwTerminate();
     return;
+}
+
+void Engine::updateObjects(float deltaTime) {
+    for (int i = 0; i < m_Objects.size(); i++) {
+        auto object = m_Objects[i];
+        if (object->animation) {
+            object->animation->applyAnimations(object->transform, deltaTime);
+        }
+    }
 }
 
 void Engine::Render(int scr_width, int scr_height) {
@@ -381,38 +213,80 @@ void Engine::Render(int scr_width, int scr_height) {
 
         float timeValue = glfwGetTime();
 
-        ShaderProgram shader = model->shader;
-        // draw our first triangle
-        shader.Use();
+        ShaderProgram* shader = model->shader;
+        shader->Use();
 
-        Mat4 view = m_Camera.GetViewMatrix();
-        Vec3 viewPos = m_Camera.GetPosition();
+        Mat4 view = camera->GetViewMatrix();
+        Vec3 viewPos = camera->GetPosition();
 
         Mat4 projection = glm::perspective(
-                                        glm::radians(m_Camera.GetZoom()),
+                                        glm::radians(camera->GetZoom()),
                                         static_cast<float>(scr_width) / static_cast<float>(scr_height),
                                         0.1f, 100.0f);
       // send matrix transform to shader
-        shader.SetMat4("model", transform->GetTransformMatrix());
-        shader.SetMat4("view", view);
-        shader.SetVec3("viewPos", viewPos);
+        shader->SetMat4("model", transform->GetTransformMatrix());
+        shader->SetMat4("view", view);
+        shader->SetVec3("viewPos", viewPos);
 
         // send material to shaders
-        shader.SetVar("material.shininess", data->material.shininess);
+        shader->SetFloat("material.shininess", data->material.shininess);
         // send light to shaders
-        shader.SetVec3("light.position", envL.m_Position);
-        shader.SetVec3("light.ambient", envL.m_Ambient);
-        shader.SetVec3("light.diffuse", envL.m_Diffuse);
-        shader.SetVec3("light.specular", envL.m_Specular);
+        // pointLight
+        char str[100];
+        for (int i = 0; i < pointLights.size(); i++) {
+            snprintf(str, sizeof(str), "pointLights[%d].position", i);
+            shader->SetVec3(str, pointLights[i].position);
+            snprintf(str, sizeof(str), "pointLights[%d].ambient", i);
+            shader->SetVec3(str, pointLights[i].ambient);
+            snprintf(str, sizeof(str), "pointLights[%d].diffuse", i);
+            shader->SetVec3(str, pointLights[i].diffuse);
+            snprintf(str, sizeof(str), "pointLights[%d].specular", i);
+            shader->SetVec3(str, pointLights[i].specular);
+            snprintf(str, sizeof(str), "pointLights[%d].linearDistCoeff", i);
+            shader->SetFloat(str, pointLights[i].linearDistCoeff);
+            snprintf(str, sizeof(str), "pointLights[%d].quadraticDistCoeff", i);
+            shader->SetFloat(str, pointLights[i].quadraticDistCoeff);
+            snprintf(str, sizeof(str), "pointLights[%d].constDistCoeff", i);
+            shader->SetFloat(str, pointLights[i].constDistCoeff);
+        }
+        shader->SetInt("lenArrPointL", pointLights.size());
+        // directionLight
+        shader->SetVec3("dirLight.ambient", dirLight.ambient);
+        shader->SetVec3("dirLight.specular", dirLight.specular);
+        shader->SetVec3("dirLight.direction", dirLight.direction);
+        shader->SetVec3("dirLight.diffuse", dirLight.diffuse);
+        // spotLight
+        for (int i = 0; i < spotLight.size(); i++) {
+            snprintf(str, sizeof(str), "spotLight[%d].diffuse", i);
+            shader->SetVec3(str, spotLight[i].diffuse);
+            snprintf(str, sizeof(str), "spotLight[%d].direction", i);
+            shader->SetVec3(str, camera->GetFront());
+            snprintf(str, sizeof(str), "spotLight[%d].ambient", i);
+            shader->SetVec3(str, spotLight[i].ambient);
+            snprintf(str, sizeof(str), "spotLight[%d].position", i);
+            shader->SetVec3(str, camera->GetPosition());
+            snprintf(str, sizeof(str), "spotLight[%d].specular", i);
+            shader->SetVec3(str, spotLight[i].specular);
+            snprintf(str, sizeof(str), "spotLight[%d].cutOff", i);
+            shader->SetFloat(str, spotLight[i].cutOff);
+            snprintf(str, sizeof(str), "spotLight[%d].linearDistCoeff", i);
+            shader->SetFloat(str, spotLight[i].linearDistCoeff);
+            snprintf(str, sizeof(str), "spotLight[%d].outerCutOff", i);
+            shader->SetFloat(str, spotLight[i].outerCutOff);
+            snprintf(str, sizeof(str), "spotLight[%d].constDistCoeff", i);
+            shader->SetFloat(str, spotLight[i].constDistCoeff);
+            snprintf(str, sizeof(str), "spotLight[%d].quadraticDistCoeff", i);
+            shader->SetFloat(str, spotLight[i].quadraticDistCoeff);
+        }
+        shader->SetInt("lenArrSpotL", spotLight.size());
         // send inf about texture
         data->material.texture.bind();
-        glUniform1i(shader.UniformLocation("material.duffuse"), 0);
-        glUniform1i(shader.UniformLocation("material.specular"), 1);
-
+        shader->SetInt("material.duffuse", 0);
+        shader->SetInt("material.specular", 1);
         // Note: currently we set the projection matrix each frame,
         // but since the projection matrix rarely changes it's
         // often best practice to set it outside the main loop only once.
-        shader.SetMat4("projection", projection);
+        shader->SetMat4("projection", projection);
 
         glBindVertexArray(data->VAO);
 
@@ -430,7 +304,7 @@ void processInput(GLFWwindow *window) {
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (key > 0 && key < maxValidKey && action == GLFW_PRESS) {
+    if (key > 0 && key < MAX_VALID_KEY && action == GLFW_PRESS) {
         s_Engine->m_Input.ButtonPress(key);
     }
 }
