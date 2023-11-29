@@ -44,13 +44,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
-const char *cubeSource = "/cube2.obj";
-const char *catSource = "/cat.obj";
-const char *benchSource = "/bench.obj";
-
-const char *vertexShaderSource = "/vertex/standart.vshader";
-const char *fragmentShaderSource = "/fragment/standart.fshader";
-
 Engine::Engine(int SCR_WIDTH, int SCR_HEIGHT) {
     m_Objects = std::vector<Object *>();
     camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -146,11 +139,6 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     glEnable(GL_DEPTH_TEST);
 
-    // load and create a texture
-    // texture.loadImage("/wall2.png");
-    // texture.loadImage("/wall2specular.png");
-    texture.loadImage("/Cat_diffuse.png");
-    texture.loadImage("/Cat_specular.png");
     float lastFpsShowedTime = 0.f;
     int lastRenderedFrame = -1;
     int fpsFrames = 0;
