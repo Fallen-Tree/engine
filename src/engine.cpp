@@ -13,7 +13,7 @@
 #include "texture.hpp"
 #include "stb_image.h"
 #include "logger.hpp"
-
+#include "animation.hpp"
 
 int viewportWidth, viewportHeight;
 // Left bottom corner coordinates of viewport
@@ -21,10 +21,6 @@ int viewportStartX, viewportStartY;
 // For resoliton and initial window size. 1600x900 for example.
 int scrWidth, scrHeight;
 
-// should send to all constants
-const int maxValidKey = 350;
-const float fpsLimit = 500;
-const float fpsShowingInterval = 1.f;
 
 static Engine *s_Engine = nullptr;
 std::vector<PointLight> pointLights = std::vector<PointLight>(3);
@@ -213,6 +209,20 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     testObj->transform = new Transform(glm::vec3(0.f, 0.f, -3.f), glm::vec3(1.f, 1.f, 1.f), glm::mat4(1.0));
 
+    testObj->animation = new Animation();
+    testObj->animation
+        ->addAnimation(
+            Transform(glm::vec3(0.f, 0.f, -10.f), glm::vec3(1.f, 1.f, 1.f), glm::mat4(1.0)),
+            3)
+        ->addAnimation(
+            Transform(glm::vec3(0.f, 0.f, -10.f), glm::vec3(5.f, 5.f, 5.f), glm::mat4(1.0)),
+            2)
+        ->addAnimation(
+            Transform(glm::vec3(0.f, 0.f, -10.f), glm::vec3(5.f, 5.f, 5.f),
+            glm::rotate(glm::mat4(1.0), glm::radians(45.f), glm::vec3(1.f, 0.f, 1.f))),
+            1);
+
+
     auto render_data = testObj->renderData;
 
     glGenVertexArrays(1, &render_data->VAO);
@@ -270,7 +280,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     float lastFpsShowedTime = 0.f;
     int lastRenderedFrame = -1;
     int fpsFrames = 0;
-    const float frameTime = 1.f / fpsLimit;
+    const float frameTime = 1.f / FPS_LIMIT;
     float deltaTime = 0.0f;
     float lastTime = 0.0f;
 
@@ -281,7 +291,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         deltaTime = currentTime - lastTime;
         lastTime = currentTime;
 
-        if (currentTime - lastFpsShowedTime > fpsShowingInterval) {
+        if (currentTime - lastFpsShowedTime > FPS_SHOWING_INTERVAL) {
             Logger::Info("FPS: %d", static_cast<int>(fpsFrames / (currentTime - lastFpsShowedTime)));
             lastFpsShowedTime = currentTime;
             fpsFrames = 0;
@@ -291,6 +301,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         glfwPollEvents();
         processInput(m_Window);
         camera->Update(&m_Input, deltaTime);
+        updateObjects(deltaTime);
 
         while (static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime)) == lastRenderedFrame) {
         }
@@ -311,6 +322,15 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // ------------------------------------------------------------------
     glfwTerminate();
     return;
+}
+
+void Engine::updateObjects(float deltaTime) {
+    for (int i = 0; i < m_Objects.size(); i++) {
+        auto object = m_Objects[i];
+        if (object->animation) {
+            object->animation->applyAnimations(object->transform, deltaTime);
+        }
+    }
 }
 
 void Engine::Render(int scr_width, int scr_height) {
@@ -343,6 +363,7 @@ void Engine::Render(int scr_width, int scr_height) {
         transform->Rotate(glm::radians(0.1f), glm::radians(0.1f), glm::radians(0.1f));
 
         ShaderProgram * shader = model->shader;
+        ShaderProgram shader = model->shader;
         // draw our first triangle
         shader->Use();
 
@@ -353,9 +374,6 @@ void Engine::Render(int scr_width, int scr_height) {
                                         glm::radians(camera->GetZoom()),
                                         static_cast<float>(scr_width) / static_cast<float>(scr_height),
                                         0.1f, 100.0f);
-
-
-        transform->Translate(glm::vec3(0.f, 0.f, -0.001f));
 
       // send matrix transform to shader
         shader->SetMat4("model", transform->GetTransformMatrix());
@@ -438,7 +456,7 @@ void processInput(GLFWwindow *window) {
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (key > 0 && key < maxValidKey && action == GLFW_PRESS) {
+    if (key > 0 && key < MAX_VALID_KEY && action == GLFW_PRESS) {
         s_Engine->m_Input.ButtonPress(key);
     }
 }

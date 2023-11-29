@@ -10,7 +10,7 @@
 #include "logger.hpp"
 
 #include "glm/ext.hpp"
-#include "config.hpp"
+#include "engine_config.hpp"
 
 int Shader::CheckSuccess() {
     int success;
