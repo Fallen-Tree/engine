@@ -15,6 +15,7 @@
 #include "stb_image.h"
 #include "logger.hpp"
 #include "collisions.hpp"
+#include "glm/gtx/string_cast.hpp"
 
 
 int viewportWidth, viewportHeight;
@@ -164,47 +165,86 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     };
 
     // init a model
-    Model * testModel = new Model(cubeVertices, 8);
-    testModel->shader = shaderProgram;
-
-    auto testObj = new Object();
-    testObj->renderData = new RenderData();
-    auto renderData = testObj->renderData;
-    renderData->model = testModel;
+    Model *cubeModel = new Model(cubeVertices, 8);
+    cubeModel->shader = shaderProgram;
+    Model *sphereModel = Model::GetSphere();
+    sphereModel->shader = shaderProgram;
 
     // Maybe this can be less clunky?
     // Perhaps variadic functions?
     auto images = std::vector<std::string>();
     images.push_back("/wall.png");
     images.push_back("/wallspecular.png");
-    testObj->renderData->material = {
+    Material material = {
         4.f,
         Texture(images),
     };
 
-    testObj->transform = new Transform(
-        Vec3(0.f, 0.f, -3.f),
-        Vec3(1.f, 1.f, 1.f),
-        Mat4(1.0));
+    auto getSphereObj = [=](Transform transform) {
+        auto obj = new Object();
+        obj->renderData = new RenderData();
+        auto renderData = obj->renderData;
+        renderData->model = sphereModel;
+        renderData->material = material;
+        glGenVertexArrays(1, &renderData->VAO);
+        glGenBuffers(1, &renderData->VBO);
+        glGenBuffers(1, &renderData->EBO);
 
-    testObj->collider = new Collider{AABB {
-        Vec3{-0.5, -0.5, -0.5},
-        Vec3{0.5, 0.5, 0.5},
-    }};
+        glBindVertexArray(renderData->VAO);
 
-    auto secondObj = new Object();
-    secondObj->transform = new Transform();
-    secondObj->collider = new Collider{AABB {
-        Vec3{0.49, 0.49, -5},
-        Vec3{1, 1, -4},
-    }};
+        glBindBuffer(GL_ARRAY_BUFFER, renderData->VBO);
+        glBufferData(
+            GL_ARRAY_BUFFER,
+            renderData->model->getLenArrPoints() * sizeof(float),
+            renderData->model->getPoints(),
+            GL_STATIC_DRAW);
 
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderData->EBO);
+        glBufferData(
+            GL_ELEMENT_ARRAY_BUFFER,
+            renderData->model->getLenIndices() * sizeof(unsigned int),
+            renderData->model->getIndices(),
+            GL_STATIC_DRAW);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+            reinterpret_cast<void*>(0));
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+            reinterpret_cast<void*>(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+            reinterpret_cast<void*>(6 * sizeof(float)));
+        glEnableVertexAttribArray(2);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+
+        obj->transform = new Transform(transform);
+
+        obj->collider = new Collider{Sphere{
+            Vec3(0.0),
+            1.0f,
+        }};
+        return obj;
+    };
+
+    Object *spheres[3] = {
+        getSphereObj(Transform(Vec3(-4, 0, 2.0), Vec3(1.0), 0, Vec3(1))),
+        getSphereObj(Transform(Vec3(0, 0, 2.0), Vec3(1.0), 0, Vec3(1))),
+        getSphereObj(Transform(Vec3(4, 0, 2.0), Vec3(1.0), 0, Vec3(1))),
+    };
+    AddObject(spheres[0]);
+    AddObject(spheres[1]);
+    AddObject(spheres[2]);
+
+    auto aabb = new Object();
+    aabb->renderData = new RenderData();
+    auto renderData = aabb->renderData;
+    renderData->model = cubeModel;
+    renderData->material = material;
     glGenVertexArrays(1, &renderData->VAO);
     glGenBuffers(1, &renderData->VBO);
     glGenBuffers(1, &renderData->EBO);
-    // bind the Vertex Array Object first,
-    // then bind and set vertex buffer(s),
-    // and then configure vertex attributes(s).
 
     glBindVertexArray(renderData->VAO);
 
@@ -222,33 +262,33 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         renderData->model->getIndices(),
         GL_STATIC_DRAW);
 
-
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(0));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+        reinterpret_cast<void*>(0));
     glEnableVertexAttribArray(0);
-    // normal attribute
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
         reinterpret_cast<void*>(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
-    // texture coordinates
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-        reinterpret_cast<void*>(6    * sizeof(float)));
+        reinterpret_cast<void*>(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-    // note that this is allowed, the call to glVertexAttribPointer registered VBO as
-    // the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    // remember: do NOT unbind the EBO while a VAO is active as
-    // the bound element buffer object IS stored in the VAO; keep the EBO bound.
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO,
-    // but this rarely happens. Modifying other VAOs requires a call to glBindVertexArray anyways
-    // so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     glBindVertexArray(0);
 
-    AddObject(testObj);
+    aabb->transform = new Transform(Vec3(-4, 0, -3), Vec3(1.0), 0, Vec3(1));
+    aabb->collider = new Collider{AABB {
+        Vec3{-0.5, -0.5, -0.5},
+        Vec3{0.5, 0.5, 0.5},
+    }};
+    AddObject(aabb);
+
+    auto sphere = getSphereObj(Transform(Vec3(0, 0, -3), Vec3(1.0), 0, Vec3(1)));
+    AddObject(sphere);
+
+    auto mesh = getSphereObj(Transform(Vec3(4.0, 0, -3), Vec3(1.0), 0, Vec3(1)));
+    mesh->collider = new Collider{sphereModel};
+    AddObject(mesh);
+
     glEnable(GL_DEPTH_TEST);
 
     float lastFpsShowedTime = 0.f;
@@ -276,14 +316,21 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         processInput(m_Window);
         m_Camera.Update(&m_Input, deltaTime);
 
-        if (!testObj->collider->Collide(*testObj->transform, secondObj->collider, *secondObj->transform)) {
-            Logger::Info("No collision :(");
-            Logger::Info(
-                "(%f, %f, %f)",
-                testObj->transform->GetTranslation().x,
-                testObj->transform->GetTranslation().y,
-                testObj->transform->GetTranslation().z);
-            testObj->transform->Translate(Vec3(0.f, 0.f, -0.001f));
+        if (!spheres[0]->collider->Collide(
+                *spheres[0]->transform,
+                aabb->collider, *aabb->transform)) {
+            spheres[0]->transform->Translate(Vec3(0.f, 0.f, -0.001f));
+        }
+        if (!spheres[1]->collider->Collide(
+                *spheres[1]->transform,
+                sphere->collider, *sphere->transform)) {
+            spheres[1]->transform->Translate(Vec3(0.f, 0.f, -0.001f));
+        }
+
+        if (!spheres[2]->collider->Collide(
+                *spheres[2]->transform,
+                mesh->collider, *mesh->transform)) {
+            spheres[2]->transform->Translate(Vec3(0.f, 0.f, -0.001f));
         }
 
         while (static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime)) == lastRenderedFrame) {
@@ -333,8 +380,6 @@ void Engine::Render(int scr_width, int scr_height) {
         auto model = data->model;
 
         float timeValue = glfwGetTime();
-
-        /* transform->Rotate(glm::radians(0.1f), glm::radians(0.1f), glm::radians(0.1f)); */
 
         ShaderProgram shader = model->shader;
         // draw our first triangle

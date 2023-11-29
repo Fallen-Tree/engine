@@ -1,5 +1,8 @@
 #include "geometry_primitives.hpp"
+#include "logger.hpp"
 #include <glm/gtx/norm.hpp>
+#include <glm/gtx/string_cast.hpp>
+#include <glm/glm.hpp>
 
 Plane::Plane(Triangle triangle) {
     Plane(triangle.normal, triangle.a);
@@ -109,7 +112,7 @@ float Triangle::Distance2(Vec3 point) {
 }
 
 Triangle Triangle::Transformed(Transform transform) {
-    auto mat = transform.GetTransformMatrix();
+    auto mat = glm::transpose(transform.GetTransformMatrix());
     auto mul = [](Vec3 v, Mat4 mat) {
         Vec4 res = Vec4(v, 1) * mat;
         return Vec3(res.x / res.w, res.y / res.w, res.z / res.w);
@@ -118,7 +121,7 @@ Triangle Triangle::Transformed(Transform transform) {
 }
 
 Sphere Sphere::Transformed(Transform transform) {
-    auto mat = transform.GetTransformMatrix();
+    auto mat = glm::transpose(transform.GetTransformMatrix());
     auto mul = [](Vec3 v, Mat4 mat) {
         Vec4 res = Vec4(v, 1) * mat;
         return Vec3(res.x / res.w, res.y / res.w, res.z / res.w);

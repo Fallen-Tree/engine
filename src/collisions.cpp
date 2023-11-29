@@ -4,6 +4,7 @@
 #include "collisions.hpp"
 #include <glm/common.hpp>
 #include <glm/gtx/norm.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 bool CollidePrimitive(AABB, Plane);
 bool CollidePrimitive(Plane p, AABB a) {
@@ -72,8 +73,7 @@ bool CollidePrimitive(AABB aabb, Triangle tri) {
 
     // a20 - a22
     for (int i = 0; i < 3; i++) {
-        float r = length.x * glm::abs(edges[i].y) + length.z * glm::abs(edges[i].y);
-        float p1 = -verts[(2 + i) % 3].x * edges[i].y + verts[(2 + i) % 3].y * edges[i].x;
+        float r = length.x * glm::abs(edges[i].y) + length.z * glm::abs(edges[i].y); float p1 = -verts[(2 + i) % 3].x * edges[i].y + verts[(2 + i) % 3].y * edges[i].x;
         float p2 = -verts[(3 + i) % 3].x * edges[i].y + verts[(3 + i) % 3].y * edges[i].x;
         if (glm::max(p1, p2) < -r || glm::min(p1, p2) > r) {
             // Separating axis found
@@ -198,7 +198,7 @@ bool CollidePrimitive(Triangle t1, Triangle t2) {
 template<typename T>
 bool CollideModelAt(T t, Model *model, Transform transform) {
     // WARNING: This makes assumptions about data layout
-    Mat4 modelMat = transform.GetTransformMatrix();
+    Mat4 modelMat = glm::transpose(transform.GetTransformMatrix());
     int stride = 8;
     auto loadPos = [=](int i) {
         int id = model->getIndices()[i];
@@ -221,7 +221,7 @@ bool CollideModelAt(T t, Model *model, Transform transform) {
 
 bool CollideModels(Model *model, Transform transform, Model *model2, Transform transform2) {
     // WARNING: This makes assumptions about data layout
-    Mat4 modelMat = transform.GetTransformMatrix();
+    Mat4 modelMat = glm::transpose(transform.GetTransformMatrix());
     int stride = 8;
     auto loadPos = [=](int i) {
         int id = model->getIndices()[i];

@@ -6,7 +6,7 @@
 
 class Collider {
  public:
-    std::variant<AABB, Sphere> shape;
+    std::variant<AABB, Sphere, Model *> shape;
 
     bool Collide(Transform self, Collider *other, Transform otherTransform);
 };

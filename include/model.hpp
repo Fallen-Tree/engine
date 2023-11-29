@@ -10,6 +10,8 @@ class Model {
     std::vector<unsigned int> indices;
 
  public:
+    static Model *GetSphere();
+
     // some variables
     ShaderProgram shader = ShaderProgram();
 
@@ -17,7 +19,6 @@ class Model {
     explicit Model(const std::vector<float>& Points, const std::vector<unsigned int>& Indices);
 
     explicit Model(const std::vector<float>& Points, int vectorSize);
-
 
     // getter and setter for working with class.
     float* getPoints();
