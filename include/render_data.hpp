@@ -9,3 +9,5 @@ struct RenderData {
     Material material;
     unsigned int VAO, VBO, EBO;
 };
+
+void bindRenderData(RenderData*);
