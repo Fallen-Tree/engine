@@ -1,6 +1,4 @@
-#pragma once
-
-#include "math_types.hpp"
+#include "geometry_primitives.hpp"
 #include <glm/gtx/norm.hpp>
 
 Plane::Plane(Triangle triangle) {
@@ -41,6 +39,13 @@ float AABB::Distance2(Vec3 point) {
         res += (point.z - max.z) * (point.z - max.z);
     }
     return res;
+}
+
+AABB AABB::Transformed(Transform transform) {
+    return AABB {
+        min + transform.GetTranslation(),
+        max + transform.GetTranslation()
+    };
 }
 
 Triangle::Triangle(Vec3 a, Vec3 b, Vec3 c) {
@@ -101,4 +106,22 @@ Vec3 Triangle::ClosestPoint(Vec3 point) {
 
 float Triangle::Distance2(Vec3 point) {
     return glm::length2(point - ClosestPoint(point));
+}
+
+Triangle Triangle::Transformed(Transform transform) {
+    auto mat = transform.GetTransformMatrix();
+    auto mul = [](Vec3 v, Mat4 mat) {
+        Vec4 res = Vec4(v, 1) * mat;
+        return Vec3(res.x / res.w, res.y / res.w, res.z / res.w);
+    };
+    return Triangle(mul(a, mat), mul(b, mat), mul(c, mat));
+}
+
+Sphere Sphere::Transformed(Transform transform) {
+    auto mat = transform.GetTransformMatrix();
+    auto mul = [](Vec3 v, Mat4 mat) {
+        Vec4 res = Vec4(v, 1) * mat;
+        return Vec3(res.x / res.w, res.y / res.w, res.z / res.w);
+    };
+    return Sphere{mul(center, mat), radius};
 }

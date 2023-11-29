@@ -1,4 +1,4 @@
-#include <typeinfo>
+#include <variant>
 #include "logger.hpp"
 #include "math_types.hpp"
 #include "collisions.hpp"
@@ -6,7 +6,9 @@
 #include <glm/gtx/norm.hpp>
 
 bool CollidePrimitive(AABB, Plane);
-bool CollidePrimitive(Plane p, AABB a) { return CollidePrimitive(a, p); }
+bool CollidePrimitive(Plane p, AABB a) {
+    return CollidePrimitive(a, p);
+}
 bool CollidePrimitive(AABB aabb, Plane plane) {
     Vec3 center = (aabb.min + aabb.max) / 2.0f;
     Vec3 extents = (aabb.max - aabb.min) / 2.0f;
@@ -192,18 +194,13 @@ bool CollidePrimitive(Triangle t1, Triangle t2) {
         || (glm::max(a1, a2) > a4 && a4 > glm::min(a1, a2));
 }
 
-template<typename T>
-bool CollidePrimitive(Model *model, T t, Transform transform) {
-    return CollidePrimitive(t, model, transform);
-}
-
 // There should be an overload CollidePrimitive(T, Triangle);
 template<typename T>
-bool CollidePrimitive(T t, Model *model, Transform transform) {
+bool CollideModelAt(T t, Model *model, Transform transform) {
     // WARNING: This makes assumptions about data layout
     Mat3 modelMat = transform.GetTransformMatrix();
     int stride = 8;
-    auto loadPos = [=](Model *model, int i) {
+    auto loadPos = [=](int i) {
         int id = model->getIndices()[i];
         return Vec3 {
             model->getPoints()[id * stride],
@@ -212,10 +209,7 @@ bool CollidePrimitive(T t, Model *model, Transform transform) {
         } * modelMat;
     };
     for (int i = 0; i < model->getLenIndices(); i+=3) {
-        Triangle tri = Triangle(
-            loadPos(model, i),
-            loadPos(model, i + 1),
-            loadPos(model, i + 2));
+        Triangle tri = Triangle(loadPos(i), loadPos(i + 1), loadPos(i + 2));
         if (CollidePrimitive(t, tri)) {
             return true;
         }
@@ -223,80 +217,16 @@ bool CollidePrimitive(T t, Model *model, Transform transform) {
     return false;
 }
 
-bool Collider::Collide(AABB lhs, Transform lhsTransform, AABB rhs, Transform rhsTransform) {
-    auto lhsGlobal = AABB {
-        lhs.min + lhsTransform.GetTranslation(),
-        lhs.max + lhsTransform.GetTranslation(),
-    };
-    auto rhsGlobal = AABB {
-        rhs.min + rhsTransform.GetTranslation(),
-        rhs.max + rhsTransform.GetTranslation(),
-    };
-
-    return CollidePrimitive(lhsGlobal, rhsGlobal);
+template<typename T>
+bool CollideModelAt(Model *model, Transform transform, T t) {
+    return CollidePrimitive(t, model, transform);
 }
 
-bool Collider::Collide(Sphere lhs, Transform lhsTransform, AABB rhs, Transform rhsTransform) {
-    return Collide(rhs, rhsTransform, lhs, lhsTransform);
-}
-
-bool Collider::Collide(AABB lhs, Transform lhsTransform, Sphere rhs, Transform rhsTransform) {
-    auto lhsGlobal = AABB {
-        lhs.min + lhsTransform.GetTranslation(),
-        lhs.max + lhsTransform.GetTranslation(),
-    };
-    auto rhsGlobal = Sphere {
-        rhs.center + rhsTransform.GetTranslation(),
-        rhs.radius,
-    };
-
-    return CollidePrimitive(lhsGlobal, rhsGlobal);
-}
-
-bool Collider::Collide(Sphere lhs, Transform lhsTransform, Sphere rhs, Transform rhsTransform) {
-    auto lhsGlobal = Sphere {
-        lhs.center + lhsTransform.GetTranslation(),
-        lhs.radius,
-    };
-    auto rhsGlobal = Sphere {
-        rhs.center + rhsTransform.GetTranslation(),
-        rhs.radius,
-    };
-
-    return CollidePrimitive(lhsGlobal, rhsGlobal);
-}
-
-bool Collider::Collide(AABB lhs, Transform lhsTransform, Model *rhs, Transform rhsTransform) {
-    return Collide(rhs, rhsTransform, lhs, lhsTransform);
-}
-
-bool Collider::Collide(Model *lhs, Transform lhsTransform, AABB rhs, Transform rhsTransform) {
-    auto rhsGlobal = AABB {
-        rhs.min + rhsTransform.GetTranslation(),
-        rhs.max + rhsTransform.GetTranslation(),
-    };
-
-    return CollidePrimitive(rhsGlobal, lhs, lhsTransform);
-}
-
-bool Collider::Collide(Sphere lhs, Transform lhsTransform, Model *rhs, Transform rhsTransform) {
-    return Collide(rhs, rhsTransform, lhs, lhsTransform);
-}
-
-bool Collider::Collide(Model *lhs, Transform lhsTransform, Sphere rhs, Transform rhsTransform) {
-    auto rhsGlobal = Sphere {
-        rhs.center + rhsTransform.GetTranslation(),
-        rhs.radius,
-    };
-
-    return CollidePrimitive(rhsGlobal, lhs, lhsTransform);
-}
-
-bool Collider::Collide(Model *lhs, Transform lhsTransform, Model *rhs, Transform rhsTransform) {
+bool CollideModels(Model *model, Transform transform, Model *model2, Transform transform2) {
     // WARNING: This makes assumptions about data layout
-    Mat3 modelMat = lhsTransform.GetTransformMatrix();
+    Mat3 modelMat = transform.GetTransformMatrix();
     int stride = 8;
-    auto loadPos = [=](Model *model, int i) {
+    auto loadPos = [=](int i) {
         int id = model->getIndices()[i];
         return Vec3 {
             model->getPoints()[id * stride],
@@ -304,23 +234,39 @@ bool Collider::Collide(Model *lhs, Transform lhsTransform, Model *rhs, Transform
             model->getPoints()[id * stride + 2],
         } * modelMat;
     };
-    for (int i = 0; i < lhs->getLenIndices(); i+=3) {
-        Triangle tri = Triangle(
-            loadPos(lhs, i),
-            loadPos(lhs, i + 1),
-            loadPos(lhs, i + 2));
-        if (CollidePrimitive(tri, rhs, rhsTransform)) {
+    for (int i = 0; i < model->getLenIndices(); i+=3) {
+        Triangle tri = Triangle(loadPos(i), loadPos(i + 1), loadPos(i + 2));
+        if (CollideModelAt(tri, model2, transform2)) {
             return true;
         }
     }
     return false;
 }
 
+template<typename T, typename U>
+bool CollideShifted(T lhs, Transform lhsTransform, U rhs, Transform rhsTransform) {
+    return CollidePrimitive(lhs.Transformed(lhsTransform), rhs.Transformed(rhsTransform));
+}
+
+template<typename T>
+bool CollideShifted(T lhs, Transform lhsTransform, Model *rhs, Transform rhsTransform) {
+    return CollideModelAt(lhs.Transformed(lhsTransform), rhs, rhsTransform);
+}
+
+template<typename U>
+bool CollideShifted(Model *lhs, Transform lhsTransform, U rhs, Transform rhsTransform) {
+    return CollideModelAt(lhs, lhsTransform, rhs.Transformed(rhsTransform));
+}
+
+bool CollideShifted(Model *lhs, Transform lhsTransform, Model *rhs, Transform rhsTransform) {
+    return CollideModels(lhs, lhsTransform, rhs, rhsTransform);
+}
+
 bool Collider::Collide(Transform self, Collider *other, Transform otherTransform) {
     return std::visit([=](auto var1) {
             return std::visit(
                 [=](auto var2) {
-                    return this->Collide(var1, self, var2, otherTransform);
+                    return CollideShifted(var1, self, var2, otherTransform);
                 }, other->shape);
         }, shape);
 }

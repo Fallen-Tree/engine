@@ -22,7 +22,7 @@ add_library(ENGINE STATIC
             src/texture/texture.cpp
             src/logging/logger.cpp
             src/collisions.cpp
-            src/math_types.cpp
+            src/geometry_primitives.cpp
 )
 
 add_subdirectory(thirdparty/glfw)
