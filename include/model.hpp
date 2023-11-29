@@ -14,7 +14,7 @@ class Model {
  public:
     // some variables
     unsigned int VAO, VBO, EBO;
-    ShaderProgram shader;
+    ShaderProgram* shader = nullptr;
 
     // constructor of class.
     explicit Model(const std::vector<float>& Points, const std::vector<unsigned int>& Indices);

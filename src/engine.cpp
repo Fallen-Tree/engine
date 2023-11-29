@@ -14,31 +14,29 @@
 #include "texture.hpp"
 #include "stb_image.h"
 #include "logger.hpp"
+#include "animation.hpp"
 
-// should send to all constants
-const int maxValidKey = 350;
-const float fpsLimit = 500;
-const float fpsShowingInterval = 1.f;
+int viewportWidth, viewportHeight;
+// Left bottom corner coordinates of viewport
+int viewportStartX, viewportStartY;
+// For resoliton and initial window size. 1600x900 for example.
+int scrWidth, scrHeight;
 
-Texture texture;
+
 static Engine *s_Engine = nullptr;
-EnvLight envL;
+std::vector<PointLight> pointLights = std::vector<PointLight>(3);
+DirLight dirLight;
+std::vector<SpotLight> spotLight = std::vector<SpotLight>(1);
 
 static Input *s_Input = nullptr;
 
-
-Engine::Engine() {
-    m_objects = std::vector<Object *>();
-    m_Camera = Camera(glm::vec3(0.0f, 0.0f, 3.0f));
-    s_Engine = this;
-}
-
-Engine::~Engine() {
-    std::cout << "Goodbye";
-}
-
-void Engine::AddObject(Object *a) {
-    m_objects.push_back(a);
+Camera* Engine::SwitchCamera(Camera* newCamera) {
+    if (!newCamera) {
+        Logger::Error("ENGINE::ARGUMENT_IN_SWITCHCAMERA_NULL!\n");
+    }
+    Camera* toReturn = camera;
+    camera = newCamera;
+    return toReturn;
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -53,9 +51,11 @@ const char *benchSource = "/bench.obj";
 const char *vertexShaderSource = "/vertex/standart.vshader";
 const char *fragmentShaderSource = "/fragment/standart.fshader";
 
-void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
-    // glfw: initialize and configure
-    // ------------------------------
+Engine::Engine(int SCR_WIDTH, int SCR_HEIGHT) {
+    m_Objects = std::vector<Object *>();
+    camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
+    s_Engine = this;
+        // glfw: initialize and configure
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -78,9 +78,6 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     glfwSetScrollCallback(m_Window, scroll_callback);
     glfwSetKeyCallback(m_Window, key_callback);
 
-    m_Input.SetWindow(m_Window);
-    m_Input.SetMode(MODE, VALUE);
-    m_Input.InitMouse();
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -88,101 +85,65 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return;
     }
+}
+
+Engine::~Engine() {
+    // optional: de-allocate all resources once they've outlived their purpose:
+    // ------------------------------------------------------------------------
+    for (int i = 0; i < m_Objects.size(); i++) {
+        if (m_Objects[i] == nullptr || m_Objects[i]->renderData == nullptr)
+            continue;
+        glDeleteVertexArrays(1, &m_Objects[i]->renderData->VAO);
+        glDeleteBuffers(1, &m_Objects[i]->renderData->VBO);
+        glDeleteBuffers(1, &m_Objects[i]->renderData->EBO);
+    }
+    std::cout << "Goodbye";
+}
+
+void Engine::AddObject(Object *a) {
+    m_Objects.push_back(a);
+}
+
+void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
+    scrWidth = SCR_WIDTH;
+    scrHeight = SCR_HEIGHT;
+    viewportWidth = SCR_WIDTH;
+    viewportHeight = SCR_HEIGHT;
+    viewportStartX = 0;
+    viewportStartY = 0;
+
+    m_Input.SetWindow(m_Window);
+    m_Input.SetMode(MODE, VALUE);
+    m_Input.InitMouse();
 
 
-    // build and compile our shader program ------------------------------------
-    Shader vShader = Shader(VertexShader, vertexShaderSource);
-    Shader fShader = Shader(FragmentShader, fragmentShaderSource);
+    pointLights[0].ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+    pointLights[0].diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
+    pointLights[0].specular = glm::vec3(1.0f, 1.0f, 1.0f);
+    pointLights[0].position = glm::vec3(-0.2, -0.5, -1.2);
+    pointLights[0].constDistCoeff = 1;
+    pointLights[0].linearDistCoeff = 0.09f;
+    pointLights[0].quadraticDistCoeff = 0.032f;
 
-    ShaderProgram shaderProgram = ShaderProgram(vShader, fShader);
+    pointLights[1] = pointLights[0];
+    pointLights[1].position = glm::vec3(2.3f, -3.3f, -4.0f);
+    pointLights[2] = pointLights[0];
+    pointLights[2].position = glm::vec3(0.0f,  0.0f, -3.0f);
 
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
+    dirLight.ambient = glm::vec3(0.05f, 0.05f, 0.05f);
+    dirLight.diffuse = glm::vec3(0.4f, 0.4f, 0.4f);
+    dirLight.specular = glm::vec3(0.5f, 0.5f, 0.5f);
+    dirLight.direction = glm::vec3(-0.2f, -1.0f, -0.3f);
 
-    envL.m_Ambient = glm::vec3(0.3f, 0.3f, 0.3f);
-    envL.m_Diffuse = glm::vec3(0.8f, 0.8f, 0.8f);
-    envL.m_Specular = glm::vec3(1.0f, 1.0f, 1.0f);
-    envL.m_Position = glm::vec3(-0.2, 2.5, -1.2);
+    spotLight[0].ambient = glm::vec3(0.0f, 0.0f, 0.0f);
+    spotLight[0].diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
+    spotLight[0].specular = glm::vec3(1.0f, 1.0f, 1.0f);
+    spotLight[0].constDistCoeff = 1.0f;
+    spotLight[0].linearDistCoeff = 0.09f;
+    spotLight[0].quadraticDistCoeff = 0.032f;
+    spotLight[0].cutOff = glm::cos(glm::radians(12.5f));
+    spotLight[0].outerCutOff = glm::cos(glm::radians(15.0f));
 
-    // init a model
-    Model * cubeModel = Model::loadFromFile(cubeSource);
-    cubeModel->shader = shaderProgram;
-
-    // transformation stores information about angle, scale, rotate and tranlsation.
-    // Method makeTransform make mat4 transform(public var), after we send it to shaders.
-    ModelInstance * cubeInstance = new ModelInstance(cubeModel, glm::vec3(0.f, 0.f, -3.f),
-                                                                 glm::vec3(1.f, 1.f, 1.f),
-                                                                 glm::mat4(1.0));
-    Model * catModel = Model::loadFromFile(catSource);
-    catModel->shader = shaderProgram;
-    // transformation stores information about angle, scale, rotate and tranlsation.
-    // Method makeTransform make mat4 transform(public var), after we send it to shaders.
-    ModelInstance * catInstance = new ModelInstance(catModel, glm::vec3(0.f, 0.f, -3.f),
-                                                                 glm::vec3(0.1f, 0.1f, 0.1f),
-                                                                 glm::mat4(1.0));
-    catInstance->GetTransform()->Rotate(1.67f, glm::vec3(-1.f, 0.f, 0.f));
-
-    Model * benchModel = Model::loadFromFile(benchSource);
-    benchModel->shader = shaderProgram;
-    // transformation stores information about angle, scale, rotate and tranlsation.
-    // Method makeTransform make mat4 transform(public var), after we send it to shaders.
-    ModelInstance * benchInstance = new ModelInstance(benchModel, glm::vec3(0.f, 0.f, -3.f),
-                                                                 glm::vec3(0.2f, 0.2f, 0.2f),
-                                                                 glm::mat4(1.0));
-
-    ModelInstance * modelInstance = catInstance;
-
-    modelInstance->m_Mat.m_Shininess = 4.f;
-
-    glGenVertexArrays(1, &modelInstance->GetModel()->VAO);
-    glGenBuffers(1, &modelInstance->GetModel()->VBO);
-    glGenBuffers(1, &modelInstance->GetModel()->EBO);
-
-    // bind the Vertex Array Object first,
-    // then bind and set vertex buffer(s),
-    // and then configure vertex attributes(s).
-
-    glBindVertexArray(modelInstance->GetModel()->VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, modelInstance->GetModel()->VBO);
-    glBufferData(GL_ARRAY_BUFFER,
-        modelInstance->GetModel()->getLenArrPoints() * sizeof(float),
-        modelInstance->GetModel()->getPoints(), GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, modelInstance->GetModel()->EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-        modelInstance->GetModel()->getLenIndices() * sizeof(unsigned int),
-        modelInstance->GetModel()->getIndices(), GL_STATIC_DRAW);
-
-
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(0));
-    glEnableVertexAttribArray(0);
-    // normal attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-        reinterpret_cast<void*>(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    // texture coordinates
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-        reinterpret_cast<void*>(6    * sizeof(float)));
-    glEnableVertexAttribArray(2);
-
-    // note that this is allowed, the call to glVertexAttribPointer registered VBO as
-    // the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    // remember: do NOT unbind the EBO while a VAO is active as
-    // the bound element buffer object IS stored in the VAO; keep the EBO bound.
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO,
-    // but this rarely happens. Modifying other VAOs requires a call to glBindVertexArray anyways
-    // so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-    glBindVertexArray(0);
-
-    auto testObj = new Object();
-    testObj->m_modelInstance = modelInstance;
-    AddObject(testObj);
     glEnable(GL_DEPTH_TEST);
 
     // load and create a texture
@@ -193,7 +154,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     float lastFpsShowedTime = 0.f;
     int lastRenderedFrame = -1;
     int fpsFrames = 0;
-    const float frameTime = 1.f / fpsLimit;
+    const float frameTime = 1.f / FPS_LIMIT;
     float deltaTime = 0.0f;
     float lastTime = 0.0f;
 
@@ -204,7 +165,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         deltaTime = currentTime - lastTime;
         lastTime = currentTime;
 
-        if (currentTime - lastFpsShowedTime > fpsShowingInterval) {
+        if (currentTime - lastFpsShowedTime > FPS_SHOWING_INTERVAL) {
             Logger::Info("FPS: %d", static_cast<int>(fpsFrames / (currentTime - lastFpsShowedTime)));
             lastFpsShowedTime = currentTime;
             fpsFrames = 0;
@@ -213,7 +174,8 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         m_Input.Update();
         glfwPollEvents();
         processInput(m_Window);
-        m_Camera.Update(&m_Input, deltaTime);
+        camera->Update(&m_Input, deltaTime);
+        updateObjects(deltaTime);
 
         while (static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime)) == lastRenderedFrame) {
         }
@@ -223,76 +185,126 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         Render(SCR_WIDTH, SCR_HEIGHT);
     }
 
-    // optional: de-allocate all resources once they've outlived their purpose:
-    // ------------------------------------------------------------------------
-
-    glDeleteVertexArrays(1, &modelInstance->GetModel()->VAO);
-    glDeleteBuffers(1, &modelInstance->GetModel()->VBO);
-    glDeleteBuffers(1, &modelInstance->GetModel()->EBO);
-
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
     glfwTerminate();
     return;
 }
 
-void Engine::Render(int width, int height) {
+void Engine::updateObjects(float deltaTime) {
+    for (int i = 0; i < m_Objects.size(); i++) {
+        auto object = m_Objects[i];
+        if (object->animation) {
+            object->animation->applyAnimations(object->transform, deltaTime);
+        }
+    }
+}
+
+void Engine::Render(int scr_width, int scr_height) {
     // render
     // ------
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
+    // Coloring all window (black)
+    glClearColor(0.f, 0.f, 0.f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // bind textures on corresponding texture units
-    texture.bind();
-    for (uint64_t i = 0; i < m_objects.size(); i++) {
-        auto object = m_objects[i];
-        if (!object->m_modelInstance)
+    // Coloring only viewport (sky)
+    glEnable(GL_SCISSOR_TEST);
+    glScissor(viewportStartX, viewportStartY, viewportWidth, viewportHeight);
+    glClearColor(0.5f, 0.8f, 0.9f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_SCISSOR_TEST);
+
+    for (uint64_t i = 0; i < m_Objects.size(); i++) {
+        auto object = m_Objects[i];
+        if (!object->renderData || !object->transform)
             continue;
-        auto instance = object->m_modelInstance;
 
-        auto model = instance->GetModel();
+        auto data = object->renderData;
+        auto transform = object->transform;
 
-        float timeValue = glfwGetTime();  // time value in seconds
-        float rotationSpeed = 0.002f;
-        float moveSpeed = 0.f;
-        instance->GetTransform()->Rotate(rotationSpeed, glm::vec3(0.f, 0.f, 1.f));
+        auto model = data->model;
 
-        ShaderProgram shader = model->shader;
+        float timeValue = glfwGetTime();
+
+        ShaderProgram* shader = model->shader;
         // draw our first triangle
-        shader.Use();
+        shader->Use();
 
-        glm::mat4 view = m_Camera.GetViewMatrix();
-        glm::vec3 viewPos = m_Camera.GetPosition();
+        glm::mat4 view = camera->GetViewMatrix();
+        glm::vec3 viewPos = camera->GetPosition();
 
         glm::mat4 projection = glm::perspective(
-                                        glm::radians(m_Camera.GetZoom()),
-                                        static_cast<float>(width) / static_cast<float>(height),
+                                        glm::radians(camera->GetZoom()),
+                                        static_cast<float>(scr_width) / static_cast<float>(scr_height),
                                         0.1f, 100.0f);
 
-        instance->GetTransform()->Translate(glm::vec3(0.f, 0.f, -1.f) * moveSpeed);
-
-        // send matrix transform to shader
-        shader.SetMat4("model", instance->GetTransform()->GetTransformMatrix());
-        shader.SetMat4("view", view);
-        shader.SetVec3("viewPos", viewPos);
+      // send matrix transform to shader
+        shader->SetMat4("model", transform->GetTransformMatrix());
+        shader->SetMat4("view", view);
+        shader->SetVec3("viewPos", viewPos);
 
         // send material to shaders
-        shader.SetVar("material.shininess", instance->m_Mat.m_Shininess);
+        shader->SetFloat("material.shininess", data->material.shininess);
         // send light to shaders
-        shader.SetVec3("light.position", envL.m_Position);
-        shader.SetVec3("light.ambient", envL.m_Ambient);
-        shader.SetVec3("light.diffuse", envL.m_Diffuse);
-        shader.SetVec3("light.specular", envL.m_Specular);
+        // pointLight
+        char str[100];
+        for (int i = 0; i < pointLights.size(); i++) {
+            snprintf(str, sizeof(str), "pointLights[%d].position", i);
+            shader->SetVec3(str, pointLights[i].position);
+            snprintf(str, sizeof(str), "pointLights[%d].ambient", i);
+            shader->SetVec3(str, pointLights[i].ambient);
+            snprintf(str, sizeof(str), "pointLights[%d].diffuse", i);
+            shader->SetVec3(str, pointLights[i].diffuse);
+            snprintf(str, sizeof(str), "pointLights[%d].specular", i);
+            shader->SetVec3(str, pointLights[i].specular);
+            snprintf(str, sizeof(str), "pointLights[%d].linearDistCoeff", i);
+            shader->SetFloat(str, pointLights[i].linearDistCoeff);
+            snprintf(str, sizeof(str), "pointLights[%d].quadraticDistCoeff", i);
+            shader->SetFloat(str, pointLights[i].quadraticDistCoeff);
+            snprintf(str, sizeof(str), "pointLights[%d].constDistCoeff", i);
+            shader->SetFloat(str, pointLights[i].constDistCoeff);
+        }
+        shader->SetInt("lenArrPointL", pointLights.size());
+        // directionLight
+        shader->SetVec3("dirLight.ambient", dirLight.ambient);
+        shader->SetVec3("dirLight.specular", dirLight.specular);
+        shader->SetVec3("dirLight.direction", dirLight.direction);
+        shader->SetVec3("dirLight.diffuse", dirLight.diffuse);
+        // spotLight
+        for (int i = 0; i < spotLight.size(); i++) {
+            snprintf(str, sizeof(str), "spotLight[%d].diffuse", i);
+            shader->SetVec3(str, spotLight[i].diffuse);
+            snprintf(str, sizeof(str), "spotLight[%d].direction", i);
+            shader->SetVec3(str, camera->GetFront());
+            snprintf(str, sizeof(str), "spotLight[%d].ambient", i);
+            shader->SetVec3(str, spotLight[i].ambient);
+            snprintf(str, sizeof(str), "spotLight[%d].position", i);
+            shader->SetVec3(str, camera->GetPosition());
+            snprintf(str, sizeof(str), "spotLight[%d].specular", i);
+            shader->SetVec3(str, spotLight[i].specular);
+            snprintf(str, sizeof(str), "spotLight[%d].cutOff", i);
+            shader->SetFloat(str, spotLight[i].cutOff);
+            snprintf(str, sizeof(str), "spotLight[%d].linearDistCoeff", i);
+            shader->SetFloat(str, spotLight[i].linearDistCoeff);
+            snprintf(str, sizeof(str), "spotLight[%d].outerCutOff", i);
+            shader->SetFloat(str, spotLight[i].outerCutOff);
+            snprintf(str, sizeof(str), "spotLight[%d].constDistCoeff", i);
+            shader->SetFloat(str, spotLight[i].constDistCoeff);
+            snprintf(str, sizeof(str), "spotLight[%d].quadraticDistCoeff", i);
+            shader->SetFloat(str, spotLight[i].quadraticDistCoeff);
+        }
+        shader->SetInt("lenArrSpotL", spotLight.size());
         // send inf about texture
-        glUniform1i(shader.UniformLocation("material.duffuse"), 0);
-        glUniform1i(shader.UniformLocation("material.specular"), 1);
-
+        data->material.texture.bind();
+        shader->SetInt("material.duffuse", 0);
+        shader->SetInt("material.specular", 1);
         // Note: currently we set the projection matrix each frame,
         // but since the projection matrix rarely changes it's
         // often best practice to set it outside the main loop only once.
-        shader.SetMat4("projection", projection);
+        shader->SetMat4("projection", projection);
 
-        glBindVertexArray(model->VAO);
+        glBindVertexArray(data->VAO);
 
         glDrawElements(GL_TRIANGLES, model->getLenIndices(), GL_UNSIGNED_INT, 0);
     }
@@ -308,7 +320,7 @@ void processInput(GLFWwindow *window) {
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (key > 0 && key < maxValidKey && action == GLFW_PRESS) {
+    if (key > 0 && key < MAX_VALID_KEY && action == GLFW_PRESS) {
         s_Engine->m_Input.ButtonPress(key);
     }
 }
@@ -318,9 +330,28 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
-    glViewport(0, 0, width, height);
-}
 
+
+    // width and height have to be the same resolution as scr_width and scr_height
+    viewportWidth = width;
+    viewportHeight = height;
+
+    float current = static_cast<float>(width) / static_cast<float>(height);
+    float expected = static_cast<float>(scrWidth) / static_cast<float>(scrHeight);
+
+    if (current > expected) {
+        viewportWidth = scrWidth * height / scrHeight;
+    } else {
+        viewportHeight = scrHeight * width / scrWidth;
+    }
+
+    Logger::Info("Window resized, current viewport width and height: %d, %d.", viewportWidth, viewportHeight);
+
+    viewportStartX = (width - viewportWidth) / 2;
+    viewportStartY = (height - viewportHeight) / 2;
+
+    glViewport(viewportStartX, viewportStartY, viewportWidth, viewportHeight);
+}
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
 // ----------------------------------------------------------------------
