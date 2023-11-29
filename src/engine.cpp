@@ -84,7 +84,7 @@ Engine::~Engine() {
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
     for (int i = 0; i < m_Objects.size(); i++) {
-        if (m_Objects[i] == nullptr)
+        if (m_Objects[i] == nullptr || m_Objects[i]->renderData == nullptr)
             continue;
         glDeleteVertexArrays(1, &m_Objects[i]->renderData->VAO);
         glDeleteBuffers(1, &m_Objects[i]->renderData->VBO);
