@@ -363,7 +363,6 @@ void Engine::Render(int scr_width, int scr_height) {
         transform->Rotate(glm::radians(0.1f), glm::radians(0.1f), glm::radians(0.1f));
 
         ShaderProgram * shader = model->shader;
-        ShaderProgram shader = model->shader;
         // draw our first triangle
         shader->Use();
 
