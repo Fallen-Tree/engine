@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "collisions.hpp"
+#include "collider.hpp"
 #include "render_data.hpp"
 #include "transform.hpp"
 #include "camera.hpp"

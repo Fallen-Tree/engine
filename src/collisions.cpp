@@ -6,7 +6,6 @@
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-bool CollidePrimitive(AABB, Plane);
 bool CollidePrimitive(Plane p, AABB a) {
     return CollidePrimitive(a, p);
 }
@@ -28,7 +27,6 @@ bool CollidePrimitive(AABB lhs, AABB rhs) {
         lhs.max.z >= rhs.min.z && rhs.max.z >= lhs.min.z;
 }
 
-bool CollidePrimitive(AABB, Triangle);
 bool CollidePrimitive(Triangle t, AABB a) {
     return CollidePrimitive(a, t);
 }
@@ -102,7 +100,6 @@ bool CollidePrimitive(Sphere s1, Sphere s2) {
     return glm::length2(s1.center - s2.center) <= (s1.radius + s2.radius) * (s1.radius + s2.radius);
 }
 
-bool CollidePrimitive(Sphere, AABB);
 bool CollidePrimitive(AABB aabb, Sphere s) {
     return CollidePrimitive(s, aabb);
 }
@@ -218,6 +215,9 @@ bool CollideModelAt(T t, Model *model, Transform transform) {
     }
     return false;
 }
+template bool CollideModelAt<AABB>(AABB, Model *, Transform);
+template bool CollideModelAt<Sphere>(Sphere, Model *, Transform);
+template bool CollideModelAt<Triangle>(Triangle, Model *, Transform);
 
 bool CollideModels(Model *model, Transform transform, Model *model2, Transform transform2) {
     // WARNING: This makes assumptions about data layout
@@ -240,32 +240,4 @@ bool CollideModels(Model *model, Transform transform, Model *model2, Transform t
         }
     }
     return false;
-}
-
-template<typename T, typename U>
-bool CollideShifted(T lhs, Transform lhsTransform, U rhs, Transform rhsTransform) {
-    return CollidePrimitive(lhs.Transformed(lhsTransform), rhs.Transformed(rhsTransform));
-}
-
-template<typename T>
-bool CollideShifted(T lhs, Transform lhsTransform, Model *rhs, Transform rhsTransform) {
-    return CollideModelAt(lhs.Transformed(lhsTransform), rhs, rhsTransform);
-}
-
-template<typename U>
-bool CollideShifted(Model *lhs, Transform lhsTransform, U rhs, Transform rhsTransform) {
-    return CollideModelAt(rhs.Transformed(rhsTransform), lhs, lhsTransform);
-}
-
-bool CollideShifted(Model *lhs, Transform lhsTransform, Model *rhs, Transform rhsTransform) {
-    return CollideModels(lhs, lhsTransform, rhs, rhsTransform);
-}
-
-bool Collider::Collide(Transform self, Collider *other, Transform otherTransform) {
-    return std::visit([=](auto var1) {
-            return std::visit(
-                [=](auto var2) {
-                    return CollideShifted(var1, self, var2, otherTransform);
-                }, other->shape);
-        }, shape);
 }
