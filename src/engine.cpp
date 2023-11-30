@@ -10,6 +10,7 @@
 #include "light.hpp"
 #include "material.hpp"
 #include "input.hpp"
+#include "model.hpp"
 #include "texture.hpp"
 #include "stb_image.h"
 #include "logger.hpp"
@@ -48,7 +49,6 @@ Engine::Engine(int SCR_WIDTH, int SCR_HEIGHT) {
     camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
     s_Engine = this;
         // glfw: initialize and configure
-    // ------------------------------
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -96,8 +96,6 @@ Engine::~Engine() {
 void Engine::AddObject(Object *a) {
     m_Objects.push_back(a);
 }
-
-
 
 void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     scrWidth = SCR_WIDTH;
@@ -216,8 +214,6 @@ void Engine::Render(int scr_width, int scr_height) {
         auto model = data->model;
 
         float timeValue = glfwGetTime();
-
-        transform->Rotate(glm::radians(0.1f), glm::radians(0.1f), glm::radians(0.1f));
 
         ShaderProgram* shader = model->shader;
         // draw our first triangle
