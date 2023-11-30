@@ -11,6 +11,7 @@
 #include "light.hpp"
 #include "material.hpp"
 #include "input.hpp"
+#include "model.hpp"
 #include "texture.hpp"
 #include "stb_image.h"
 #include "logger.hpp"
@@ -50,7 +51,6 @@ Engine::Engine(int SCR_WIDTH, int SCR_HEIGHT) {
     camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
     s_Engine = this;
         // glfw: initialize and configure
-    // ------------------------------
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);

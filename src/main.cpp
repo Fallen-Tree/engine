@@ -3,6 +3,10 @@
 static int SCR_HEIGHT = 600;
 static int SCR_WIDTH = 800;
 
+const char *cubeSource = "/cube2.obj";
+const char *catSource = "/cat.obj";
+const char *benchSource = "/bench.obj";
+
 const char *vertexShaderSource = "/vertex/standart.vshader";
 const char *fragmentShaderSource = "/fragment/standart.fshader";
 
@@ -66,15 +70,36 @@ int main() {
     cubeModel->shader = shaderProgram;
     Model *sphereModel = Model::GetSphere();
     sphereModel->shader = shaderProgram;
+    Model * model = Model::loadFromFile(catSource);
+
+    auto obj = new Object();
+    obj->renderData = new RenderData();
+    obj->renderData->model = model;
+    obj->renderData->model->shader = shaderProgram;
+
+    obj->transform = new Transform(glm::vec3(0.f, -3.f, -8.f), glm::vec3(.1f, .1f, .1f), glm::mat4(1.0));
+    obj->transform->Rotate(1.67f, glm::vec3(-1.f, 0.f, 0.f));
+    auto render_data = obj->renderData;
+
+    bindRenderData(render_data);
+
+    auto imagesCat = std::vector<std::string>();
+    imagesCat.push_back("/Cat_diffuse.png");
+    imagesCat.push_back("/Cat_specular.png");
+    obj->renderData->material = {
+        4.f,
+        Texture(imagesCat),
+    };
+    engine.AddObject<>(obj);
 
     // Maybe this can be less clunky?
     // Perhaps variadic functions?
-    auto images = std::vector<std::string>();
-    images.push_back("/wall.png");
-    images.push_back("/wallspecular.png");
+    auto imagesCube = std::vector<std::string>();
+    imagesCube.push_back("/wall.png");
+    imagesCube.push_back("/wallspecular.png");
     Material material = {
         4.f,
-        Texture(images),
+        Texture(imagesCube),
     };
 
     auto getSphereObj = [=](Transform transform) {

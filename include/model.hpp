@@ -1,7 +1,7 @@
-#ifndef SRC_MODEL_MODEL_HPP_
-#define SRC_MODEL_MODEL_HPP_
+#pragma once
 
 #include <vector>
+// #include <fstream>
 #include "shaders.hpp"
 
 class Model {
@@ -9,10 +9,11 @@ class Model {
     std::vector<float> points;
     std::vector<unsigned int> indices;
 
+    static Model* loadFromObjFile(std::ifstream &objFile);
+
  public:
     static Model *GetSphere();
 
-    // some variables
     ShaderProgram* shader = nullptr;
 
     // constructor of class.
@@ -20,6 +21,7 @@ class Model {
 
     explicit Model(const std::vector<float>& Points, int vectorSize);
 
+    static Model* loadFromFile(const char* path);
     // getter and setter for working with class.
     float* getPoints();
 
@@ -40,4 +42,3 @@ class Model {
 
     int getLenArrPoints();
 };
-#endif  // SRC_MODEL_MODEL_HPP_

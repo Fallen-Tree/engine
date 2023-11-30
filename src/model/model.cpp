@@ -3,7 +3,11 @@
 #include <vector>
 #include <cassert>
 #include <algorithm>
-
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <fstream>
+#include <cstdarg>
 
 // constructor of class.
 Model::Model(const std::vector<float>& Points, const std::vector<unsigned int>& Indices) {
@@ -87,4 +91,3 @@ Model *Model::GetSphere() {
     }
     return new Model(data, 8);
 }
-

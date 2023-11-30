@@ -15,7 +15,8 @@ add_library(ENGINE STATIC
             src/engine.cpp
             src/animation/animation.cpp
             src/shaders/shaders.cpp
-            src/model/model.cpp 
+            src/model/model.cpp
+            src/model/modelLoader.cpp
             src/input/input.cpp
             src/texture/stb_image.cpp
             src/texture/texture.cpp
