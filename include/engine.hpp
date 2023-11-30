@@ -5,6 +5,7 @@
 #include "camera.hpp"
 #include "input.hpp"
 #include "animation.hpp"
+#include "light.hpp"
 
 struct GLFWwindow;
 
@@ -29,6 +30,11 @@ class Engine {
     Camera* SwitchCamera(Camera* newCamera);
     void Run(int, int);
     Input m_Input;
+
+    // Components
+    std::vector<PointLight> pointLights = std::vector<PointLight>();
+    DirLight dirLight;
+    std::vector<SpotLight> spotLights = std::vector<SpotLight>();
     Camera* camera;
 
  private:
