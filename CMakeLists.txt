@@ -22,7 +22,7 @@ add_library(ENGINE STATIC
             src/logging/logger.cpp
             src/geometry_primitives.cpp
             src/components/render_data.cpp
-            src/componentscollider.cpp
+            src/components/collider.cpp
             src/components/transform.cpp
             src/components/camera.cpp 
 )
