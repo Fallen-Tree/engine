@@ -22,16 +22,28 @@ class Shader {
 class ShaderProgram {
  private:
      unsigned int m_Program = 0;
+     unsigned int GetLoc(const char* name);
  public:
      int AttachShader(Shader shader);
      int Link();
+    //  ShaderProgram(const ShaderProgram& other) = default;
+    //  ShaderProgram(ShaderProgram&& other) = default;
+    //  ShaderProgram& operator=(const ShaderProgram& other) = default;
+    //  ShaderProgram& operator=(ShaderProgram&& other) = default;
      ShaderProgram();
      ShaderProgram(Shader vShader, Shader fShader);
      int Use();
      int UniformLocation(const char* mode);
 
-     void SetVar(const char* name, const float value);
+     void SetFloat(const char* name, const float value);
+     void SetInt(const char* name, const int value);
+     void SetVec2(const char* name, const glm::vec2 vec);
+     void SetVec2i(const char* name, const glm::ivec2 vec);
      void SetVec3(const char* name, const glm::vec3 vec);
+     void SetVec3i(const char* name, const glm::ivec3 vec);
+     void SetVec4(const char* name, const glm::vec4 vec);
+     void SetVec4i(const char* name, const glm::ivec4 vec);
+     void SetMat3(const char* name, const glm::mat3 mat);
      void SetMat4(const char* name, const glm::mat4 mat);
 
      ~ShaderProgram();

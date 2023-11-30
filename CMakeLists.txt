@@ -13,7 +13,8 @@ find_package(OpenGL REQUIRED)
 add_library(ENGINE STATIC 
             src/engine.cpp
             src/shaders/shaders.cpp
-            src/model/model.cpp 
+            src/model/model.cpp
+            src/model/modelLoader.cpp
             src/transform/transform.cpp
             src/camera/camera.cpp 
             src/input/input.cpp
@@ -21,6 +22,8 @@ add_library(ENGINE STATIC
             src/texture/texture.cpp
             src/logging/logger.cpp
             src/text/text.cpp
+            src/render_data/render_data.cpp
+            src/animation/animation.cpp
 )
 
 add_subdirectory(thirdparty/glfw)
