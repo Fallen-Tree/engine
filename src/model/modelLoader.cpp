@@ -13,7 +13,7 @@
 Model* Model::loadFromFile(const char* filePath) {
     std::filesystem::path fileExtension = ((std::filesystem::path) filePath).extension();
     if (fileExtension != ".obj") {
-        Logger::Error("MODEL::LOADER::INCORRECT::FILE::FORMAT::%s", fileExtension);
+        Logger::Error("MODEL::LOADER::INCORRECT::FILE::FORMAT::%s", fileExtension.c_str());
         return 0;
     }
     char finalPath[512];
@@ -120,9 +120,8 @@ Model* Model::loadFromObjFile(std::ifstream &objFile) {  // assuming objFile alr
                 modelIndices.push_back(faceIndices[i]);
                 modelIndices.push_back(faceIndices[i + 1]);
             }
-        } else if (key == "#") {
         } else {
-            Logger::Warn("MODEL::LOADER::INVALID::KEY::'%s'", key);
+
         }
     }
     objFile.close();
