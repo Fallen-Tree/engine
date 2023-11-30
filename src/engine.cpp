@@ -13,6 +13,7 @@
 #include "texture.hpp"
 #include "stb_image.h"
 #include "logger.hpp"
+#include "text.hpp"
 
 
 int viewportWidth, viewportHeight;
@@ -26,7 +27,10 @@ static Engine *s_Engine = nullptr;
 std::vector<PointLight> pointLights = std::vector<PointLight>(3);
 DirLight dirLight;
 std::vector<SpotLight> spotLight = std::vector<SpotLight>(1);
+Text* textArial;
+Text* textOcra;
 
+unsigned int fps = 0;
 static Input *s_Input = nullptr;
 
 Camera* Engine::SwitchCamera(Camera* newCamera) {
@@ -64,7 +68,8 @@ const char *fragmentShaderSource1 = "/fragment/green.fshader";
 const char *fragmentShaderSource2 = "/fragment/red.fshader";
 const char *fragmentShaderSource3 = "/fragment/blue.fshader";
 
-void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
+
+void Engine::Run() {
     scrWidth = SCR_WIDTH;
     scrHeight = SCR_HEIGHT;
     viewportWidth = SCR_WIDTH;
@@ -107,7 +112,6 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         return;
     }
 
-
     // build and compile our shader program ------------------------------------
     Shader vShader = Shader(VertexShader, vertexShaderSource);
     Shader fShader1 = Shader(FragmentShader, fragmentShaderSource1);
@@ -147,6 +151,8 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     spotLight[0].outerCutOff = glm::cos(glm::radians(15.0f));
 
 
+    textArial = new Text("arial.ttf", 20);
+    textOcra = new Text("OCRAEXT.TTF", 20);
 
     std::vector<GLfloat> cubeVertices {
           // positions          // normals           // texture coords
@@ -193,6 +199,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
     };
 
+
     // init a model
     Model * testModel = new Model(cubeVertices, 8);
     testModel->shader = shaderProgram;
@@ -204,7 +211,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // Maybe this can be less clunky?
     // Perhaps variadic functions?
     auto images = std::vector<std::string>();
-    images.push_back("/wall.png");
+    images.push_back("wall.png");
     images.push_back("/wallspecular.png");
     testObj->renderData->material = {
         4.f,
@@ -267,12 +274,15 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     AddObject(testObj);
     glEnable(GL_DEPTH_TEST);
 
-    float lastFpsShowedTime = 0.f;
+
+    // FPS variables
+    float lastFpsShowedTime = -2.f;
     int lastRenderedFrame = -1;
     int fpsFrames = 0;
     const float frameTime = 1.f / FPS_LIMIT;
     float deltaTime = 0.0f;
     float lastTime = 0.0f;
+
 
     // render loop
     // -----------
@@ -282,7 +292,8 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         lastTime = currentTime;
 
         if (currentTime - lastFpsShowedTime > FPS_SHOWING_INTERVAL) {
-            Logger::Info("FPS: %d", static_cast<int>(fpsFrames / (currentTime - lastFpsShowedTime)));
+            fps = static_cast<unsigned int>(fpsFrames / (currentTime - lastFpsShowedTime));
+            Logger::Info("%d", fps);
             lastFpsShowedTime = currentTime;
             fpsFrames = 0;
         }
@@ -340,8 +351,6 @@ void Engine::Render(int scr_width, int scr_height) {
 
         float timeValue = glfwGetTime();
 
-        transform->Rotate(glm::radians(0.1f), glm::radians(0.1f), glm::radians(0.1f));
-
         ShaderProgram shader = model->shader;
         // draw our first triangle
         shader.Use();
@@ -353,9 +362,6 @@ void Engine::Render(int scr_width, int scr_height) {
                                         glm::radians(camera->GetZoom()),
                                         static_cast<float>(scr_width) / static_cast<float>(scr_height),
                                         0.1f, 100.0f);
-
-
-        transform->Translate(glm::vec3(0.f, 0.f, -0.001f));
 
       // send matrix transform to shader
         shader.SetMat4("model", transform->GetTransformMatrix());
@@ -427,8 +433,17 @@ void Engine::Render(int scr_width, int scr_height) {
 
         glDrawElements(GL_TRIANGLES, model->getLenIndices(), GL_UNSIGNED_INT, 0);
     }
+
+    // Text rendering
+    char buf[10];
+    snprintf(buf, sizeof(buf), "Fps: %d", fps);
+    textOcra->RenderText(buf, 685.0f, 575.0f, 1.f, glm::vec3(0, 0, 0));
+    textArial->RenderText(buf, 10.0f, 10.0f, 1.f, glm::vec3(0, 0, 0));
+
     glfwSwapBuffers(m_Window);
 }
+
+
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------

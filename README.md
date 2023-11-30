@@ -17,3 +17,15 @@ To demonstrate its abilities we are going to create a game. First person view, e
 Player is a magician who travels between multiple locations(something like buildings, temples, towers, ruins, castles, dungeons).
 
 In each location there are monsters which can be killed and puzzles which can be solved using spells. After completing everything inside one location, the player gets a new spell or some upgrade (more damage or modification for spells he already knew) and gets teleported to another location.
+
+# Documentation
+
+### Text Rendering
+Text class object is storing one exact font information with exact one font size. This font size is used for preparing textures by Freefont library, so to use another font you have to completele update Object. Despite this you have opportunity to render different size text with one Text Object. For it we have scale parameter in RenderObject. But the farther the scale from 1.f the worse quality of letters because of scaling. 
+
+Probably later it will be stored as object component, but have to think better about it.
+
+To render text on the screen you need create Text object with font in .ttf format after the initialization of glfw. Then you can call text.RenderObject method to set coordinates of text, scale and color.
+
+#### Probably bugs and problems
++ No game-window: Text objects can be created only after glfw initialization

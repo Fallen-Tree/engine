@@ -32,7 +32,7 @@ void Texture::loadImage(std::string path) {
     char finalPath[512];
     snprintf(finalPath, sizeof(finalPath),
         reinterpret_cast<const char*>
-        ((RESOURCE_DIR"/textures%s")), path.c_str());
+        ((RESOURCE_DIR"/textures/%s")), path.c_str());
     unsigned char *data = reinterpret_cast<unsigned char*>(
         stbi_load(finalPath, &width, &height, &nrComponents, 0));
 

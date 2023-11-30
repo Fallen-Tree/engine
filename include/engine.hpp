@@ -26,7 +26,7 @@ class Engine {
     }
 
     Camera* SwitchCamera(Camera* newCamera);
-    void Run(int, int);
+    void Run();
     Input m_Input;
     Camera* camera;
 

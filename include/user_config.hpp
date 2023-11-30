@@ -1,7 +1,12 @@
 #pragma once
 
 // Camera
-#define SENSIVITY 0.1f
+#define SCR_HEIGHT 600
+#define SCR_WIDTH 800
 
 // Engine
-#define FPS_LIMIT 500
+#define FPS_LIMIT 1000
+
+// Movement
+#define SENSIVITY 0.1f
+
