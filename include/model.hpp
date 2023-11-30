@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-// #include <fstream>
 #include "shaders.hpp"
 
 class Model {
@@ -13,7 +12,6 @@ class Model {
 
  public:
     // some variables
-    unsigned int VAO, VBO, EBO;
     ShaderProgram* shader = nullptr;
 
     // constructor of class.

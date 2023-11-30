@@ -1,14 +1,5 @@
 #include "model.hpp"
 
-#include <vector>
-#include <cassert>
-#include <algorithm>
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <fstream>
-#include <cstdarg>
-
 // constructor of class.
 Model::Model(const std::vector<float>& Points, const std::vector<unsigned int>& Indices) {
     setPoints(Points);

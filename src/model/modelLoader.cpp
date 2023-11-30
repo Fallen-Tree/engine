@@ -1,11 +1,8 @@
 #include <vector>
-#include <iostream>
-#include <sstream>
 #include <fstream>
 #include <filesystem>
-#include <cstdarg>
-#include "logger.hpp"
 
+#include "logger.hpp"
 #include "engine_config.hpp"
 
 #include "model.hpp"
@@ -121,7 +118,6 @@ Model* Model::loadFromObjFile(std::ifstream &objFile) {  // assuming objFile alr
                 modelIndices.push_back(faceIndices[i + 1]);
             }
         } else {
-
         }
     }
     objFile.close();
