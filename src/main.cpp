@@ -77,8 +77,8 @@ int main() {
     obj->renderData->model = model;
     obj->renderData->model->shader = shaderProgram;
 
-    obj->transform = new Transform(glm::vec3(0.f, -3.f, -8.f), glm::vec3(.1f, .1f, .1f), glm::mat4(1.0));
-    obj->transform->Rotate(1.67f, glm::vec3(-1.f, 0.f, 0.f));
+    obj->transform = new Transform(Vec3(0.f, -3.f, -8.f), Vec3(.1f, .1f, .1f), Mat4(1.0));
+    obj->transform->Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
     auto render_data = obj->renderData;
 
     bindRenderData(render_data);

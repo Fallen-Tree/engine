@@ -44,7 +44,7 @@ Vec3 Camera::GetPosition() {
     return this->m_Position;
 }
 
-glm::vec3 Camera::GetFront() {
+Vec3 Camera::GetFront() {
     return this->m_Front;
 }
 

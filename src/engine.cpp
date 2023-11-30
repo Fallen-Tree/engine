@@ -48,7 +48,7 @@ void processInput(GLFWwindow *window);
 
 Engine::Engine(int SCR_WIDTH, int SCR_HEIGHT) {
     m_Objects = std::vector<Object *>();
-    camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
+    camera = new Camera(Vec3(0.0f, 0.0f, 3.0f));
     s_Engine = this;
         // glfw: initialize and configure
     glfwInit();
@@ -111,27 +111,27 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     m_Input.InitMouse();
 
 
-    pointLights[0].ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-    pointLights[0].diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
-    pointLights[0].specular = glm::vec3(1.0f, 1.0f, 1.0f);
-    pointLights[0].position = glm::vec3(-0.2, -0.5, -1.2);
+    pointLights[0].ambient = Vec3(0.2f, 0.2f, 0.2f);
+    pointLights[0].diffuse = Vec3(0.5f, 0.5f, 0.5f);
+    pointLights[0].specular = Vec3(1.0f, 1.0f, 1.0f);
+    pointLights[0].position = Vec3(-0.2, -0.5, -1.2);
     pointLights[0].constDistCoeff = 1;
     pointLights[0].linearDistCoeff = 0.09f;
     pointLights[0].quadraticDistCoeff = 0.032f;
 
     pointLights[1] = pointLights[0];
-    pointLights[1].position = glm::vec3(2.3f, -3.3f, -4.0f);
+    pointLights[1].position = Vec3(2.3f, -3.3f, -4.0f);
     pointLights[2] = pointLights[0];
-    pointLights[2].position = glm::vec3(0.0f,  0.0f, -3.0f);
+    pointLights[2].position = Vec3(0.0f,  0.0f, -3.0f);
 
-    dirLight.ambient = glm::vec3(0.05f, 0.05f, 0.05f);
-    dirLight.diffuse = glm::vec3(0.4f, 0.4f, 0.4f);
-    dirLight.specular = glm::vec3(0.5f, 0.5f, 0.5f);
-    dirLight.direction = glm::vec3(-0.2f, -1.0f, -0.3f);
+    dirLight.ambient = Vec3(0.05f, 0.05f, 0.05f);
+    dirLight.diffuse = Vec3(0.4f, 0.4f, 0.4f);
+    dirLight.specular = Vec3(0.5f, 0.5f, 0.5f);
+    dirLight.direction = Vec3(-0.2f, -1.0f, -0.3f);
 
-    spotLight[0].ambient = glm::vec3(0.0f, 0.0f, 0.0f);
-    spotLight[0].diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
-    spotLight[0].specular = glm::vec3(1.0f, 1.0f, 1.0f);
+    spotLight[0].ambient = Vec3(0.0f, 0.0f, 0.0f);
+    spotLight[0].diffuse = Vec3(1.0f, 1.0f, 1.0f);
+    spotLight[0].specular = Vec3(1.0f, 1.0f, 1.0f);
     spotLight[0].constDistCoeff = 1.0f;
     spotLight[0].linearDistCoeff = 0.09f;
     spotLight[0].quadraticDistCoeff = 0.032f;

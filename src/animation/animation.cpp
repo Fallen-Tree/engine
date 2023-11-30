@@ -34,15 +34,15 @@ void Animation::applyAnimations(Transform* transform, float deltaTime) {
     float timeCoeff = deltaTime / currentAnim.second;
 
     // Translate
-    glm::vec3 translateDiff = currentAnim.first.GetTranslation() - transform->GetTranslation();
+    Vec3 translateDiff = currentAnim.first.GetTranslation() - transform->GetTranslation();
     transform->SetTranslation(transform->GetTranslation() + translateDiff * timeCoeff);
 
     // Rotate
-    glm::mat4 rotateDiff = currentAnim.first.GetRotation() - transform->GetRotation();
+    Mat4 rotateDiff = currentAnim.first.GetRotation() - transform->GetRotation();
     transform->SetRotation(transform->GetRotation() + rotateDiff * timeCoeff);
 
     // Scale
-    glm::vec3 scaleDiff = currentAnim.first.GetScale() - transform->GetScale();
+    Vec3 scaleDiff = currentAnim.first.GetScale() - transform->GetScale();
     transform->SetScale(transform->GetScale() + scaleDiff * timeCoeff);
 
     m_AnimationsQueue.front().second -= deltaTime;
