@@ -103,7 +103,6 @@ int ShaderProgram::Use() {
 }
 
 ShaderProgram::~ShaderProgram() {
-
 }
 
 int ShaderProgram::UniformLocation(const char* mode) {
