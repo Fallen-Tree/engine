@@ -180,6 +180,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 void Engine::updateObjects(float deltaTime) {
     for (int i = 0; i < m_Objects.size(); i++) {
         auto object = m_Objects[i];
+        object->Update(deltaTime);
         if (object->animation) {
             object->animation->applyAnimations(object->transform, deltaTime);
         }

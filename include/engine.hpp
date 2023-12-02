@@ -11,10 +11,12 @@ struct GLFWwindow;
 
 class Object {
  public:
-     Transform *transform;
-     RenderData *renderData;
-     Collider *collider;
-     Animation *animation;
+     virtual void Update(float) {}
+
+     Transform *transform = nullptr;
+     RenderData *renderData = nullptr;
+     Collider *collider = nullptr;
+     Animation *animation = nullptr;
 };
 
 class Engine {
