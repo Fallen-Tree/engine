@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <variant>
 #include "render_data.hpp"
 #include "transform.hpp"
 #include "camera.hpp"
@@ -14,6 +15,8 @@ class Object {
      Transform *transform;
      RenderData *renderData;
      Animation *animation;
+     std::variant<DirLight*, PointLight*, SpotLight*, std::monostate> light 
+         = std::monostate();
 };
 
 class Engine {
@@ -26,15 +29,11 @@ class Engine {
     void AddObject(T *a) {
         AddObject(static_cast<Object *>(a));
     }
+    
 
     Camera* SwitchCamera(Camera* newCamera);
     void Run(int, int);
     Input m_Input;
-
-    // Components
-    std::vector<PointLight> pointLights = std::vector<PointLight>();
-    DirLight dirLight;
-    std::vector<SpotLight> spotLights = std::vector<SpotLight>();
     Camera* camera;
 
  private:
@@ -44,4 +43,7 @@ class Engine {
 
     std::vector<Object *> m_Objects;
     GLFWwindow *m_Window;
+    std::vector<PointLight*> m_PointLights = std::vector<PointLight*>();
+    std::vector<DirLight*> m_DirLights = std::vector<DirLight*>();
+    std::vector<SpotLight*> m_SpotLights = std::vector<SpotLight*>();
 };
