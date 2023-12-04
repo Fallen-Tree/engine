@@ -8,7 +8,6 @@ const char *fragmentShaderSource = "/fragment/standart.fshader";
 
 
 Object* initModel();
-void initLight(Engine& engine);
 
 int main() {
     auto engine = Engine(SCR_WIDTH, SCR_HEIGHT);
@@ -49,10 +48,10 @@ int main() {
     pointLight->constDistCoeff = 1;
     pointLight->linearDistCoeff = 0.09f;
     engine.AddObject<>(pointLight3);
-    
+
     Object* dirLight = new Object();
     dirLight->light = new DirLight;
-    auto directionLight = std::get<DirLight*>(dirLight->light); 
+    auto directionLight = std::get<DirLight*>(dirLight->light);
     directionLight->ambient = glm::vec3(0.05f, 0.05f, 0.05f);
     directionLight->diffuse = glm::vec3(0.4f, 0.4f, 0.4f);
     directionLight->specular = glm::vec3(0.5f, 0.5f, 0.5f);
@@ -71,8 +70,8 @@ int main() {
     sptLight->cutOff = glm::cos(glm::radians(12.5f));
     sptLight->outerCutOff = glm::cos(glm::radians(15.0f));
     engine.AddObject<>(spotLight);
-    
-    engine.Run(SCR_WIDTH, SCR_HEIGHT); 
+
+    engine.Run(SCR_WIDTH, SCR_HEIGHT);
 }
 
 Object* initModel() {

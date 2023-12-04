@@ -96,7 +96,7 @@ void Engine::AddObject(Object *a) {
                 m_DirLights.push_back(std::get<DirLight*>(a->light));
                 break;
             case 1:
-                m_PointLights.push_back(std::get<PointLight*>(a->light)); 
+                m_PointLights.push_back(std::get<PointLight*>(a->light));
                 break;
             case 2:
                 m_SpotLights.push_back(std::get<SpotLight*>(a->light));
@@ -226,7 +226,7 @@ void Engine::Render(int scr_width, int scr_height) {
         // send light to shaders
         // pointLight
         char str[100];
-        for (int i = 0; i < m_PointLights.size(); i++) { 
+        for (int i = 0; i < m_PointLights.size(); i++) {
             snprintf(str, sizeof(str), "pointLights[%d].position", i);
             shader->SetVec3(str, m_PointLights[i]->position);
             snprintf(str, sizeof(str), "pointLights[%d].ambient", i);
@@ -243,11 +243,11 @@ void Engine::Render(int scr_width, int scr_height) {
             shader->SetFloat(str, m_PointLights[i]->constDistCoeff);
         }
 
-        shader->SetInt("lenArrPointL", m_PointLights.size()); 
+        shader->SetInt("lenArrPointL", m_PointLights.size());
         // directionLight
         for (int i = 0; i < m_DirLights.size(); i++) {
             snprintf(str, sizeof(str), "dirLight[%d].ambinet", i);
-            shader->SetVec3(str, m_DirLights[0]->ambient); 
+            shader->SetVec3(str, m_DirLights[0]->ambient);
             snprintf(str, sizeof(str), "dirLight[%d].specular", i);
             shader->SetVec3(str, m_DirLights[0]->specular);
             snprintf(str, sizeof(str), "dirLight[%d].direction", i);

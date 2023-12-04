@@ -16,13 +16,13 @@ class Object {
      RenderData *renderData;
      Animation *animation;
      // monostate is canonical c++ empty state in variant
-     std::variant<DirLight*, PointLight*, SpotLight*, std::monostate> light 
+     std::variant<DirLight*, PointLight*, SpotLight*, std::monostate> light
          = std::monostate();
 };
 
 class Engine {
  public:
-    Engine(int,int);
+    Engine(int, int);
     ~Engine();
 
     // TODO(theblek): Ensure inlining for release builds
@@ -39,7 +39,7 @@ class Engine {
  private:
     void AddObject(Object *);
     void Render(int, int);
-    void updateObjects(float);   
+    void updateObjects(float);
 
     std::vector<Object *> m_Objects;
     GLFWwindow *m_Window;
