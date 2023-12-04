@@ -101,8 +101,10 @@ void Engine::AddObject(Object *a) {
             case 2:
                 m_SpotLights.push_back(std::get<SpotLight*>(a->light));
                 break;
-            default:
+            case 3:
                 break;
+            default:
+                Logger::Error("ENGINE::ADD_OBJECT::INVALID_TYPE_OF_OBJEC");
         }
     }
     m_Objects.push_back(a);
@@ -237,16 +239,23 @@ void Engine::Render(int scr_width, int scr_height) {
             shader->SetFloat(str, m_PointLights[i]->linearDistCoeff);
             snprintf(str, sizeof(str), "pointLights[%d].quadraticDistCoeff", i);
             shader->SetFloat(str, m_PointLights[i]->quadraticDistCoeff);
-            snprintf(str, sizeof(str), "pointLights[%d].constDistCoeff", i); 
+            snprintf(str, sizeof(str), "pointLights[%d].constDistCoeff", i);
             shader->SetFloat(str, m_PointLights[i]->constDistCoeff);
         }
 
-        //shader->SetInt("lenArrPointL", m_PointLights.size()); 
+        shader->SetInt("lenArrPointL", m_PointLights.size()); 
         // directionLight
-        shader->SetVec3("dirLight.ambient", m_DirLights[0]->ambient); 
-        shader->SetVec3("dirLight.specular", m_DirLights[0]->specular);
-        shader->SetVec3("dirLight.direction", m_DirLights[0]->direction);
-        shader->SetVec3("dirLight.diffuse", m_DirLights[0]->diffuse);
+        for (int i = 0; i < m_DirLights.size(); i++) {
+            snprintf(str, sizeof(str), "dirLight[%d].ambinet", i);
+            shader->SetVec3(str, m_DirLights[0]->ambient); 
+            snprintf(str, sizeof(str), "dirLight[%d].specular", i);
+            shader->SetVec3(str, m_DirLights[0]->specular);
+            snprintf(str, sizeof(str), "dirLight[%d].direction", i);
+            shader->SetVec3(str, m_DirLights[0]->direction);
+            snprintf(str, sizeof(str), "dirLight[%d].diffuse", i);
+            shader->SetVec3(str, m_DirLights[0]->diffuse);
+        }
+        shader->SetInt("lenArrDirL", m_DirLights.size());
         // spotLight
         for (int i = 0; i < m_SpotLights.size(); i++) {
             snprintf(str, sizeof(str), "spotLight[%d].diffuse", i);

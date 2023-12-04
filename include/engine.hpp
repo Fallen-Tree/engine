@@ -15,6 +15,7 @@ class Object {
      Transform *transform;
      RenderData *renderData;
      Animation *animation;
+     // monostate is canonical c++ empty state in variant
      std::variant<DirLight*, PointLight*, SpotLight*, std::monostate> light 
          = std::monostate();
 };
@@ -29,7 +30,6 @@ class Engine {
     void AddObject(T *a) {
         AddObject(static_cast<Object *>(a));
     }
-    
 
     Camera* SwitchCamera(Camera* newCamera);
     void Run(int, int);
