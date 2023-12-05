@@ -16,59 +16,44 @@ int main() {
 
     // init light objects
     Object* pointLight1 = new Object();
-    pointLight1->light = new PointLight;
+    pointLight1->light = new PointLight(
+        glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(0.5f, 0.5f, 0.5f),
+        glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.2, -0.5, -1.2),
+        1, 0.09f, 0.032f);
     auto pointLight = std::get<PointLight*>(pointLight1->light);
-    pointLight->ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-    pointLight->diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
-    pointLight->specular = glm::vec3(1.0f, 1.0f, 1.0f);
-    pointLight->position = glm::vec3(-0.2, -0.5, -1.2);
-    pointLight->constDistCoeff = 1;
-    pointLight->linearDistCoeff = 0.09f;
-    pointLight->quadraticDistCoeff = 0.032f;
     engine.AddObject<>(pointLight1);
 
     Object* pointLight2 = new Object();
-    pointLight2->light = new PointLight;
+    pointLight2->light = new PointLight(
+        glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(0.5f, 0.5f, 0.5f),
+        glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(2.3f, -3.3f, -4.0f),
+        1, 0.09f, 0.032f);
     pointLight = std::get<PointLight*>(pointLight2->light);
-    pointLight->ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-    pointLight->diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
-    pointLight->specular = glm::vec3(1.0f, 1.0f, 1.0f);
-    pointLight->position = glm::vec3(2.3f, -3.3f, -4.0f);
-    pointLight->constDistCoeff = 1;
-    pointLight->linearDistCoeff = 0.09f;
     engine.AddObject<>(pointLight2);
 
     Object* pointLight3 = new Object();
-    pointLight3->light = new PointLight;
+    pointLight3->light = new PointLight(
+        glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(0.5f, 0.5f, 0.5f),
+        glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f,  0.0f, -3.0f),
+        1, 0.09f, 0.032f);
     pointLight = std::get<PointLight*>(pointLight3->light);
-    pointLight->ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-    pointLight->diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
-    pointLight->specular = glm::vec3(1.0f, 1.0f, 1.0f);
-    pointLight->position = glm::vec3(0.0f,  0.0f, -3.0f);
-    pointLight->constDistCoeff = 1;
-    pointLight->linearDistCoeff = 0.09f;
     engine.AddObject<>(pointLight3);
 
     Object* dirLight = new Object();
-    dirLight->light = new DirLight;
+    dirLight->light = new DirLight(
+            glm::vec3(0.05f, 0.05f, 0.05f), glm::vec3(0.4f, 0.4f, 0.4f),
+            glm::vec3(0.5f, 0.5f, 0.5f),  glm::vec3(-0.2f, -1.0f, -0.3f));
+
     auto directionLight = std::get<DirLight*>(dirLight->light);
-    directionLight->ambient = glm::vec3(0.05f, 0.05f, 0.05f);
-    directionLight->diffuse = glm::vec3(0.4f, 0.4f, 0.4f);
-    directionLight->specular = glm::vec3(0.5f, 0.5f, 0.5f);
-    directionLight->direction = glm::vec3(-0.2f, -1.0f, -0.3f);
     engine.AddObject<>(dirLight);
 
     Object* spotLight = new Object();
-    spotLight->light = new SpotLight;
+    spotLight->light = new SpotLight(
+            glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f),
+            glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f),
+            1.0f, 0.09f, 0.032f, glm::vec3(0), glm::cos(glm::radians(12.5f)),
+            glm::cos(glm::radians(15.0f)));
     auto sptLight = std::get<SpotLight*>(spotLight->light);
-    sptLight->ambient = glm::vec3(0.0f, 0.0f, 0.0f);
-    sptLight->diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
-    sptLight->specular = glm::vec3(1.0f, 1.0f, 1.0f);
-    sptLight->constDistCoeff = 1.0f;
-    sptLight->linearDistCoeff = 0.09f;
-    sptLight->quadraticDistCoeff = 0.032f;
-    sptLight->cutOff = glm::cos(glm::radians(12.5f));
-    sptLight->outerCutOff = glm::cos(glm::radians(15.0f));
     engine.AddObject<>(spotLight);
 
     engine.Run(SCR_WIDTH, SCR_HEIGHT);
