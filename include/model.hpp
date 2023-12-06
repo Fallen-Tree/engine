@@ -10,13 +10,15 @@ class Model {
     std::vector<unsigned int> indices;
     std::shared_ptr<ShaderProgram> shader = std::make_shared<ShaderProgram>(ShaderProgram());
 
+    static Model* loadFromObjFile(std::ifstream &objFile);
+
  public:
-    // some variables
     // constructor of class.
     explicit Model(const std::vector<float>& Points, const std::vector<unsigned int>& Indices);
 
     explicit Model(const std::vector<float>& Points, int vectorSize);
 
+    static Model* loadFromFile(const char* path);\
     // getter and setter for working with class.
     float* getPoints();
 

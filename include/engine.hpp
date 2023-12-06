@@ -17,7 +17,7 @@ class Object {
 
 class Engine {
  public:
-    Engine();
+    Engine(int,int);
     ~Engine();
 
     // TODO(theblek): Ensure inlining for release builds

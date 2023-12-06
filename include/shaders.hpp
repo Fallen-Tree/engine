@@ -33,6 +33,10 @@ class ShaderProgram {
  public:
      int AttachShader(const Shader &shader);
      int Link();
+    //  ShaderProgram(const ShaderProgram& other) = default;
+    //  ShaderProgram(ShaderProgram&& other) = default;
+    //  ShaderProgram& operator=(const ShaderProgram& other) = default;
+    //  ShaderProgram& operator=(ShaderProgram&& other) = default;
      ShaderProgram();
      ShaderProgram(const Shader &vShader, const Shader &fShader);
      int Use();

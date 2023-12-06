@@ -10,6 +10,7 @@
 #include "light.hpp"
 #include "material.hpp"
 #include "input.hpp"
+#include "model.hpp"
 #include "texture.hpp"
 #include "stb_image.h"
 #include "logger.hpp"
@@ -38,40 +39,16 @@ Camera* Engine::SwitchCamera(Camera* newCamera) {
     return toReturn;
 }
 
-
-Engine::Engine() {
-    m_Objects = std::vector<Object *>();
-    camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
-    s_Engine = this;
-}
-
-Engine::~Engine() {
-    std::cout << "Goodbye";
-}
-
-void Engine::AddObject(Object *a) {
-    m_Objects.push_back(a);
-}
-
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
-
-const char *vertexShaderSource = "/vertex/standart.vshader";
-const char *fragmentShaderSource = "/fragment/standart.fshader";
-
-void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
-    scrWidth = SCR_WIDTH;
-    scrHeight = SCR_HEIGHT;
-    viewportWidth = SCR_WIDTH;
-    viewportHeight = SCR_HEIGHT;
-    viewportStartX = 0;
-    viewportStartY = 0;
-
-    // glfw: initialize and configure
-    // ------------------------------
+Engine::Engine(int SCR_WIDTH, int SCR_HEIGHT) {
+    m_Objects = std::vector<Object *>();
+    camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
+    s_Engine = this;
+        // glfw: initialize and configure
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -94,9 +71,6 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     glfwSetScrollCallback(m_Window, scroll_callback);
     glfwSetKeyCallback(m_Window, key_callback);
 
-    m_Input.SetWindow(m_Window);
-    m_Input.SetMode(MODE, VALUE);
-    m_Input.InitMouse();
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -104,19 +78,36 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return;
     }
+}
 
+Engine::~Engine() {
+    // optional: de-allocate all resources once they've outlived their purpose:
+    // ------------------------------------------------------------------------
+    for (int i = 0; i < m_Objects.size(); i++) {
+        if (m_Objects[i] == nullptr || m_Objects[i]->renderData == nullptr)
+            continue;
+        glDeleteVertexArrays(1, &m_Objects[i]->renderData->VAO);
+        glDeleteBuffers(1, &m_Objects[i]->renderData->VBO);
+        glDeleteBuffers(1, &m_Objects[i]->renderData->EBO);
+    }
+    std::cout << "Goodbye";
+}
 
-    // build and compile our shader program ------------------------------------
-    Shader vShader = Shader(VertexShader, vertexShaderSource);
-    Shader fShader = Shader(FragmentShader, fragmentShaderSource);
+void Engine::AddObject(Object *a) {
+    m_Objects.push_back(a);
+}
 
-    ShaderProgram shaderProgram = ShaderProgram(vShader, fShader);
+void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
+    scrWidth = SCR_WIDTH;
+    scrHeight = SCR_HEIGHT;
+    viewportWidth = SCR_WIDTH;
+    viewportHeight = SCR_HEIGHT;
+    viewportStartX = 0;
+    viewportStartY = 0;
 
-    vShader.Free();
-    fShader.Free();
-
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
+    m_Input.SetWindow(m_Window);
+    m_Input.SetMode(MODE, VALUE);
+    m_Input.InitMouse();
 
     pointLights[0].ambient = glm::vec3(0.2f, 0.2f, 0.2f);
     pointLights[0].diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
@@ -144,140 +135,6 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     spotLight[0].quadraticDistCoeff = 0.032f;
     spotLight[0].cutOff = glm::cos(glm::radians(12.5f));
     spotLight[0].outerCutOff = glm::cos(glm::radians(15.0f));
-
-
-
-    std::vector<GLfloat> cubeVertices {
-          // positions          // normals           // texture coords
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
-    };
-
-    // init a model
-    Model * testModel = new Model(cubeVertices, 8);
-    testModel->setShader(shaderProgram);
-
-    auto testObj = new Object();
-    testObj->renderData = new RenderData();
-    testObj->renderData->model = testModel;
-
-    // Maybe this can be less clunky?
-    // Perhaps variadic functions?
-    auto images = std::vector<std::string>();
-    images.push_back("/wall.png");
-    images.push_back("/wallspecular.png");
-    testObj->renderData->material = {
-        4.f,
-        Texture(images),
-    };
-
-    testObj->transform = new Transform(glm::vec3(0.f, 0.f, -3.f), glm::vec3(1.f, 1.f, 1.f), glm::mat4(1.0));
-
-    testObj->animation = new Animation();
-    testObj->animation
-        ->addAnimation(
-            Transform(glm::vec3(0.f, 0.f, -10.f), glm::vec3(1.f, 1.f, 1.f), glm::mat4(1.0)),
-            3)
-        ->addAnimation(
-            Transform(glm::vec3(0.f, 0.f, -10.f), glm::vec3(5.f, 5.f, 5.f), glm::mat4(1.0)),
-            2)
-        ->addAnimation(
-            Transform(glm::vec3(0.f, 0.f, -10.f), glm::vec3(5.f, 5.f, 5.f),
-            glm::rotate(glm::mat4(1.0), glm::radians(45.f), glm::vec3(1.f, 0.f, 1.f))),
-            1);
-
-
-    auto render_data = testObj->renderData;
-
-    glGenVertexArrays(1, &render_data->VAO);
-    glGenBuffers(1, &render_data->VBO);
-    glGenBuffers(1, &render_data->EBO);
-    // bind the Vertex Array Object first,
-    // then bind and set vertex buffer(s),
-    // and then configure vertex attributes(s).
-
-    glBindVertexArray(render_data->VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, render_data->VBO);
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        render_data->model->getLenArrPoints() * sizeof(float),
-        render_data->model->getPoints(),
-        GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_data->EBO);
-    glBufferData(
-        GL_ELEMENT_ARRAY_BUFFER,
-        render_data->model->getLenIndices() * sizeof(unsigned int),
-        render_data->model->getIndices(),
-        GL_STATIC_DRAW);
-
-
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(0));
-    glEnableVertexAttribArray(0);
-    // normal attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-        reinterpret_cast<void*>(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    // texture coordinates
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-        reinterpret_cast<void*>(6    * sizeof(float)));
-    glEnableVertexAttribArray(2);
-
-    // note that this is allowed, the call to glVertexAttribPointer registered VBO as
-    // the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    // remember: do NOT unbind the EBO while a VAO is active as
-    // the bound element buffer object IS stored in the VAO; keep the EBO bound.
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO,
-    // but this rarely happens. Modifying other VAOs requires a call to glBindVertexArray anyways
-    // so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-    glBindVertexArray(0);
-
-    AddObject(testObj);
     glEnable(GL_DEPTH_TEST);
 
     float lastFpsShowedTime = 0.f;
@@ -313,14 +170,6 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         lastRenderedFrame = static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime));
         Render(SCR_WIDTH, SCR_HEIGHT);
     }
-
-    // optional: de-allocate all resources once they've outlived their purpose:
-    // ------------------------------------------------------------------------
-
-    delete testModel;
-    glDeleteVertexArrays(1, &render_data->VAO);
-    glDeleteBuffers(1, &render_data->VBO);
-    glDeleteBuffers(1, &render_data->EBO);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
