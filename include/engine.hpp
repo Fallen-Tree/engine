@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include "collider.hpp"
 #include "render_data.hpp"
 #include "transform.hpp"
 #include "camera.hpp"
@@ -10,14 +11,17 @@ struct GLFWwindow;
 
 class Object {
  public:
-     Transform *transform;
-     RenderData *renderData;
-     Animation *animation;
+     virtual void Update(float) {}
+
+     Transform *transform = nullptr;
+     RenderData *renderData = nullptr;
+     Collider *collider = nullptr;
+     Animation *animation = nullptr;
 };
 
 class Engine {
  public:
-    Engine(int,int);
+    Engine(int, int);
     ~Engine();
 
     // TODO(theblek): Ensure inlining for release builds
@@ -34,7 +38,7 @@ class Engine {
  private:
     void AddObject(Object *);
     void Render(int, int);
-    void updateObjects(float);   
+    void updateObjects(float);
 
     std::vector<Object *> m_Objects;
     GLFWwindow *m_Window;

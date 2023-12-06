@@ -1,27 +1,26 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "math_types.hpp"
 
 struct Light {
-    glm::vec3 ambient;
-    glm::vec3 diffuse;
-    glm::vec3 specular;
+    Vec3 ambient;
+    Vec3 diffuse;
+    Vec3 specular;
 };
 
 struct PointLight : Light {
-    glm::vec3 position;
+    Vec3 position;
     float constDistCoeff;
     float linearDistCoeff;
     float quadraticDistCoeff;
 };
 
 struct DirLight : Light {
-    glm::vec3 direction;
+    Vec3 direction;
 };
 
 struct SpotLight : PointLight {
-    glm::vec3 direction;
+    Vec3 direction;
     float cutOff;
     float outerCutOff;
 };
