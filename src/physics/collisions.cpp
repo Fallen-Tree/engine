@@ -2,6 +2,7 @@
 #include "logger.hpp"
 #include "math_types.hpp"
 #include "collisions.hpp"
+#include "engine_config.hpp"
 #include <glm/common.hpp>
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -241,4 +242,41 @@ bool CollideModels(Model *model, Transform transform, Model *model2, Transform t
         }
     }
     return false;
+}
+
+bool CollidePrimitive(Ray r, Sphere s) {
+    Vec3 centeredOrigin = r.origin - s.center;
+    float b = glm::dot(r.direction, centeredOrigin);
+    float c = glm::dot(centeredOrigin, centeredOrigin) - s.radius * s.radius;
+
+    if (c > 0 && b > 0)
+        return false;
+
+    return b*b - c >= 0;
+}
+
+bool CollidePrimitive(Ray r, AABB aabb) {
+    float tmin = 0.f;
+    float tmax = std::numeric_limits<float>::max();
+    for (int i = 0; i < 3; i++) {
+        if (glm::abs(r.direction[i]) < EPS) {
+            if (r.origin[i] < aabb.min[i] || r.origin[i] > aabb.max[i]) {
+                return false;
+            }
+            continue;
+        }
+        float t0 = (aabb.min[i] - r.origin[i]) / r.direction[i];
+        float t1 = (aabb.max[i] - r.origin[i]) / r.direction[i];
+        if (t0 > t1) {
+            float tmp = t1;
+            t1 = t0;
+            t0 = tmp;
+        }
+        tmin = glm::max(tmin, t0);
+        tmax = glm::min(tmax, t1);
+
+        if (tmin > tmax)
+            return false;
+    }
+    return true;
 }

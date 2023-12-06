@@ -1,5 +1,18 @@
+#include <assert.h>
 #include "collider.hpp"
 #include "collisions.hpp"
+#include "logger.hpp"
+
+template<typename U>
+bool CollideShifted(Ray lhs, U rhs, Transform rhsTransform) {
+    return CollidePrimitive(lhs, rhs.Transformed(rhsTransform));
+}
+
+template<>
+bool CollideShifted(Ray lhs, Model * rhs, Transform rhsTransform) {
+    Logger::Error("Raycast into mesh is not supported yet");
+    assert(false);
+}
 
 template<typename T, typename U>
 bool CollideShifted(T lhs, Transform lhsTransform, U rhs, Transform rhsTransform) {
@@ -26,4 +39,8 @@ bool Collider::Collide(Transform self, Collider *other, Transform otherTransform
                     return CollideShifted(var1, self, var2, otherTransform);
                 }, other->shape);
         }, shape);
+}
+
+bool Collider::Raycast(Transform self, Ray ray) {
+    return std::visit([=](auto shape) { return CollideShifted(ray, shape, self); }, shape);
 }

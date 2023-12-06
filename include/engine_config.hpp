@@ -17,6 +17,7 @@
 
 // engine
 #define FPS_SHOWING_INTERVAL 1.f
+#define EPS 0.001f
 
 // input
 #define MAX_VALID_KEY 350

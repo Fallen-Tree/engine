@@ -1,4 +1,6 @@
 #include "engine.hpp"
+#include "collisions.hpp"
+#include "logger.hpp"
 
 static int SCR_HEIGHT = 600;
 static int SCR_WIDTH = 800;
@@ -25,6 +27,28 @@ class MovingSphere : public Object {
  private:
     Object *m_Target;
     Vec3 m_Speed;
+};
+
+class Pointer : public Object {
+ public:
+     Pointer(std::vector<Object *> objects, Camera *camera) {
+         m_Objects = objects;
+         m_Camera = camera;
+     }
+
+     void Update(float dt) override {
+        Ray ray = Ray { m_Camera->GetFront(), m_Camera->GetPosition() };
+        for (int i = 0; i < m_Objects.size(); i++) {
+            auto obj = m_Objects[i];
+            if (obj->collider->Raycast(*obj->transform, ray)) {
+                Logger::Info("Hit at %d!", i);
+            }
+        }
+     }
+
+ private:
+     std::vector<Object *> m_Objects;
+     Camera *m_Camera;
 };
 
 Object* initModel();
@@ -184,6 +208,11 @@ int main() {
     engine.AddObject<>(spheres[0]);
     engine.AddObject<>(spheres[1]);
     engine.AddObject<>(spheres[2]);
+
+    auto observer = new Pointer(
+        {spheres[0], spheres[1], spheres[2], aabb, sphere},
+        engine.camera);
+    engine.AddObject<>(observer);
 
     engine.Run(SCR_WIDTH, SCR_HEIGHT);
 }

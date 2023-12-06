@@ -21,3 +21,6 @@ bool CollidePrimitive(Sphere, Triangle);
 template<typename T>
 bool CollideModelAt(T t, Model *model, Transform transform);
 bool CollideModels(Model *model, Transform transform, Model *model2, Transform transform2);
+
+bool CollidePrimitive(Ray, Sphere);
+bool CollidePrimitive(Ray, AABB);
