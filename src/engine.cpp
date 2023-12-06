@@ -112,6 +112,9 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     ShaderProgram shaderProgram = ShaderProgram(vShader, fShader);
 
+    vShader.Free();
+    fShader.Free();
+
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
 
@@ -191,7 +194,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     // init a model
     Model * testModel = new Model(cubeVertices, 8);
-    testModel->shader = &shaderProgram;
+    testModel->setShader(shaderProgram);
 
     auto testObj = new Object();
     testObj->renderData = new RenderData();
@@ -314,6 +317,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
 
+    delete testModel;
     glDeleteVertexArrays(1, &render_data->VAO);
     glDeleteBuffers(1, &render_data->VBO);
     glDeleteBuffers(1, &render_data->EBO);
@@ -360,9 +364,7 @@ void Engine::Render(int scr_width, int scr_height) {
 
         float timeValue = glfwGetTime();
 
-        transform->Rotate(glm::radians(0.1f), glm::radians(0.1f), glm::radians(0.1f));
-
-        ShaderProgram * shader = model->shader;
+        ShaderProgram * shader = model->getShader();
         // draw our first triangle
         shader->Use();
 

@@ -1,23 +1,21 @@
-#ifndef SRC_MODEL_MODEL_HPP_
-#define SRC_MODEL_MODEL_HPP_
+#pragma once
 
 #include <vector>
+#include <memory>
 #include "shaders.hpp"
 
 class Model {
  private:
     std::vector<float> points;
     std::vector<unsigned int> indices;
+    std::shared_ptr<ShaderProgram> shader = std::make_shared<ShaderProgram>(ShaderProgram());
 
  public:
     // some variables
-    ShaderProgram * shader = new ShaderProgram();
-
     // constructor of class.
     explicit Model(const std::vector<float>& Points, const std::vector<unsigned int>& Indices);
 
     explicit Model(const std::vector<float>& Points, int vectorSize);
-
 
     // getter and setter for working with class.
     float* getPoints();
@@ -38,5 +36,8 @@ class Model {
     int getLenIndices();
 
     int getLenArrPoints();
+
+    ShaderProgram * getShader();
+
+    void setShader(const ShaderProgram &sp);
 };
-#endif  // SRC_MODEL_MODEL_HPP_

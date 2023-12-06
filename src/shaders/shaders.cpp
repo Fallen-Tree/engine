@@ -7,6 +7,7 @@
 #include <sstream>
 #include <fstream>
 #include <cstdarg>
+
 #include "logger.hpp"
 
 #include "glm/ext.hpp"
@@ -64,9 +65,21 @@ Shader::Shader(ShaderType shaderType, const char* path) {
     Compile();
 }
 
+void Shader::Free() {
+    if (m_Shader != 0) {
+        // Logger::Info("shader deleted");
+        glDeleteShader(m_Shader);
+        m_Shader = 0;
+    }
+}
+
+Shader::~Shader() {
+    Free();
+}
+
 //             Shader Program
 
-int ShaderProgram::AttachShader(Shader shader) {
+int ShaderProgram::AttachShader(const Shader &shader) {
     glAttachShader(m_Program, shader.m_Shader);
     return 0;
 }
@@ -86,12 +99,19 @@ int ShaderProgram::Link() {
     return 0;
 }
 
-ShaderProgram::ShaderProgram() {
-    m_Program = 0;
+void ShaderProgram::createLinkCounter() {
+    linkCounter = new int;
+    *linkCounter = 1;
 }
 
-ShaderProgram::ShaderProgram(Shader vShader, Shader fShader) {
+ShaderProgram::ShaderProgram() {
+    m_Program = 0;
+    createLinkCounter();
+}
+
+ShaderProgram::ShaderProgram(const Shader &vShader, const Shader &fShader) {
     m_Program = glCreateProgram();
+    createLinkCounter();
     AttachShader(vShader);
     AttachShader(fShader);
     Link();
@@ -100,11 +120,6 @@ ShaderProgram::ShaderProgram(Shader vShader, Shader fShader) {
 int ShaderProgram::Use() {
     glUseProgram(m_Program);
     return 0;
-}
-
-ShaderProgram::~ShaderProgram() {
-    Logger::Warn("deleted program");
-    glDeleteProgram(m_Program);
 }
 
 int ShaderProgram::UniformLocation(const char* mode) {
@@ -119,11 +134,11 @@ void ShaderProgram::SetFloat(const char* name, const float value) { glUniform1f(
 
 void ShaderProgram::SetInt(const char* name, const int value) { glUniform1i(GetLoc(name), value); }
 
-void ShaderProgram::SetVec2(const char* name, glm::vec2 vec) { 
+void ShaderProgram::SetVec2(const char* name, glm::vec2 vec) {
     glUniform2fv(GetLoc(name), 1, glm::value_ptr(vec));
 }
 
-void ShaderProgram::SetVec2i(const char* name, glm::ivec2 vec) { 
+void ShaderProgram::SetVec2i(const char* name, glm::ivec2 vec) {
     glUniform2iv(GetLoc(name), 1, glm::value_ptr(vec));
 }
 
@@ -149,4 +164,17 @@ void ShaderProgram::SetMat3(const char* name, glm::mat3 mat) {
 
 void ShaderProgram::SetMat4(const char* name, glm::mat4 mat) {
     glUniformMatrix4fv(GetLoc(name), 1, GL_FALSE, glm::value_ptr(mat));
+}
+
+ShaderProgram::~ShaderProgram() {
+    if (linkCounter) {
+        (*linkCounter)--;
+        if (*linkCounter == 0) {
+            if (m_Program) {
+            Logger::Info("Shader program deleted");
+            glDeleteProgram(m_Program);
+            }
+            delete linkCounter;
+        }
+    }
 }

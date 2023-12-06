@@ -1,10 +1,5 @@
 #include "model.hpp"
 
-#include <vector>
-#include <cassert>
-#include <algorithm>
-
-
 // constructor of class.
 Model::Model(const std::vector<float>& Points, const std::vector<unsigned int>& Indices) {
     setPoints(Points);
@@ -62,4 +57,12 @@ int Model::getLenIndices() {
 
 int Model::getLenArrPoints() {
     return points.size();
+}
+
+ShaderProgram * Model::getShader() {
+    return shader.get();
+}
+
+void Model::setShader(const ShaderProgram &sp) {
+    shader = std::make_shared<ShaderProgram>(sp);
 }
