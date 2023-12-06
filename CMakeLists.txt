@@ -21,8 +21,8 @@ add_library(ENGINE STATIC
             src/texture/stb_image.cpp
             src/texture/texture.cpp
             src/logging/logger.cpp
-            src/geometry_primitives.cpp
-            src/collisions.cpp
+            src/physics/geometry_primitives.cpp
+            src/physics/collisions.cpp
             src/components/render_data.cpp
             src/components/collider.cpp
             src/components/transform.cpp
