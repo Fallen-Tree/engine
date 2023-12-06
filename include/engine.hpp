@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <variant>
+#include "collider.hpp"
 #include "render_data.hpp"
 #include "transform.hpp"
 #include "camera.hpp"
@@ -12,9 +13,12 @@ struct GLFWwindow;
 
 class Object {
  public:
-     Transform *transform;
-     RenderData *renderData;
-     Animation *animation;
+     virtual void Update(float) {}
+  
+     Transform *transform = nullptr;
+     RenderData *renderData = nullptr;
+     Collider *collider = nullptr;
+     Animation *animation = nullptr;
      // monostate is canonical c++ empty state in variant
      std::variant<DirLight*, PointLight*, SpotLight*, std::monostate> light
          = std::monostate();

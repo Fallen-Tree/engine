@@ -1,23 +1,22 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "math_types.hpp"
 
 struct Light {
-    glm::vec3 ambient;
-    glm::vec3 diffuse;
-    glm::vec3 specular;
+    Vec3 ambient;
+    Vec3 diffuse;
+    Vec3 specular;
 };
 
 struct PointLight : Light {
-    glm::vec3 position;
+    Vec3 position;
     float constDistCoeff;
     float linearDistCoeff;
     float quadraticDistCoeff;
 
     // PointLight() {}
-    PointLight(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular,
-            glm::vec3 position, float constDistCoeff, float linearDistCoeff,
+    PointLight(Vec3 ambient, Vec3 diffuse, Vec3 specular,
+            Vec3 position, float constDistCoeff, float linearDistCoeff,
             float quadraticDistCoeff) {
         this->ambient = ambient;
         this->diffuse = diffuse;
@@ -30,10 +29,10 @@ struct PointLight : Light {
 };
 
 struct DirLight : Light {
-    glm::vec3 direction;
+    Vec3 direction;
 
-    DirLight(glm::vec3 ambient, glm::vec3 diffuse,
-            glm::vec3 specular, glm::vec3 direction) {
+    DirLight(Vec3ambient, Vec3 diffuse,
+            Vec3 specular, Vec3 direction) {
         this->ambient = ambient;
         this->diffuse = diffuse;
         this->specular = specular;
@@ -42,17 +41,17 @@ struct DirLight : Light {
 };
 
 struct SpotLight : Light {
-    glm::vec3 position;
+    Vec3 position;
     float constDistCoeff;
     float linearDistCoeff;
     float quadraticDistCoeff;
-    glm::vec3 direction;
+    Vec3 direction;
     float cutOff;
     float outerCutOff;
 
-    SpotLight(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular,
-            glm::vec3 position, float constDistCoeff, float linearDistCoeff,
-            float quadraticDistCoeff, glm::vec3 direction, float cutOff,
+    SpotLight(Vec3 ambient, Vec3 diffuse, Vec3 specular,
+            Vec3 position, float constDistCoeff, float linearDistCoeff,
+            float quadraticDistCoeff, Vec3 direction, float cutOff,
             float outerCutOff) {
         this->ambient = ambient;
         this->diffuse = diffuse;

@@ -5,14 +5,17 @@
 #include <vector>
 #include <iostream>
 
+#include "math_types.hpp"
 #include "camera.hpp"
 #include "shaders.hpp"
 #include "light.hpp"
 #include "material.hpp"
 #include "input.hpp"
+#include "model.hpp"
 #include "texture.hpp"
 #include "stb_image.h"
 #include "logger.hpp"
+#include "collisions.hpp"
 #include "animation.hpp"
 
 int viewportWidth, viewportHeight;
@@ -41,10 +44,9 @@ void processInput(GLFWwindow *window);
 
 Engine::Engine(int SCR_WIDTH, int SCR_HEIGHT) {
     m_Objects = std::vector<Object *>();
-    camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
+    camera = new Camera(Vec3(0.0f, 0.0f, 3.0f));
     s_Engine = this;
         // glfw: initialize and configure
-    // ------------------------------
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -110,8 +112,6 @@ void Engine::AddObject(Object *a) {
     m_Objects.push_back(a);
 }
 
-
-
 void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     scrWidth = SCR_WIDTH;
     scrHeight = SCR_HEIGHT;
@@ -119,7 +119,6 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     viewportHeight = SCR_HEIGHT;
     viewportStartX = 0;
     viewportStartY = 0;
-
     m_Input.SetWindow(m_Window);
     m_Input.SetMode(MODE, VALUE);
     m_Input.InitMouse();
@@ -160,8 +159,6 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
         Render(SCR_WIDTH, SCR_HEIGHT);
     }
 
-    // glfw: terminate, clearing all previously allocated GLFW resources.
-    // ------------------------------------------------------------------
     glfwTerminate();
     return;
 }
@@ -169,6 +166,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 void Engine::updateObjects(float deltaTime) {
     for (int i = 0; i < m_Objects.size(); i++) {
         auto object = m_Objects[i];
+        object->Update(deltaTime);
         if (object->animation) {
             object->animation->applyAnimations(object->transform, deltaTime);
         }
@@ -202,20 +200,16 @@ void Engine::Render(int scr_width, int scr_height) {
 
         float timeValue = glfwGetTime();
 
-        transform->Rotate(glm::radians(0.1f), glm::radians(0.1f), glm::radians(0.1f));
-
         ShaderProgram* shader = model->shader;
-        // draw our first triangle
         shader->Use();
 
-        glm::mat4 view = camera->GetViewMatrix();
-        glm::vec3 viewPos = camera->GetPosition();
+        Mat4 view = camera->GetViewMatrix();
+        Vec3 viewPos = camera->GetPosition();
 
-        glm::mat4 projection = glm::perspective(
+        Mat4 projection = glm::perspective(
                                         glm::radians(camera->GetZoom()),
                                         static_cast<float>(scr_width) / static_cast<float>(scr_height),
                                         0.1f, 100.0f);
-
       // send matrix transform to shader
         shader->SetMat4("model", transform->GetTransformMatrix());
         shader->SetMat4("view", view);
