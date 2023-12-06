@@ -6,9 +6,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-
-include_directories(include)
-
 find_package(OpenGL REQUIRED)
 
 add_library(ENGINE STATIC 
@@ -29,7 +26,7 @@ add_library(ENGINE STATIC
 add_subdirectory(thirdparty/glfw)
 add_subdirectory(thirdparty/glad)
 
-target_include_directories(ENGINE PUBLIC thirdparty)
+target_include_directories(ENGINE PUBLIC thirdparty PUBLIC include)
 target_link_libraries(ENGINE PUBLIC glfw glad OpenGL::GL)
 
 add_executable(main src/main.cpp)
