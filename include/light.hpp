@@ -31,7 +31,7 @@ struct PointLight : Light {
 struct DirLight : Light {
     Vec3 direction;
 
-    DirLight(Vec3ambient, Vec3 diffuse,
+    DirLight(Vec3 ambient, Vec3 diffuse,
             Vec3 specular, Vec3 direction) {
         this->ambient = ambient;
         this->diffuse = diffuse;
