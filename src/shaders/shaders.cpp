@@ -1,4 +1,3 @@
-
 #include "shaders.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -101,10 +100,6 @@ int ShaderProgram::Use() {
     glUseProgram(m_Program);
     return 0;
 }
-
-/* ShaderProgram::~ShaderProgram() { */
-/*     glDeleteProgram(m_Program); */
-/* } */
 
 int ShaderProgram::UniformLocation(const char* mode) {
     return glGetUniformLocation(m_Program, mode);

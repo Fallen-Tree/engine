@@ -45,6 +45,4 @@ class ShaderProgram {
      void SetVec4i(const char* name, const Vec4Int vec);
      void SetMat3(const char* name, const Mat3 mat);
      void SetMat4(const char* name, const Mat4 mat);
-
-     /* ~ShaderProgram(); */
 };

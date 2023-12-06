@@ -19,12 +19,12 @@ enum Camera_Movement {
 class Camera {
  public:
     // constructor with vectors
-    explicit Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, -3.0f),
-                    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
+    explicit Camera(Vec3 position = Vec3(0.0f, 0.0f, -3.0f),
+                    Vec3 up = Vec3(0.0f, 1.0f, 0.0f),
                     float yaw = DFL_YAW, float pitch = DFL_PITCH);
 
-    void SetPosition(glm::vec3 position = glm::vec3(0.0f, 0.0f, -3.0f),
-                    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
+    void SetPosition(Vec3 position = Vec3(0.0f, 0.0f, -3.0f),
+                    Vec3 up = Vec3(0.0f, 1.0f, 0.0f),
                     float yaw = DFL_YAW, float pitch = DFL_PITCH);
 
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
