@@ -30,7 +30,7 @@ std::vector<PointLight> pointLights = std::vector<PointLight>(3);
 DirLight dirLight;
 std::vector<SpotLight> spotLight = std::vector<SpotLight>(1);
 
-static Input *s_Input = nullptr;
+Input *s_Input = nullptr;
 
 Camera* Engine::SwitchCamera(Camera* newCamera) {
     if (!newCamera) {
@@ -106,6 +106,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     viewportHeight = SCR_HEIGHT;
     viewportStartX = 0;
     viewportStartY = 0;
+    s_Input = &m_Input;
     m_Input.SetWindow(m_Window);
     m_Input.SetMode(MODE, VALUE);
     m_Input.InitMouse();
@@ -202,6 +203,7 @@ void Engine::Render(int scr_width, int scr_height) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
+    camera->SetScreenSize({static_cast<float>(scr_width), static_cast<float>(scr_height)});
     for (uint64_t i = 0; i < m_Objects.size(); i++) {
         auto object = m_Objects[i];
         if (!object->renderData || !object->transform)
@@ -220,11 +222,9 @@ void Engine::Render(int scr_width, int scr_height) {
         Mat4 view = camera->GetViewMatrix();
         Vec3 viewPos = camera->GetPosition();
 
-        Mat4 projection = glm::perspective(
-                                        glm::radians(camera->GetZoom()),
-                                        static_cast<float>(scr_width) / static_cast<float>(scr_height),
-                                        0.1f, 100.0f);
-      // send matrix transform to shader
+        Mat4 projection = camera->GetProjectionMatrix();
+
+        // send matrix transform to shader
         shader->SetMat4("model", transform->GetTransformMatrix());
         shader->SetMat4("view", view);
         shader->SetVec3("viewPos", viewPos);

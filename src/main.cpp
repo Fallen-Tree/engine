@@ -2,6 +2,8 @@
 #include "collisions.hpp"
 #include "logger.hpp"
 
+extern Input *s_Input;
+
 static int SCR_HEIGHT = 600;
 static int SCR_WIDTH = 800;
 
@@ -36,8 +38,12 @@ class Pointer : public Object {
          m_Camera = camera;
      }
 
-     void Update(float dt) override {
-        Ray ray = Ray { m_Camera->GetFront(), m_Camera->GetPosition() };
+    void Update(float dt) override {
+        Ray ray = m_Camera->GetRayThroughScreenPoint({s_Input->MouseX(), s_Input->MouseY()});
+        Logger::Info("%f %f", s_Input->MouseX(), s_Input->MouseY());
+        Logger::Info("(%f %f %f)", ray.origin.x, ray.origin.y, ray.origin.z);
+        Logger::Info("(%f %f %f)", ray.direction.x, ray.direction.y, ray.direction.z);
+        /* Ray ray = Ray { m_Camera->GetFront(), m_Camera->GetPosition() }; */
         for (int i = 0; i < m_Objects.size(); i++) {
             auto obj = m_Objects[i];
             if (obj->collider->Raycast(*obj->transform, ray)) {

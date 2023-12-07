@@ -138,7 +138,7 @@ enum Key {
 // Initial (Default) conroller values
 // They should be replaced into other constants
 const int MODE = GLFW_CURSOR;
-const int VALUE = GLFW_CURSOR_DISABLED;
+const int VALUE = GLFW_CURSOR_NORMAL;
 
 class Input {
  private:
