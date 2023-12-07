@@ -7,6 +7,9 @@ const char *benchSource = "/bench.obj";
 const char *vertexShaderSource = "/vertex/standart.vshader";
 const char *fragmentShaderSource = "/fragment/standart.fshader";
 
+
+auto engine = Engine();
+
 class MovingSphere : public Object {
  public:
     void Update(float dt) override {
@@ -24,10 +27,17 @@ class MovingSphere : public Object {
     Vec3 m_Speed;
 };
 
-Object* initModel();
+class FpsText : public Object {
+ public:
+    void Update(float dt) override {
+        int fps = engine.GetCurrentFps();
+        char buf[10];
+        snprintf(buf, sizeof(buf), "Fps: %d", fps);
+        this->text->SetContent(buf);
+    }
+};
 
 int main() {
-    auto engine = Engine();
     std::vector<GLfloat> cubeVertices {
           // positions          // normals           // texture coords
         -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
@@ -181,6 +191,11 @@ int main() {
     engine.AddObject<>(spheres[0]);
     engine.AddObject<>(spheres[1]);
     engine.AddObject<>(spheres[2]);
+
+    auto textOcra = new Font("OCRAEXT.TTF", 20);
+    auto fpsObj = new FpsText();
+    fpsObj->text = new Text(textOcra, "", 685.0f, 575.0f, 1.f, Vec3(0, 0, 0));
+    engine.AddObject<>(fpsObj);
 
     engine.Run();
 }

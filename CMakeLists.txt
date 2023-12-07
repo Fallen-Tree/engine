@@ -21,6 +21,7 @@ add_library(ENGINE STATIC
             src/texture/texture.cpp
             src/logging/logger.cpp
             src/text/text.cpp
+            src/text/font.cpp
             src/animation/animation.cpp
             src/physics/geometry_primitives.cpp
             src/physics/collisions.cpp

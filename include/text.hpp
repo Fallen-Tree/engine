@@ -2,24 +2,27 @@
 
 #include <ft2build.h>
 #include <freetype/freetype.h>
-#include <string>
 
 #include "shaders.hpp" 
-
+#include "font.hpp"
 
 class Text {
  private:
-    ShaderProgram m_ShaderProgram;
-    unsigned int m_VAO, m_VBO;
-   struct Character {
-      unsigned int TextureID;  // ID handle of the glyph texture
-      glm::ivec2   Size;       // Size of glyph
-      glm::ivec2   Bearing;    // Offset from baseline to left/top of glyph
-      long int Advance;    // Offset to advance to next glyph
-   };
-   Character Characters[128];  
+   Font* font;
+
+   std::string text;
+   float x;
+   float y;
+   float scale;
+   Vec3 color;
 
  public:
-    Text(const char* font, unsigned int fontSize);
-    void RenderText(std::string, float, float, float, glm::vec3);
+    Text(Font* font, std::string, float, float, float, Vec3);
+    void SetCoordinates(float, float);
+    void SetScale(float);
+    void SetColor(Vec3);
+    void SetRenderData(float, float, float, Vec3);
+    void SetContent(std::string);
+    void SetFont(Font*);
+    void RenderText();
 };

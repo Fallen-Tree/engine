@@ -17,7 +17,6 @@
 #include "logger.hpp"
 #include "collisions.hpp"
 #include "animation.hpp"
-#include "text.hpp"
 
 
 int viewportWidth, viewportHeight;
@@ -31,8 +30,6 @@ static Engine *s_Engine = nullptr;
 std::vector<PointLight> pointLights = std::vector<PointLight>(3);
 DirLight dirLight;
 std::vector<SpotLight> spotLight = std::vector<SpotLight>(1);
-Text* textArial;
-Text* textOcra;
 
 unsigned int fps = 0;
 static Input *s_Input = nullptr;
@@ -143,10 +140,6 @@ void Engine::Run() {
     spotLight[0].cutOff = glm::cos(glm::radians(12.5f));
     spotLight[0].outerCutOff = glm::cos(glm::radians(15.0f));
 
-    textArial = new Text("arial.ttf", 20);
-    textOcra = new Text("OCRAEXT.TTF", 20);
-
-
     glEnable(GL_DEPTH_TEST);
 
 
@@ -189,6 +182,10 @@ void Engine::Run() {
 
     glfwTerminate();
     return;
+}
+
+int Engine::GetCurrentFps() {
+    return fps;
 }
 
 void Engine::updateObjects(float deltaTime) {
@@ -309,10 +306,14 @@ void Engine::Render(int scr_width, int scr_height) {
     }
 
     // Text rendering
-    char buf[10];
-    snprintf(buf, sizeof(buf), "Fps: %d", fps);
-    textOcra->RenderText(buf, 685.0f, 575.0f, 1.f, glm::vec3(0, 0, 0));
-    textArial->RenderText(buf, 10.0f, 10.0f, 1.f, glm::vec3(0, 0, 0));
+    for (uint64_t i = 0; i < m_Objects.size(); i++) {
+        auto object = m_Objects[i];
+        if (!object->text) {
+            continue;
+        }
+
+        object->text->RenderText();
+    }
 
     glfwSwapBuffers(m_Window);
 }

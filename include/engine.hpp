@@ -6,6 +6,9 @@
 #include "camera.hpp"
 #include "input.hpp"
 #include "animation.hpp"
+#include "text.hpp"
+#include "font.hpp"
+#include "logger.hpp"
 
 struct GLFWwindow;
 
@@ -17,6 +20,7 @@ class Object {
      RenderData *renderData = nullptr;
      Collider *collider = nullptr;
      Animation *animation = nullptr;
+     Text *text = nullptr;
 };
 
 class Engine {
@@ -32,6 +36,7 @@ class Engine {
 
     Camera* SwitchCamera(Camera* newCamera);
     void Run();
+    int GetCurrentFps();
     Input m_Input;
     Camera* camera;
 
