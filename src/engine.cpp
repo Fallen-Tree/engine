@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 
+#include "math_types.hpp"
 #include "camera.hpp"
 #include "shaders.hpp"
 #include "light.hpp"
@@ -14,6 +15,7 @@
 #include "texture.hpp"
 #include "stb_image.h"
 #include "logger.hpp"
+#include "collisions.hpp"
 #include "animation.hpp"
 #include "text.hpp"
 
@@ -51,7 +53,7 @@ void processInput(GLFWwindow *window);
 
 Engine::Engine() {
     m_Objects = std::vector<Object *>();
-    camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
+    camera = new Camera(Vec3(0.0f, 0.0f, 3.0f));
     s_Engine = this;
         // glfw: initialize and configure
     glfwInit();
@@ -109,33 +111,32 @@ void Engine::Run() {
     viewportHeight = SCR_HEIGHT;
     viewportStartX = 0;
     viewportStartY = 0;
-
     m_Input.SetWindow(m_Window);
     m_Input.SetMode(MODE, VALUE);
     m_Input.InitMouse();
 
 
-    pointLights[0].ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-    pointLights[0].diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
-    pointLights[0].specular = glm::vec3(1.0f, 1.0f, 1.0f);
-    pointLights[0].position = glm::vec3(-0.2, -0.5, -1.2);
+    pointLights[0].ambient = Vec3(0.2f, 0.2f, 0.2f);
+    pointLights[0].diffuse = Vec3(0.5f, 0.5f, 0.5f);
+    pointLights[0].specular = Vec3(1.0f, 1.0f, 1.0f);
+    pointLights[0].position = Vec3(-0.2, -0.5, -1.2);
     pointLights[0].constDistCoeff = 1;
     pointLights[0].linearDistCoeff = 0.09f;
     pointLights[0].quadraticDistCoeff = 0.032f;
 
     pointLights[1] = pointLights[0];
-    pointLights[1].position = glm::vec3(2.3f, -3.3f, -4.0f);
+    pointLights[1].position = Vec3(2.3f, -3.3f, -4.0f);
     pointLights[2] = pointLights[0];
-    pointLights[2].position = glm::vec3(0.0f,  0.0f, -3.0f);
+    pointLights[2].position = Vec3(0.0f,  0.0f, -3.0f);
 
-    dirLight.ambient = glm::vec3(0.05f, 0.05f, 0.05f);
-    dirLight.diffuse = glm::vec3(0.4f, 0.4f, 0.4f);
-    dirLight.specular = glm::vec3(0.5f, 0.5f, 0.5f);
-    dirLight.direction = glm::vec3(-0.2f, -1.0f, -0.3f);
+    dirLight.ambient = Vec3(0.05f, 0.05f, 0.05f);
+    dirLight.diffuse = Vec3(0.4f, 0.4f, 0.4f);
+    dirLight.specular = Vec3(0.5f, 0.5f, 0.5f);
+    dirLight.direction = Vec3(-0.2f, -1.0f, -0.3f);
 
-    spotLight[0].ambient = glm::vec3(0.0f, 0.0f, 0.0f);
-    spotLight[0].diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
-    spotLight[0].specular = glm::vec3(1.0f, 1.0f, 1.0f);
+    spotLight[0].ambient = Vec3(0.0f, 0.0f, 0.0f);
+    spotLight[0].diffuse = Vec3(1.0f, 1.0f, 1.0f);
+    spotLight[0].specular = Vec3(1.0f, 1.0f, 1.0f);
     spotLight[0].constDistCoeff = 1.0f;
     spotLight[0].linearDistCoeff = 0.09f;
     spotLight[0].quadraticDistCoeff = 0.032f;
@@ -144,6 +145,7 @@ void Engine::Run() {
 
     textArial = new Text("arial.ttf", 20);
     textOcra = new Text("OCRAEXT.TTF", 20);
+
 
     glEnable(GL_DEPTH_TEST);
 
@@ -185,8 +187,6 @@ void Engine::Run() {
         Render(SCR_WIDTH, SCR_HEIGHT);
     }
 
-    // glfw: terminate, clearing all previously allocated GLFW resources.
-    // ------------------------------------------------------------------
     glfwTerminate();
     return;
 }
@@ -194,6 +194,7 @@ void Engine::Run() {
 void Engine::updateObjects(float deltaTime) {
     for (int i = 0; i < m_Objects.size(); i++) {
         auto object = m_Objects[i];
+        object->Update(deltaTime);
         if (object->animation) {
             object->animation->applyAnimations(object->transform, deltaTime);
         }
@@ -228,17 +229,15 @@ void Engine::Render(int scr_width, int scr_height) {
         float timeValue = glfwGetTime();
 
         ShaderProgram* shader = model->shader;
-        // draw our first triangle
         shader->Use();
 
-        glm::mat4 view = camera->GetViewMatrix();
-        glm::vec3 viewPos = camera->GetPosition();
+        Mat4 view = camera->GetViewMatrix();
+        Vec3 viewPos = camera->GetPosition();
 
-        glm::mat4 projection = glm::perspective(
+        Mat4 projection = glm::perspective(
                                         glm::radians(camera->GetZoom()),
                                         static_cast<float>(scr_width) / static_cast<float>(scr_height),
                                         0.1f, 100.0f);
-
       // send matrix transform to shader
         shader->SetMat4("model", transform->GetTransformMatrix());
         shader->SetMat4("view", view);

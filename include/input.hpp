@@ -2,9 +2,7 @@
 
 #include <glfw/include/GLFW/glfw3.h>
 #include <vector>
-#include <glm/glm.hpp>
-
-
+#include "math_types.hpp"
 
 enum Key {
       /* Printable keys */
@@ -148,8 +146,8 @@ class Input {
     GLFWwindow *m_Window;
     float m_ScrollOffset = 0.f;
 
-    glm::vec2 m_Last = glm::vec2(0);
-    glm::vec2 m_Current = glm::vec2(0);
+    Vec2 m_Last = Vec2(0);
+    Vec2 m_Current = Vec2(0);
 
  public:
     explicit Input(GLFWwindow *window);
