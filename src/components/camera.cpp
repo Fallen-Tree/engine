@@ -2,6 +2,7 @@
 #include "input.hpp"
 #include "math_types.hpp"
 #include "user_config.hpp"
+#include "logger.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 
 Camera::Camera(Vec3 position, Vec3 up, float yaw, float pitch, float nPlane, float fPlane) {
@@ -42,19 +43,28 @@ Mat4 Camera::GetProjectionMatrix() {
 }
 
 Ray Camera::GetRayThroughScreenPoint(Vec2 pos) {
-    float halfTan = glm::tan(glm::radians(m_Zoom));
+    pos.y = m_ScreenSize.y - pos.y;
+    pos -= m_ScreenSize / 2.0f;
+    /* Logger::Info("%f %f", m_ScreenSize.x, m_ScreenSize.y); */
+    float halfTan = glm::tan(glm::radians(m_Zoom)/2);
     float aspectRatio = m_ScreenSize.x / m_ScreenSize.y;
     Vec3 unprojectedNear = Vec3 {
         pos.x * 2 * m_NearPlane * halfTan * aspectRatio / m_ScreenSize.x,
         pos.y * 2 * m_NearPlane * halfTan / m_ScreenSize.y,
-        m_NearPlane,
+        -m_NearPlane,
     };
     Vec3 unprojectedFar = Vec3 {
         pos.x * 2 * m_FarPlane * halfTan * aspectRatio / m_ScreenSize.x,
         pos.y * 2 * m_FarPlane * halfTan / m_ScreenSize.y,
-        m_FarPlane,
+        -m_FarPlane,
     };
-    return Ray(unprojectedNear, unprojectedFar);
+
+    auto mat = (glm::transpose(glm::inverse(GetViewMatrix())));
+    auto mul = [](Vec3 v, Mat4 mat) {
+        Vec4 res = Vec4(v, 1) * mat;
+        return Vec3(res.x / res.w, res.y / res.w, res.z / res.w);
+    };
+    return Ray(mul(unprojectedNear, mat), mul(unprojectedFar, mat));
 }
 
 float Camera::GetZoom() {
