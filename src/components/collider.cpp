@@ -44,3 +44,17 @@ bool Collider::Collide(Transform self, Collider *other, Transform otherTransform
 bool Collider::Raycast(Transform self, Ray ray) {
     return std::visit([=](auto shape) { return CollideShifted(ray, shape, self); }, shape);
 }
+
+template<typename U>
+std::optional<float> CollisionShifted(Ray lhs, U rhs, Transform rhsTransform) {
+    return CollisionPrimitive(lhs, rhs.Transformed(rhsTransform));
+}
+
+template<>
+std::optional<float> CollisionShifted(Ray lhs, Model * rhs, Transform rhsTransform) {
+    Logger::Error("Raycast into mesh is not supported yet");
+    assert(false);
+}
+std::optional<float> Collider::RaycastHit(Transform self, Ray ray) {
+    return std::visit([=](auto shape) { return CollisionShifted(ray, shape, self); }, shape);
+}

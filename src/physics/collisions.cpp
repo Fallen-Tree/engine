@@ -1,4 +1,5 @@
 #include <variant>
+#include <optional>
 #include "logger.hpp"
 #include "math_types.hpp"
 #include "collisions.hpp"
@@ -279,4 +280,45 @@ bool CollidePrimitive(Ray r, AABB aabb) {
             return false;
     }
     return true;
+}
+
+std::optional<float> CollisionPrimitive(Ray r, AABB aabb) {
+    float tmin = 0.f;
+    float tmax = std::numeric_limits<float>::max();
+    for (int i = 0; i < 3; i++) {
+        if (glm::abs(r.direction[i]) < EPS) {
+            if (r.origin[i] < aabb.min[i] || r.origin[i] > aabb.max[i]) {
+                return {};
+            }
+            continue;
+        }
+        float t0 = (aabb.min[i] - r.origin[i]) / r.direction[i];
+        float t1 = (aabb.max[i] - r.origin[i]) / r.direction[i];
+        if (t0 > t1) {
+            float tmp = t1;
+            t1 = t0;
+            t0 = tmp;
+        }
+        tmin = glm::max(tmin, t0);
+        tmax = glm::min(tmax, t1);
+
+        if (tmin > tmax)
+            return {};
+    }
+    return tmin;
+}
+
+std::optional<float> CollisionPrimitive(Ray r, Sphere s) {
+    Vec3 centeredOrigin = r.origin - s.center;
+    float b = glm::dot(r.direction, centeredOrigin);
+    float c = glm::dot(centeredOrigin, centeredOrigin) - s.radius * s.radius;
+
+    if (c > 0 && b > 0)
+        return {};
+
+    float x = -b - glm::sqrt(b*b - c);
+    if (x < 0)
+        x = 0;
+
+    return x;
 }

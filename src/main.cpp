@@ -1,3 +1,4 @@
+#include <limits>
 #include "engine.hpp"
 #include "collisions.hpp"
 #include "logger.hpp"
@@ -42,15 +43,17 @@ class Pointer : public Object {
         Ray ray = m_Camera->GetRayThroughScreenPoint({s_Input->MouseX(), s_Input->MouseY()});
         ray.direction = glm::normalize(ray.direction);
         Transform *target = nullptr;
+        float closest = std::numeric_limits<float>::max();
         for (int i = 0; i < m_Objects.size(); i++) {
             auto obj = m_Objects[i];
-            if (obj->collider->Raycast(*obj->transform, ray)) {
+            auto hit = obj->collider->RaycastHit(*obj->transform, ray);
+            if (hit && *hit < closest) {
                 target = obj->transform;
+                closest = *hit;
             }
         }
 
         if (target != nullptr && s_Input->IsKeyPressed(Key::MouseLeft)) {
-            Logger::Info("???");
             transform->SetTranslation(target->GetTranslation());
         }
      }
