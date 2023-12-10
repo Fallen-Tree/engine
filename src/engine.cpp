@@ -17,6 +17,7 @@
 #include "logger.hpp"
 #include "collisions.hpp"
 #include "animation.hpp"
+#include <glm/gtx/string_cast.hpp>
 
 int viewportWidth, viewportHeight;
 // Left bottom corner coordinates of viewport
@@ -44,6 +45,7 @@ Camera* Engine::SwitchCamera(Camera* newCamera) {
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
 void processInput(GLFWwindow *window);
 
 Engine::Engine(int SCR_WIDTH, int SCR_HEIGHT) {
@@ -72,7 +74,7 @@ Engine::Engine(int SCR_WIDTH, int SCR_HEIGHT) {
     glfwSetFramebufferSizeCallback(m_Window, framebuffer_size_callback);
     glfwSetScrollCallback(m_Window, scroll_callback);
     glfwSetKeyCallback(m_Window, key_callback);
-
+    glfwSetMouseButtonCallback(m_Window, mouse_button_callback);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -307,6 +309,12 @@ void processInput(GLFWwindow *window) {
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key > 0 && key < MAX_VALID_KEY && action == GLFW_PRESS) {
         s_Engine->m_Input.ButtonPress(key);
+    }
+}
+
+void mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
+    if (action == GLFW_PRESS) {
+        s_Engine->m_Input.ButtonPress(button);
     }
 }
 

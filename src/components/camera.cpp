@@ -45,7 +45,6 @@ Mat4 Camera::GetProjectionMatrix() {
 Ray Camera::GetRayThroughScreenPoint(Vec2 pos) {
     pos.y = m_ScreenSize.y - pos.y;
     pos -= m_ScreenSize / 2.0f;
-    /* Logger::Info("%f %f", m_ScreenSize.x, m_ScreenSize.y); */
     float halfTan = glm::tan(glm::radians(m_Zoom)/2);
     float aspectRatio = m_ScreenSize.x / m_ScreenSize.y;
     Vec3 unprojectedNear = Vec3 {

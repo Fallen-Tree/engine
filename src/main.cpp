@@ -41,15 +41,17 @@ class Pointer : public Object {
     void Update(float dt) override {
         Ray ray = m_Camera->GetRayThroughScreenPoint({s_Input->MouseX(), s_Input->MouseY()});
         ray.direction = glm::normalize(ray.direction);
-        /* transform->SetTranslation(ray.origin + 2.f * ray.direction); */
-        /* Logger::Info("(%f %f %f)", ray.origin.x, ray.origin.y, ray.origin.z); */
-        /* Logger::Info("(%f %f %f)", ray.direction.x, ray.direction.y, ray.direction.z); */
-        /* Ray ray = Ray { m_Camera->GetFront(), m_Camera->GetPosition() }; */
+        Transform *target = nullptr;
         for (int i = 0; i < m_Objects.size(); i++) {
             auto obj = m_Objects[i];
             if (obj->collider->Raycast(*obj->transform, ray)) {
-                Logger::Info("Hit at %d!", i);
+                target = obj->transform;
             }
+        }
+
+        if (target != nullptr && s_Input->IsKeyPressed(Key::MouseLeft)) {
+            Logger::Info("???");
+            transform->SetTranslation(target->GetTranslation());
         }
      }
 
@@ -219,12 +221,22 @@ int main() {
     auto observer = new Pointer(
         {spheres[0], spheres[1], spheres[2], aabb, sphere},
         engine.camera);
-    /* observer->transform = new Transform(Vec3(0), Vec3(0.5f), Mat4(1)); */
-    /* observer->renderData = new RenderData(); */
-    /* auto renderData = observer->renderData; */
-    /* renderData->model = sphereModel; */
-    /* renderData->material = material; */
-    /* bindRenderData(renderData); */
+
+    observer->renderData = new RenderData();
+    auto renderData = observer->renderData;
+    renderData->model = Model::loadFromFile("/kiy.obj");
+    renderData->model->shader = shaderProgram;
+    bindRenderData(renderData);
+
+    observer->transform = new Transform(Vec3(0), Vec3(1), 0, Vec3(1));
+
+    auto imagesCue = std::vector<std::string>();
+    imagesCue.push_back("/kiy.png");
+    imagesCue.push_back("/kiy.png");
+    observer->renderData->material = {
+        4.f,
+        Texture(imagesCue),
+    };
     engine.AddObject<>(observer);
 
     engine.Run(SCR_WIDTH, SCR_HEIGHT);
