@@ -41,7 +41,6 @@ class Pointer : public Object {
 
     void Update(float dt) override {
         Ray ray = m_Camera->GetRayThroughScreenPoint({s_Input->MouseX(), s_Input->MouseY()});
-        ray.direction = glm::normalize(ray.direction);
         Transform *target = nullptr;
         float closest = std::numeric_limits<float>::max();
         for (int i = 0; i < m_Objects.size(); i++) {
@@ -52,15 +51,22 @@ class Pointer : public Object {
                 closest = *hit;
             }
         }
+        if (s_Input->IsKeyPressed(Key::MouseLeft))
+            m_CurrentTarget = target;
 
-        if (target != nullptr && s_Input->IsKeyPressed(Key::MouseLeft)) {
-            transform->SetTranslation(target->GetTranslation());
+        if (m_CurrentTarget != nullptr) {
+            Vec3 center = m_CurrentTarget->GetTranslation();
+            Vec3 closest = ray.origin + glm::dot(center - ray.origin, ray.direction) * ray.direction;
+            closest.y = center.y;
+            Vec3 onCircle = glm::normalize(closest - center) * 1.f;
+            transform->SetTranslation(onCircle);
         }
      }
 
  private:
-     std::vector<Object *> m_Objects;
-     Camera *m_Camera;
+    Transform *m_CurrentTarget = nullptr;
+    std::vector<Object *> m_Objects;
+    Camera *m_Camera;
 };
 
 Object* initModel();

@@ -131,5 +131,5 @@ Sphere Sphere::Transformed(Transform transform) {
 
 Ray::Ray(Vec3 from, Vec3 to) {
     origin = from;
-    direction = to - from;
+    direction = glm::normalize(to - from);
 }
