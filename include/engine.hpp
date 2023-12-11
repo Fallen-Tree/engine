@@ -9,12 +9,14 @@
 #include "animation.hpp"
 #include "light.hpp"
 
+extern Input *s_Input;
+
 struct GLFWwindow;
 
 class Object {
  public:
      virtual void Update(float) {}
-  
+
      Transform *transform = nullptr;
      RenderData *renderData = nullptr;
      Collider *collider = nullptr;

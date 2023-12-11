@@ -3,8 +3,6 @@
 #include "collisions.hpp"
 #include "logger.hpp"
 
-extern Input *s_Input;
-
 static int SCR_HEIGHT = 600;
 static int SCR_WIDTH = 800;
 
