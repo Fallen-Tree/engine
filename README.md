@@ -27,5 +27,12 @@ Probably later it will be stored as object component, but have to think better a
 
 To render text on the screen you need create Text object with font in .ttf format after the initialization of glfw. Then you can call text.RenderObject method to set coordinates of text, scale and color.
 
+* New *
+
+auto textOcra = new Font("OCRAEXT.TTF", 20); // Create new Font object
+auto fpsObj = new FpsText(); // create new fpsObj,
+fpsObj->text = new Text(textOcra, "", 685.0f, 575.0f, 1.f, Vec3(0, 0, 0)); // set new text component to fpsObj
+engine.AddObject<>(fpsObj); // add to objects list
+
 #### Probably bugs and problems
 + No game-window: Text objects can be created only after glfw initialization

@@ -9,6 +9,7 @@
 #include "text.hpp"
 #include "font.hpp"
 #include "logger.hpp"
+#include "time.hpp"
 
 struct GLFWwindow;
 
@@ -36,7 +37,6 @@ class Engine {
 
     Camera* SwitchCamera(Camera* newCamera);
     void Run();
-    int GetCurrentFps();
     Input m_Input;
     Camera* camera;
 

@@ -32,7 +32,8 @@ DirLight dirLight;
 std::vector<SpotLight> spotLight = std::vector<SpotLight>(1);
 
 unsigned int fps = 0;
-static Input *s_Input = nullptr;
+
+// static Time *s_Time = nullptr;
 
 Camera* Engine::SwitchCamera(Camera* newCamera) {
     if (!newCamera) {
@@ -52,7 +53,7 @@ Engine::Engine() {
     m_Objects = std::vector<Object *>();
     camera = new Camera(Vec3(0.0f, 0.0f, 3.0f));
     s_Engine = this;
-        // glfw: initialize and configure
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -157,11 +158,13 @@ void Engine::Run() {
     while (!glfwWindowShouldClose(m_Window)) {
         float currentTime = static_cast<float>(glfwGetTime());
         deltaTime = currentTime - lastTime;
+        Time::SetDeltaTime(deltaTime);
         lastTime = currentTime;
 
         if (currentTime - lastFpsShowedTime > FPS_SHOWING_INTERVAL) {
             fps = static_cast<unsigned int>(fpsFrames / (currentTime - lastFpsShowedTime));
             Logger::Info("%d", fps);
+            Time::SetCurrentFps(fps);
             lastFpsShowedTime = currentTime;
             fpsFrames = 0;
         }
@@ -184,9 +187,6 @@ void Engine::Run() {
     return;
 }
 
-int Engine::GetCurrentFps() {
-    return fps;
-}
 
 void Engine::updateObjects(float deltaTime) {
     for (int i = 0; i < m_Objects.size(); i++) {
