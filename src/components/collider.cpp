@@ -12,6 +12,7 @@ template<>
 bool CollideShifted(Ray lhs, Model * rhs, Transform rhsTransform) {
     Logger::Error("Raycast into mesh is not supported yet");
     assert(false);
+    return false;
 }
 
 template<typename T, typename U>
@@ -54,6 +55,7 @@ template<>
 std::optional<float> CollisionShifted(Ray lhs, Model * rhs, Transform rhsTransform) {
     Logger::Error("Raycast into mesh is not supported yet");
     assert(false);
+    return {};
 }
 std::optional<float> Collider::RaycastHit(Transform self, Ray ray) {
     return std::visit([=](auto shape) { return CollisionShifted(ray, shape, self); }, shape);
