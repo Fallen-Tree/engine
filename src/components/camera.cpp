@@ -141,9 +141,9 @@ void Camera::UpdateCameraVectors() {
 void Camera::Update(Input * input, float deltaTime) {
     float xOffset = input->OffsetX();
     float yOffset = input->OffsetY();
-    /* if (xOffset != 0 || yOffset != 0) { */
-    /*     ProcessMouseMovement(xOffset, yOffset); */
-    /* } */
+    if (xOffset != 0 || yOffset != 0) {
+        ProcessMouseMovement(xOffset, yOffset);
+    }
 
     float scrollOffset = input->ScrollOfsset();
     if (scrollOffset != 0)
