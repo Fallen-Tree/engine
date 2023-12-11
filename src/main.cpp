@@ -63,13 +63,12 @@ class Pointer : public Object {
 
             Vec3 toCenter = center - onCircle;
             float angle = glm::acos(glm::dot(toCenter, ray.direction) / m_CueDistance);
-            transform->SetRotation(glm::pi<float>() / 200.f, Vec3{1.f, 0.f, 0.f});
-            /* transform->SetRotation(-angle, Vec3{0.f, 1.f, 0.f}); */
+            transform->SetRotation(-glm::pi<float>()/2, glm::cross(Vec3{0.f, 1.f, 0.f}, toCenter));
         }
      }
 
  private:
-    float m_CueDistance;
+    float m_CueDistance = 1.f;
     Transform *m_CurrentTarget = nullptr;
     std::vector<Object *> m_Objects;
     Camera *m_Camera;
