@@ -27,10 +27,6 @@ int scrWidth, scrHeight;
 
 
 static Engine *s_Engine = nullptr;
-std::vector<PointLight> pointLights = std::vector<PointLight>(3);
-DirLight dirLight;
-std::vector<SpotLight> spotLight = std::vector<SpotLight>(1);
-
 Input *s_Input = nullptr;
 
 Camera* Engine::SwitchCamera(Camera* newCamera) {
@@ -98,6 +94,23 @@ Engine::~Engine() {
 }
 
 void Engine::AddObject(Object *a) {
+    if (a != nullptr) {
+        switch (a->light.index()) {
+            case 0:
+                m_DirLights.push_back(std::get<DirLight*>(a->light));
+                break;
+            case 1:
+                m_PointLights.push_back(std::get<PointLight*>(a->light));
+                break;
+            case 2:
+                m_SpotLights.push_back(std::get<SpotLight*>(a->light));
+                break;
+            case 3:
+                break;
+            default:
+                Logger::Error("ENGINE::ADD_OBJECT::INVALID_TYPE_OF_OBJEC");
+        }
+    }
     m_Objects.push_back(a);
 }
 
@@ -113,33 +126,6 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     m_Input.SetMode(MODE, VALUE);
     m_Input.InitMouse();
 
-
-    pointLights[0].ambient = Vec3(0.2f, 0.2f, 0.2f);
-    pointLights[0].diffuse = Vec3(0.5f, 0.5f, 0.5f);
-    pointLights[0].specular = Vec3(1.0f, 1.0f, 1.0f);
-    pointLights[0].position = Vec3(-0.2, -0.5, -1.2);
-    pointLights[0].constDistCoeff = 1;
-    pointLights[0].linearDistCoeff = 0.09f;
-    pointLights[0].quadraticDistCoeff = 0.032f;
-
-    pointLights[1] = pointLights[0];
-    pointLights[1].position = Vec3(2.3f, -3.3f, -4.0f);
-    pointLights[2] = pointLights[0];
-    pointLights[2].position = Vec3(0.0f,  0.0f, -3.0f);
-
-    dirLight.ambient = Vec3(0.05f, 0.05f, 0.05f);
-    dirLight.diffuse = Vec3(0.4f, 0.4f, 0.4f);
-    dirLight.specular = Vec3(0.5f, 0.5f, 0.5f);
-    dirLight.direction = Vec3(-0.2f, -1.0f, -0.3f);
-
-    spotLight[0].ambient = Vec3(0.0f, 0.0f, 0.0f);
-    spotLight[0].diffuse = Vec3(1.0f, 1.0f, 1.0f);
-    spotLight[0].specular = Vec3(1.0f, 1.0f, 1.0f);
-    spotLight[0].constDistCoeff = 1.0f;
-    spotLight[0].linearDistCoeff = 0.09f;
-    spotLight[0].quadraticDistCoeff = 0.032f;
-    spotLight[0].cutOff = glm::cos(glm::radians(12.5f));
-    spotLight[0].outerCutOff = glm::cos(glm::radians(15.0f));
     glEnable(GL_DEPTH_TEST);
 
     float lastFpsShowedTime = 0.f;
@@ -236,52 +222,60 @@ void Engine::Render(int scr_width, int scr_height) {
         // send light to shaders
         // pointLight
         char str[100];
-        for (int i = 0; i < pointLights.size(); i++) {
+        for (int i = 0; i < m_PointLights.size(); i++) {
             snprintf(str, sizeof(str), "pointLights[%d].position", i);
-            shader->SetVec3(str, pointLights[i].position);
+            shader->SetVec3(str, m_PointLights[i]->position);
             snprintf(str, sizeof(str), "pointLights[%d].ambient", i);
-            shader->SetVec3(str, pointLights[i].ambient);
+            shader->SetVec3(str, m_PointLights[i]->ambient);
             snprintf(str, sizeof(str), "pointLights[%d].diffuse", i);
-            shader->SetVec3(str, pointLights[i].diffuse);
+            shader->SetVec3(str, m_PointLights[i]->diffuse);
             snprintf(str, sizeof(str), "pointLights[%d].specular", i);
-            shader->SetVec3(str, pointLights[i].specular);
+            shader->SetVec3(str, m_PointLights[i]->specular);
             snprintf(str, sizeof(str), "pointLights[%d].linearDistCoeff", i);
-            shader->SetFloat(str, pointLights[i].linearDistCoeff);
+            shader->SetFloat(str, m_PointLights[i]->linearDistCoeff);
             snprintf(str, sizeof(str), "pointLights[%d].quadraticDistCoeff", i);
-            shader->SetFloat(str, pointLights[i].quadraticDistCoeff);
+            shader->SetFloat(str, m_PointLights[i]->quadraticDistCoeff);
             snprintf(str, sizeof(str), "pointLights[%d].constDistCoeff", i);
-            shader->SetFloat(str, pointLights[i].constDistCoeff);
+            shader->SetFloat(str, m_PointLights[i]->constDistCoeff);
         }
-        shader->SetInt("lenArrPointL", pointLights.size());
+
+        shader->SetInt("lenArrPointL", m_PointLights.size());
         // directionLight
-        shader->SetVec3("dirLight.ambient", dirLight.ambient);
-        shader->SetVec3("dirLight.specular", dirLight.specular);
-        shader->SetVec3("dirLight.direction", dirLight.direction);
-        shader->SetVec3("dirLight.diffuse", dirLight.diffuse);
+        for (int i = 0; i < m_DirLights.size(); i++) {
+            snprintf(str, sizeof(str), "dirLight[%d].ambinet", i);
+            shader->SetVec3(str, m_DirLights[0]->ambient);
+            snprintf(str, sizeof(str), "dirLight[%d].specular", i);
+            shader->SetVec3(str, m_DirLights[0]->specular);
+            snprintf(str, sizeof(str), "dirLight[%d].direction", i);
+            shader->SetVec3(str, m_DirLights[0]->direction);
+            snprintf(str, sizeof(str), "dirLight[%d].diffuse", i);
+            shader->SetVec3(str, m_DirLights[0]->diffuse);
+        }
+        shader->SetInt("lenArrDirL", m_DirLights.size());
         // spotLight
-        for (int i = 0; i < spotLight.size(); i++) {
+        for (int i = 0; i < m_SpotLights.size(); i++) {
             snprintf(str, sizeof(str), "spotLight[%d].diffuse", i);
-            shader->SetVec3(str, spotLight[i].diffuse);
+            shader->SetVec3(str, m_SpotLights[i]->diffuse);
             snprintf(str, sizeof(str), "spotLight[%d].direction", i);
             shader->SetVec3(str, camera->GetFront());
             snprintf(str, sizeof(str), "spotLight[%d].ambient", i);
-            shader->SetVec3(str, spotLight[i].ambient);
+            shader->SetVec3(str, m_SpotLights[i]->ambient);
             snprintf(str, sizeof(str), "spotLight[%d].position", i);
             shader->SetVec3(str, camera->GetPosition());
             snprintf(str, sizeof(str), "spotLight[%d].specular", i);
-            shader->SetVec3(str, spotLight[i].specular);
+            shader->SetVec3(str, m_SpotLights[i]->specular);
             snprintf(str, sizeof(str), "spotLight[%d].cutOff", i);
-            shader->SetFloat(str, spotLight[i].cutOff);
+            shader->SetFloat(str, m_SpotLights[i]->cutOff);
             snprintf(str, sizeof(str), "spotLight[%d].linearDistCoeff", i);
-            shader->SetFloat(str, spotLight[i].linearDistCoeff);
+            shader->SetFloat(str, m_SpotLights[i]->linearDistCoeff);
             snprintf(str, sizeof(str), "spotLight[%d].outerCutOff", i);
-            shader->SetFloat(str, spotLight[i].outerCutOff);
+            shader->SetFloat(str, m_SpotLights[i]->outerCutOff);
             snprintf(str, sizeof(str), "spotLight[%d].constDistCoeff", i);
-            shader->SetFloat(str, spotLight[i].constDistCoeff);
+            shader->SetFloat(str, m_SpotLights[i]->constDistCoeff);
             snprintf(str, sizeof(str), "spotLight[%d].quadraticDistCoeff", i);
-            shader->SetFloat(str, spotLight[i].quadraticDistCoeff);
+            shader->SetFloat(str, m_SpotLights[i]->quadraticDistCoeff);
         }
-        shader->SetInt("lenArrSpotL", spotLight.size());
+        shader->SetInt("lenArrSpotL", m_SpotLights.size());
         // send inf about texture
         data->material.texture.bind();
         shader->SetInt("material.duffuse", 0);

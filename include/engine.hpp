@@ -1,22 +1,27 @@
 #pragma once
 #include <vector>
+#include <variant>
 #include "collider.hpp"
 #include "render_data.hpp"
 #include "transform.hpp"
 #include "camera.hpp"
 #include "input.hpp"
 #include "animation.hpp"
+#include "light.hpp"
 
 struct GLFWwindow;
 
 class Object {
  public:
      virtual void Update(float) {}
-
+  
      Transform *transform = nullptr;
      RenderData *renderData = nullptr;
      Collider *collider = nullptr;
      Animation *animation = nullptr;
+     // monostate is canonical c++ empty state in variant
+     std::variant<DirLight*, PointLight*, SpotLight*, std::monostate> light
+         = std::monostate();
 };
 
 class Engine {
@@ -42,4 +47,7 @@ class Engine {
 
     std::vector<Object *> m_Objects;
     GLFWwindow *m_Window;
+    std::vector<PointLight*> m_PointLights = std::vector<PointLight*>();
+    std::vector<DirLight*> m_DirLights = std::vector<DirLight*>();
+    std::vector<SpotLight*> m_SpotLights = std::vector<SpotLight*>();
 };
