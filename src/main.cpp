@@ -185,5 +185,48 @@ int main() {
     engine.AddObject<>(spheres[1]);
     engine.AddObject<>(spheres[2]);
 
+    // init light objects
+    Object* pointLight1 = new Object();
+    pointLight1->light = new PointLight(
+        Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
+        Vec3(1.0f, 1.0f, 1.0f), Vec3(-0.2, -0.5, -1.2),
+        1, 0.09f, 0.032f);
+    auto pointLight = std::get<PointLight*>(pointLight1->light);
+    engine.AddObject<>(pointLight1);
+
+    Object* pointLight2 = new Object();
+    pointLight2->light = new PointLight(
+        Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
+        Vec3(1.0f, 1.0f, 1.0f), Vec3(2.3f, -3.3f, -4.0f),
+        1, 0.09f, 0.032f);
+    pointLight = std::get<PointLight*>(pointLight2->light);
+    engine.AddObject<>(pointLight2);
+
+    Object* pointLight3 = new Object();
+    pointLight3->light = new PointLight(
+        Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
+        Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0f,  0.0f, -3.0f),
+        1, 0.09f, 0.032f);
+    pointLight = std::get<PointLight*>(pointLight3->light);
+    engine.AddObject<>(pointLight3);
+
+    Object* dirLight = new Object();
+    dirLight->light = new DirLight(
+            Vec3(0.05f, 0.05f, 0.05f), Vec3(0.4f, 0.4f, 0.4f),
+            Vec3(0.5f, 0.5f, 0.5f),  Vec3(-0.2f, -1.0f, -0.3f));
+
+    auto directionLight = std::get<DirLight*>(dirLight->light);
+    engine.AddObject<>(dirLight);
+
+    Object* spotLight = new Object();
+    spotLight->light = new SpotLight(
+            Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
+            Vec3(1.0f, 1.0f, 1.0f), Vec3(1.0f, 1.0f, 1.0f),
+            1.0f, 0.09f, 0.032f, Vec3(0),
+            glm::cos(glm::radians(12.5f)),
+            glm::cos(glm::radians(15.0f)));
+    auto sptLight = std::get<SpotLight*>(spotLight->light);
+    engine.AddObject<>(spotLight);
+
     engine.Run(SCR_WIDTH, SCR_HEIGHT);
 }
