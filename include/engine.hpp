@@ -7,6 +7,10 @@
 #include "camera.hpp"
 #include "input.hpp"
 #include "animation.hpp"
+#include "text.hpp"
+#include "font.hpp"
+#include "logger.hpp"
+#include "time.hpp"
 #include "light.hpp"
 
 struct GLFWwindow;
@@ -19,6 +23,8 @@ class Object {
      RenderData *renderData = nullptr;
      Collider *collider = nullptr;
      Animation *animation = nullptr;
+     Text *text = nullptr;
+
      // monostate is canonical c++ empty state in variant
      std::variant<DirLight*, PointLight*, SpotLight*, std::monostate> light
          = std::monostate();
@@ -26,7 +32,7 @@ class Object {
 
 class Engine {
  public:
-    Engine(int, int);
+    Engine();
     ~Engine();
 
     // TODO(theblek): Ensure inlining for release builds
@@ -36,7 +42,7 @@ class Engine {
     }
 
     Camera* SwitchCamera(Camera* newCamera);
-    void Run(int, int);
+    void Run();
     Input m_Input;
     Camera* camera;
 

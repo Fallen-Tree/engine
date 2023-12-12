@@ -18,6 +18,7 @@
 #include "collisions.hpp"
 #include "animation.hpp"
 
+
 int viewportWidth, viewportHeight;
 // Left bottom corner coordinates of viewport
 int viewportStartX, viewportStartY;
@@ -26,6 +27,9 @@ int scrWidth, scrHeight;
 
 
 static Engine *s_Engine = nullptr;
+
+unsigned int fps = 0;
+
 static Input *s_Input = nullptr;
 
 Camera* Engine::SwitchCamera(Camera* newCamera) {
@@ -42,11 +46,11 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
-Engine::Engine(int SCR_WIDTH, int SCR_HEIGHT) {
+Engine::Engine() {
     m_Objects = std::vector<Object *>();
     camera = new Camera(Vec3(0.0f, 0.0f, 3.0f));
     s_Engine = this;
-        // glfw: initialize and configure
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -112,7 +116,7 @@ void Engine::AddObject(Object *a) {
     m_Objects.push_back(a);
 }
 
-void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
+void Engine::Run() {
     scrWidth = SCR_WIDTH;
     scrHeight = SCR_HEIGHT;
     viewportWidth = SCR_WIDTH;
@@ -125,22 +129,27 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
 
     glEnable(GL_DEPTH_TEST);
 
-    float lastFpsShowedTime = 0.f;
+    // FPS variables
+    float lastFpsShowedTime = -2.f;
     int lastRenderedFrame = -1;
     int fpsFrames = 0;
     const float frameTime = 1.f / FPS_LIMIT;
     float deltaTime = 0.0f;
     float lastTime = 0.0f;
 
+
     // render loop
     // -----------
     while (!glfwWindowShouldClose(m_Window)) {
         float currentTime = static_cast<float>(glfwGetTime());
         deltaTime = currentTime - lastTime;
+        Time::SetDeltaTime(deltaTime);
         lastTime = currentTime;
 
         if (currentTime - lastFpsShowedTime > FPS_SHOWING_INTERVAL) {
-            Logger::Info("FPS: %d", static_cast<int>(fpsFrames / (currentTime - lastFpsShowedTime)));
+            fps = static_cast<unsigned int>(fpsFrames / (currentTime - lastFpsShowedTime));
+            Logger::Info("%d", fps);
+            Time::SetCurrentFps(fps);
             lastFpsShowedTime = currentTime;
             fpsFrames = 0;
         }
@@ -162,6 +171,7 @@ void Engine::Run(int SCR_WIDTH, int SCR_HEIGHT) {
     glfwTerminate();
     return;
 }
+
 
 void Engine::updateObjects(float deltaTime) {
     for (int i = 0; i < m_Objects.size(); i++) {
@@ -287,8 +297,21 @@ void Engine::Render(int scr_width, int scr_height) {
 
         glDrawElements(GL_TRIANGLES, model->getLenIndices(), GL_UNSIGNED_INT, 0);
     }
+
+    // Text rendering
+    for (uint64_t i = 0; i < m_Objects.size(); i++) {
+        auto object = m_Objects[i];
+        if (!object->text) {
+            continue;
+        }
+
+        object->text->RenderText();
+    }
+
     glfwSwapBuffers(m_Window);
 }
+
+
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------

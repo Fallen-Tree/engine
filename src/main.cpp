@@ -1,14 +1,12 @@
 #include "engine.hpp"
 
-static int SCR_HEIGHT = 600;
-static int SCR_WIDTH = 800;
-
 const char *cubeSource = "/cube2.obj";
 const char *catSource = "/cat.obj";
 const char *benchSource = "/bench.obj";
 
 const char *vertexShaderSource = "/vertex/standart.vshader";
 const char *fragmentShaderSource = "/fragment/standart.fshader";
+
 
 class MovingSphere : public Object {
  public:
@@ -27,10 +25,9 @@ class MovingSphere : public Object {
     Vec3 m_Speed;
 };
 
-Object* initModel();
-
 int main() {
-    auto engine = Engine(SCR_WIDTH, SCR_HEIGHT);
+    auto engine = Engine();
+
     std::vector<GLfloat> cubeVertices {
           // positions          // normals           // texture coords
         -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
@@ -185,6 +182,23 @@ int main() {
     engine.AddObject<>(spheres[1]);
     engine.AddObject<>(spheres[2]);
 
+
+    class FpsText : public Object {
+     public:
+        void Update(float dt) override {
+            int fps = Time::GetCurrentFps();
+            char buf[12];
+            snprintf(buf, sizeof(buf), "Fps: %d", fps);
+            this->text->SetContent(buf);
+        }
+    };
+
+    auto textOcra = new Font("OCRAEXT.TTF", 20);
+    auto fpsObj = new FpsText();
+    fpsObj->text = new Text(textOcra, "", 685.0f, 575.0f, 1.f, Vec3(0, 0, 0));
+    engine.AddObject<>(fpsObj);
+
+
     // init light objects
     Object* pointLight1 = new Object();
     pointLight1->light = new PointLight(
@@ -228,5 +242,5 @@ int main() {
     auto sptLight = std::get<SpotLight*>(spotLight->light);
     engine.AddObject<>(spotLight);
 
-    engine.Run(SCR_WIDTH, SCR_HEIGHT);
+    engine.Run();
 }
