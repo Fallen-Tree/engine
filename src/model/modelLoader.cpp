@@ -120,8 +120,6 @@ Model* Model::loadFromObjFile(std::ifstream &objFile) {  // assuming objFile alr
                 modelIndices.push_back(faceIndices[i]);
                 modelIndices.push_back(faceIndices[i + 1]);
             }
-        } else {
-
         }
     }
     objFile.close();

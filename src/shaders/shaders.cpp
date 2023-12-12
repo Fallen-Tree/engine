@@ -86,7 +86,7 @@ int ShaderProgram::Link() {
 }
 
 ShaderProgram::ShaderProgram() {
-    m_Program = 0;
+    m_Program = glCreateProgram();
 }
 
 ShaderProgram::ShaderProgram(Shader vShader, Shader fShader) {
