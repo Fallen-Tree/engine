@@ -26,8 +26,8 @@ int viewportStartX, viewportStartY;
 // For resoliton and initial window size. 1600x900 for example.
 int scrWidth, scrHeight;
 
-
 static Engine *s_Engine = nullptr;
+Input *s_Input = nullptr;
 
 unsigned int fps = 0;
 
