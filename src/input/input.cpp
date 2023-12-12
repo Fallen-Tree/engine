@@ -1,4 +1,5 @@
 #include "input.hpp"
+#include "logger.hpp"
 #include <vector>
 
 // should send to all constants
@@ -9,7 +10,6 @@ Input::Input(GLFWwindow *window) {
     m_Window = window;
     SetMode(MODE, VALUE);
 }
-
 Input::Input() {
     m_IsDown = std::vector<bool>(maxValidKey, false);
 }
@@ -42,8 +42,6 @@ float Input::OffsetX() {
 float Input::OffsetY() {
     return this->m_Last.y - this->m_Current.y;
 }
-
-
 
 void Input::SetWindow(GLFWwindow * window) {
     this->m_Window = window;

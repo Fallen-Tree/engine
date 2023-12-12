@@ -161,7 +161,6 @@ class Input {
     float OffsetX();
     float OffsetY();
 
-   
     void Update();
     void InitMouse();
     void SetWindow(GLFWwindow * window);

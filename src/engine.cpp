@@ -17,6 +17,7 @@
 #include "logger.hpp"
 #include "collisions.hpp"
 #include "animation.hpp"
+#include <glm/gtx/string_cast.hpp>
 
 
 int viewportWidth, viewportHeight;
@@ -25,12 +26,10 @@ int viewportStartX, viewportStartY;
 // For resoliton and initial window size. 1600x900 for example.
 int scrWidth, scrHeight;
 
-
 static Engine *s_Engine = nullptr;
+Input *s_Input = nullptr;
 
 unsigned int fps = 0;
-
-static Input *s_Input = nullptr;
 
 Camera* Engine::SwitchCamera(Camera* newCamera) {
     if (!newCamera) {
@@ -44,6 +43,7 @@ Camera* Engine::SwitchCamera(Camera* newCamera) {
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
 void processInput(GLFWwindow *window);
 
 Engine::Engine() {
@@ -72,7 +72,7 @@ Engine::Engine() {
     glfwSetFramebufferSizeCallback(m_Window, framebuffer_size_callback);
     glfwSetScrollCallback(m_Window, scroll_callback);
     glfwSetKeyCallback(m_Window, key_callback);
-
+    glfwSetMouseButtonCallback(m_Window, mouse_button_callback);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -123,6 +123,7 @@ void Engine::Run() {
     viewportHeight = SCR_HEIGHT;
     viewportStartX = 0;
     viewportStartY = 0;
+    s_Input = &m_Input;
     m_Input.SetWindow(m_Window);
     m_Input.SetMode(MODE, VALUE);
     m_Input.InitMouse();
@@ -198,6 +199,7 @@ void Engine::Render(int scr_width, int scr_height) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
+    camera->SetScreenSize({static_cast<float>(scr_width), static_cast<float>(scr_height)});
     for (uint64_t i = 0; i < m_Objects.size(); i++) {
         auto object = m_Objects[i];
         if (!object->renderData || !object->transform)
@@ -216,11 +218,9 @@ void Engine::Render(int scr_width, int scr_height) {
         Mat4 view = camera->GetViewMatrix();
         Vec3 viewPos = camera->GetPosition();
 
-        Mat4 projection = glm::perspective(
-                                        glm::radians(camera->GetZoom()),
-                                        static_cast<float>(scr_width) / static_cast<float>(scr_height),
-                                        0.1f, 100.0f);
-      // send matrix transform to shader
+        Mat4 projection = camera->GetProjectionMatrix();
+
+        // send matrix transform to shader
         shader->SetMat4("model", transform->GetTransformMatrix());
         shader->SetMat4("view", view);
         shader->SetVec3("viewPos", viewPos);
@@ -324,6 +324,12 @@ void processInput(GLFWwindow *window) {
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key > 0 && key < MAX_VALID_KEY && action == GLFW_PRESS) {
         s_Engine->m_Input.ButtonPress(key);
+    }
+}
+
+void mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
+    if (action == GLFW_PRESS) {
+        s_Engine->m_Input.ButtonPress(button);
     }
 }
 

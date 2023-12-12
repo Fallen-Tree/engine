@@ -1,4 +1,7 @@
+#include <limits>
 #include "engine.hpp"
+#include "collisions.hpp"
+#include "logger.hpp"
 
 const char *cubeSource = "/cube2.obj";
 const char *catSource = "/cat.obj";
@@ -24,6 +27,50 @@ class MovingSphere : public Object {
     Object *m_Target;
     Vec3 m_Speed;
 };
+
+class Pointer : public Object {
+ public:
+     Pointer(std::vector<Object *> objects, Camera *camera) {
+         m_Objects = objects;
+         m_Camera = camera;
+     }
+
+    void Update(float dt) override {
+        Ray ray = m_Camera->GetRayThroughScreenPoint({s_Input->MouseX(), s_Input->MouseY()});
+        Transform *target = nullptr;
+        float closest = std::numeric_limits<float>::max();
+        for (int i = 0; i < m_Objects.size(); i++) {
+            auto obj = m_Objects[i];
+            auto hit = obj->collider->RaycastHit(*obj->transform, ray);
+            if (hit && *hit < closest) {
+                target = obj->transform;
+                closest = *hit;
+            }
+        }
+        if (s_Input->IsKeyPressed(Key::MouseLeft))
+            m_CurrentTarget = target;
+
+        if (m_CurrentTarget != nullptr) {
+            Vec3 center = m_CurrentTarget->GetTranslation();
+            Vec3 closest = ray.origin + glm::dot(center - ray.origin, ray.direction) * ray.direction;
+            closest.y = center.y;
+            Vec3 onCircle = glm::normalize(closest - center) * m_CueDistance;
+            transform->SetTranslation(onCircle);
+
+            Vec3 toCenter = center - onCircle;
+            float angle = glm::acos(glm::dot(toCenter, ray.direction) / m_CueDistance);
+            transform->SetRotation(-glm::pi<float>()/2, glm::cross(Vec3{0.f, 1.f, 0.f}, toCenter));
+        }
+     }
+
+ private:
+    float m_CueDistance = 1.f;
+    Transform *m_CurrentTarget = nullptr;
+    std::vector<Object *> m_Objects;
+    Camera *m_Camera;
+};
+
+Object* initModel();
 
 int main() {
     auto engine = Engine();
@@ -182,6 +229,26 @@ int main() {
     engine.AddObject<>(spheres[1]);
     engine.AddObject<>(spheres[2]);
 
+    auto observer = new Pointer(
+        {spheres[0], spheres[1], spheres[2], aabb, sphere},
+        engine.camera);
+
+    observer->renderData = new RenderData();
+    auto renderData = observer->renderData;
+    renderData->model = Model::loadFromFile("/kiy.obj");
+    renderData->model->shader = shaderProgram;
+    bindRenderData(renderData);
+
+    observer->transform = new Transform(Vec3(0), Vec3(1), 0, Vec3(1));
+
+    auto imagesCue = std::vector<std::string>();
+    imagesCue.push_back("/kiy.png");
+    imagesCue.push_back("/kiy.png");
+    observer->renderData->material = {
+        4.f,
+        Texture(imagesCue),
+    };
+    engine.AddObject<>(observer);
 
     class FpsText : public Object {
      public:
@@ -197,7 +264,6 @@ int main() {
     auto fpsObj = new FpsText();
     fpsObj->text = new Text(textOcra, "", 685.0f, 575.0f, 1.f, Vec3(0, 0, 0));
     engine.AddObject<>(fpsObj);
-
 
     // init light objects
     Object* pointLight1 = new Object();
