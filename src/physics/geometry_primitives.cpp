@@ -128,3 +128,8 @@ Sphere Sphere::Transformed(Transform transform) {
     };
     return Sphere{mul(center, mat), radius};
 }
+
+Ray::Ray(Vec3 from, Vec3 to) {
+    origin = from;
+    direction = glm::normalize(to - from);
+}

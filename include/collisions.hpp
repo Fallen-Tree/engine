@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #include "geometry_primitives.hpp"
 #include "model.hpp"
 
@@ -21,3 +22,9 @@ bool CollidePrimitive(Sphere, Triangle);
 template<typename T>
 bool CollideModelAt(T t, Model *model, Transform transform);
 bool CollideModels(Model *model, Transform transform, Model *model2, Transform transform2);
+
+bool CollidePrimitive(Ray, Sphere);
+bool CollidePrimitive(Ray, AABB);
+
+std::optional<float> CollisionPrimitive(Ray, Sphere);
+std::optional<float> CollisionPrimitive(Ray, AABB);

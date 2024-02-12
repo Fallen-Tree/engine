@@ -38,6 +38,8 @@ struct Triangle {
 struct Ray {
     Vec3 direction;
     Vec3 origin;
+
+    Ray(Vec3 from, Vec3 to);
 };
 
 struct Plane {

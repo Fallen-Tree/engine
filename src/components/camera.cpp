@@ -2,11 +2,10 @@
 #include "input.hpp"
 #include "math_types.hpp"
 #include "user_config.hpp"
+#include "logger.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 
-Camera::Camera(Vec3 position,
-                Vec3 up, float yaw,
-                float pitch) {
+Camera::Camera(Vec3 position, Vec3 up, float yaw, float pitch, float nPlane, float fPlane) {
     this->m_Position = position;
     this->m_WorldUp = up;
     this->m_Yaw = yaw;
@@ -15,6 +14,8 @@ Camera::Camera(Vec3 position,
     this->m_MovementSpeed = DFL_SPEED;
     this->m_MouseSensitivity = SENSIVITY;
     this->m_Zoom = DFL_ZOOM;
+    m_NearPlane = nPlane;
+    m_FarPlane = fPlane;
     UpdateCameraVectors();
 }
 
@@ -36,6 +37,35 @@ Mat4 Camera::GetViewMatrix() {
     return glm::lookAt(this->m_Position, this->m_Position + this->m_Front, this->m_Up);
 }
 
+Mat4 Camera::GetProjectionMatrix() {
+    float aspectRatio = m_ScreenSize.x / m_ScreenSize.y;
+    return glm::perspective(glm::radians(m_Zoom), aspectRatio, m_NearPlane, m_FarPlane);
+}
+
+Ray Camera::GetRayThroughScreenPoint(Vec2 pos) {
+    pos.y = m_ScreenSize.y - pos.y;
+    pos -= m_ScreenSize / 2.0f;
+    float halfTan = glm::tan(glm::radians(m_Zoom)/2);
+    float aspectRatio = m_ScreenSize.x / m_ScreenSize.y;
+    Vec3 unprojectedNear = Vec3 {
+        pos.x * 2 * m_NearPlane * halfTan * aspectRatio / m_ScreenSize.x,
+        pos.y * 2 * m_NearPlane * halfTan / m_ScreenSize.y,
+        -m_NearPlane,
+    };
+    Vec3 unprojectedFar = Vec3 {
+        pos.x * 2 * m_FarPlane * halfTan * aspectRatio / m_ScreenSize.x,
+        pos.y * 2 * m_FarPlane * halfTan / m_ScreenSize.y,
+        -m_FarPlane,
+    };
+
+    auto mat = (glm::transpose(glm::inverse(GetViewMatrix())));
+    auto mul = [](Vec3 v, Mat4 mat) {
+        Vec4 res = Vec4(v, 1) * mat;
+        return Vec3(res.x / res.w, res.y / res.w, res.z / res.w);
+    };
+    return Ray(mul(unprojectedNear, mat), mul(unprojectedFar, mat));
+}
+
 float Camera::GetZoom() {
     return this->m_Zoom;
 }
@@ -46,6 +76,10 @@ Vec3 Camera::GetPosition() {
 
 Vec3 Camera::GetFront() {
     return this->m_Front;
+}
+
+void Camera::SetScreenSize(Vec2 size) {
+    m_ScreenSize = size;
 }
 
 // processes input received from any keyboard-like input system. Accepts

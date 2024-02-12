@@ -13,6 +13,7 @@ class Animation {
  public:
     Animation* addAnimation(Transform transform, float time);
     Animation* stopAnimations();
+    bool isComplete();
 
     void applyAnimations(Transform*, float);
 };

@@ -14,6 +14,10 @@ Animation* Animation::stopAnimations() {
     return this;
 }
 
+bool Animation::isComplete() {
+    return m_AnimationsQueue.empty();
+}
+
 void Animation::applyAnimations(Transform* transform, float deltaTime) {
     // Process completely finished animations
     while (!m_AnimationsQueue.empty()) {

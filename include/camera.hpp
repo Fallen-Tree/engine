@@ -3,6 +3,7 @@
 
 #include <glad/glad.h>
 #include "math_types.hpp"
+#include "geometry_primitives.hpp"
 #include "input.hpp"
 #include "engine_config.hpp"
 #include "user_config.hpp"
@@ -19,9 +20,9 @@ enum Camera_Movement {
 class Camera {
  public:
     // constructor with vectors
-    explicit Camera(Vec3 position = Vec3(0.0f, 0.0f, -3.0f),
-                    Vec3 up = Vec3(0.0f, 1.0f, 0.0f),
-                    float yaw = DFL_YAW, float pitch = DFL_PITCH);
+    explicit Camera(Vec3 position, Vec3 up = Vec3(0.0f, 1.0f, 0.0f),
+                    float yaw = DFL_YAW, float pitch = DFL_PITCH,
+                    float nearPlane = DFL_NEAR_PLANE, float farPlane = DFL_FAR_PLANE);
 
     void SetPosition(Vec3 position = Vec3(0.0f, 0.0f, -3.0f),
                     Vec3 up = Vec3(0.0f, 1.0f, 0.0f),
@@ -29,11 +30,16 @@ class Camera {
 
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
     Mat4 GetViewMatrix();
+    Mat4 GetProjectionMatrix();
+
+    Ray GetRayThroughScreenPoint(Vec2 pos);
 
     float GetZoom();
 
     Vec3 GetPosition();
     Vec3 GetFront();
+
+    void SetScreenSize(Vec2);
 
     // processes input received from any keyboard-like input system.
     // Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
@@ -51,7 +57,6 @@ class Camera {
 
     void Update(Input * input, float deltaTime);
 
-
  private:
     // camera Attributes
     Vec3 m_Position;
@@ -68,6 +73,9 @@ class Camera {
     float m_MovementSpeed;
     float m_MouseSensitivity;
     float m_Zoom;
+
+    float m_NearPlane, m_FarPlane;
+    Vec2 m_ScreenSize;
 
     // calculates the front vector from the Camera's (updated) Euler Angles
     void UpdateCameraVectors();
