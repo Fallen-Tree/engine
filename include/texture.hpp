@@ -13,13 +13,12 @@ class Texture {
     
     Texture();
 
-    explicit Texture(std::vector<std::string> paths);
-
-    explicit Texture(std::string path);
+    explicit Texture(std::string diffuse, std::string specular);
+    explicit Texture(std::string diffuse);
 
     void loadImages(std::vector<std::string> paths);
 
-    void loadImage(std::string path);  
+    void loadImage(std::string path);
 
     int countComponents();
 
