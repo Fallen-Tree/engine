@@ -7,8 +7,8 @@ const char *cubeSource = "/cube2.obj";
 const char *catSource = "/cat.obj";
 const char *benchSource = "/bench.obj";
 
-const char *vertexShaderSource = "/vertex/standart.vshader";
-const char *fragmentShaderSource = "/fragment/standart.fshader";
+const char *vertexShaderSource = "/standart.vshader";
+const char *fragmentShaderSource = "/standart.fshader";
 
 
 class MovingSphere : public Object {
@@ -120,8 +120,8 @@ int main() {
         -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
     };
 
-    Shader vShader = Shader(VertexShader, vertexShaderSource);
-    Shader fShader = Shader(FragmentShader, fragmentShaderSource);
+    Shader vShader = Shader(VertexShader, GetResourcePath(Resource::VSHADER, vertexShaderSource));
+    Shader fShader = Shader(FragmentShader, GetResourcePath(Resource::FSHADER, fragmentShaderSource));
     ShaderProgram *shaderProgram = new ShaderProgram(vShader, fShader);
 
     // ShaderProgram shaderProgram = ShaderProgram(vShader, fShader2);
@@ -130,7 +130,7 @@ int main() {
     cubeModel->shader = shaderProgram;
     Model *sphereModel = Model::GetSphere();
     sphereModel->shader = shaderProgram;
-    Model * model = Model::loadFromFile(catSource);
+    Model * model = Model::loadFromFile(GetResourcePath(Resource::MODEL, catSource));
 
     auto obj = new Object();
     obj->renderData = new RenderData();
@@ -235,7 +235,7 @@ int main() {
 
     observer->renderData = new RenderData();
     auto renderData = observer->renderData;
-    renderData->model = Model::loadFromFile("/kiy.obj");
+    renderData->model = Model::loadFromFile(GetResourcePath(Resource::MODEL, "/kiy.obj"));
     renderData->model->shader = shaderProgram;
     bindRenderData(renderData);
 

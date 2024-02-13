@@ -10,6 +10,7 @@
 #include "shaders.hpp"
 #include "user_config.hpp"
 #include "engine_config.hpp"
+#include "path_resolver.hpp"
 
 void Font::RenderText(std::string text, float x, float y, float scale, glm::vec3 color) {
     glDisable(GL_DEPTH_TEST);
@@ -135,7 +136,7 @@ Font::Font(const char* font, unsigned int fontSize) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    Shader vShader = Shader(VertexShader, "/vertex/text.vshader");
-    Shader fShader = Shader(FragmentShader, "/fragment/text.fshader");
+    Shader vShader = Shader(VertexShader, GetResourcePath(Resource::VSHADER, "text.vshader"));
+    Shader fShader = Shader(FragmentShader, GetResourcePath(Resource::FSHADER, "text.fshader"));
     m_ShaderProgram = ShaderProgram(vShader, fShader);
 }

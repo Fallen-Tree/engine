@@ -22,15 +22,13 @@ int Shader::CheckSuccess() {
     return success;
 }
 
-int Shader::LoadSourceFromFile(const char* path) {
+int Shader::LoadSourceFromFile(std::string path) {
     std::ifstream shaderFile;
-    char finalPath[512];
-    snprintf(finalPath, sizeof(finalPath), RESOURCE_DIR"/shaders%s", path);
     // ensure ifstream objects can throw exceptions:
     shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     try {
         // open files
-        shaderFile.open(finalPath);
+        shaderFile.open(path);
         std::stringstream shaderStream;
         // read file's buffer contents into stream
         shaderStream << shaderFile.rdbuf();
@@ -56,7 +54,7 @@ int Shader::Compile() {
     return success;
 }
 
-Shader::Shader(ShaderType shaderType, const char* path) {
+Shader::Shader(ShaderType shaderType, std::string path) {
     m_Type = shaderType;
     m_Shader = 0;
     LoadSourceFromFile(path);
