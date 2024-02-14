@@ -28,7 +28,7 @@ add_library(ENGINE STATIC
             src/components/transform.cpp
             src/components/camera.cpp 
             src/engine/time.cpp
-            src/math.cpp
+            src/engine/math.cpp
 )
 
 add_subdirectory(thirdparty/glfw)
