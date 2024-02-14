@@ -20,7 +20,7 @@ Model* Model::loadFromFile(std::string filePath) {
     objFile.open(filePath);
 
     if (objFile.fail()) {
-        Logger::Error("MODEL::LOADER::FAILED::TO::OPEN::FILE::%s", filePath);
+        Logger::Error("MODEL::LOADER::FAILED::TO::OPEN::FILE::%s", filePath.c_str());
         return 0;
     }
     return loadFromObjFile(objFile);
