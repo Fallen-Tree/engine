@@ -74,7 +74,7 @@ Font::Font(std::string path, unsigned int fontSize) {
 
     FT_Face face;
     if (FT_New_Face(ft, path.c_str(), 0, &face)) {
-        Logger::Error("FREETYPE: Can't find font %s", path);
+        Logger::Error("FREETYPE: Can't find font %s", path.c_str());
         return;
     }
 
