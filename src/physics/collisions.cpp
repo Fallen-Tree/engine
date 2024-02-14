@@ -196,21 +196,21 @@ bool CollidePrimitive(Triangle t1, Triangle t2) {
 
 // There should be an overload CollidePrimitive(T, Triangle);
 template<typename T>
-bool CollideModelAt(T t, Model *model, Transform transform) {
+bool CollideMeshAt(T t, Mesh *mesh, Transform transform) {
     // WARNING: This makes assumptions about data layout
-    Mat4 modelMat = glm::transpose(transform.GetTransformMatrix());
+    Mat4 meshMat = glm::transpose(transform.GetTransformMatrix());
     int stride = 8;
     auto loadPos = [=](int i) {
-        int id = model->getIndices()[i];
+        int id = mesh->getIndices()[i];
         Vec4 res = Vec4 {
-            model->getPoints()[id * stride],
-            model->getPoints()[id * stride + 1],
-            model->getPoints()[id * stride + 2],
+            mesh->getPoints()[id * stride],
+            mesh->getPoints()[id * stride + 1],
+            mesh->getPoints()[id * stride + 2],
             1.0
-        } * modelMat;
+        } * meshMat;
         return Vec3{ res.x / res.w, res.y / res.w, res.z / res.w };
     };
-    for (int i = 0; i < model->getLenIndices(); i+=3) {
+    for (int i = 0; i < mesh->getLenIndices(); i+=3) {
         Triangle tri = Triangle(loadPos(i), loadPos(i + 1), loadPos(i + 2));
         if (CollidePrimitive(t, tri)) {
             return true;
@@ -218,27 +218,27 @@ bool CollideModelAt(T t, Model *model, Transform transform) {
     }
     return false;
 }
-template bool CollideModelAt<AABB>(AABB, Model *, Transform);
-template bool CollideModelAt<Sphere>(Sphere, Model *, Transform);
-template bool CollideModelAt<Triangle>(Triangle, Model *, Transform);
+template bool CollideMeshAt<AABB>(AABB, Mesh *, Transform);
+template bool CollideMeshAt<Sphere>(Sphere, Mesh *, Transform);
+template bool CollideMeshAt<Triangle>(Triangle, Mesh *, Transform);
 
-bool CollideModels(Model *model, Transform transform, Model *model2, Transform transform2) {
+bool CollideMeshes(Mesh *mesh, Transform transform, Mesh *mesh2, Transform transform2) {
     // WARNING: This makes assumptions about data layout
-    Mat4 modelMat = glm::transpose(transform.GetTransformMatrix());
+    Mat4 meshMat = glm::transpose(transform.GetTransformMatrix());
     int stride = 8;
     auto loadPos = [=](int i) {
-        int id = model->getIndices()[i];
+        int id = mesh->getIndices()[i];
         Vec4 res = Vec4 {
-            model->getPoints()[id * stride],
-            model->getPoints()[id * stride + 1],
-            model->getPoints()[id * stride + 2],
+            mesh->getPoints()[id * stride],
+            mesh->getPoints()[id * stride + 1],
+            mesh->getPoints()[id * stride + 2],
             1.0
-        } * modelMat;
+        } * meshMat;
         return Vec3{ res.x / res.w, res.y / res.w, res.z / res.w };
     };
-    for (int i = 0; i < model->getLenIndices(); i+=3) {
+    for (int i = 0; i < mesh->getLenIndices(); i+=3) {
         Triangle tri = Triangle(loadPos(i), loadPos(i + 1), loadPos(i + 2));
-        if (CollideModelAt(tri, model2, transform2)) {
+        if (CollideMeshAt(tri, mesh2, transform2)) {
             return true;
         }
     }

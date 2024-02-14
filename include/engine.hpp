@@ -12,6 +12,7 @@
 #include "logger.hpp"
 #include "time.hpp"
 #include "light.hpp"
+#include "model.hpp"
 
 extern Input *s_Input;
 
@@ -22,7 +23,7 @@ class Object {
      virtual void Update(float) {}
 
      Transform *transform = nullptr;
-     RenderData *renderData = nullptr;
+     Model *model = nullptr;
      Collider *collider = nullptr;
      Animation *animation = nullptr;
      Text *text = nullptr;

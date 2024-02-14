@@ -12,8 +12,8 @@ add_library(ENGINE STATIC
             src/engine.cpp
             src/animation/animation.cpp
             src/shaders/shaders.cpp
+            src/model/mesh.cpp
             src/model/model.cpp
-            src/model/modelLoader.cpp
             src/input/input.cpp
             src/texture/stb_image.cpp
             src/texture/texture.cpp
@@ -33,9 +33,13 @@ add_library(ENGINE STATIC
 add_subdirectory(thirdparty/glfw)
 add_subdirectory(thirdparty/glad)
 add_subdirectory(thirdparty/freetype/freetype)
+option(BUILD_SHARED_LIBS "" OFF)
+option(ASSIMP_BUILD_TESTS "" OFF)
+option(ASSIMP_BUILD_ASSIMP_VIEW "" OFF)
+add_subdirectory(thirdparty/assimp/assimp)
 
 target_include_directories(ENGINE PUBLIC thirdparty PUBLIC include)
-target_link_libraries(ENGINE PUBLIC glfw glad freetype OpenGL::GL)
+target_link_libraries(ENGINE PUBLIC glfw glad freetype assimp OpenGL::GL)
 
 add_executable(main src/main.cpp)
 target_link_libraries(main PUBLIC ENGINE)

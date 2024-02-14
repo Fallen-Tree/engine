@@ -9,7 +9,7 @@ bool CollideShifted(Ray lhs, U rhs, Transform rhsTransform) {
 }
 
 template<>
-bool CollideShifted(Ray lhs, Model * rhs, Transform rhsTransform) {
+bool CollideShifted(Ray lhs, Mesh* rhs, Transform rhsTransform) {
     Logger::Error("Raycast into mesh is not supported yet");
     assert(false);
     return false;
@@ -21,17 +21,17 @@ bool CollideShifted(T lhs, Transform lhsTransform, U rhs, Transform rhsTransform
 }
 
 template<typename T>
-bool CollideShifted(T lhs, Transform lhsTransform, Model *rhs, Transform rhsTransform) {
+bool CollideShifted(T lhs, Transform lhsTransform, Mesh *rhs, Transform rhsTransform) {
     return CollideModelAt(lhs.Transformed(lhsTransform), rhs, rhsTransform);
 }
 
 template<typename U>
-bool CollideShifted(Model *lhs, Transform lhsTransform, U rhs, Transform rhsTransform) {
+bool CollideShifted(Mesh *lhs, Transform lhsTransform, U rhs, Transform rhsTransform) {
     return CollideModelAt(rhs.Transformed(rhsTransform), lhs, lhsTransform);
 }
 
-bool CollideShifted(Model *lhs, Transform lhsTransform, Model *rhs, Transform rhsTransform) {
-    return CollideModels(lhs, lhsTransform, rhs, rhsTransform);
+bool CollideShifted(Mesh *lhs, Transform lhsTransform, Mesh *rhs, Transform rhsTransform) {
+    return CollideMeshes(lhs, lhsTransform, rhs, rhsTransform);
 }
 bool Collider::Collide(Transform self, Collider *other, Transform otherTransform) {
     return std::visit([=](auto var1) {
@@ -52,7 +52,7 @@ std::optional<float> CollisionShifted(Ray lhs, U rhs, Transform rhsTransform) {
 }
 
 template<>
-std::optional<float> CollisionShifted(Ray lhs, Model * rhs, Transform rhsTransform) {
+std::optional<float> CollisionShifted(Ray lhs, Mesh * rhs, Transform rhsTransform) {
     Logger::Error("Raycast into mesh is not supported yet");
     assert(false);
     return {};
