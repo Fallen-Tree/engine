@@ -196,9 +196,9 @@ int main() {
 
         obj->transform = new Transform(transform);
 
-        obj->collider = new Collider{Sphere{
-            Vec3(0.0),
-            1.0f,
+        obj->collider = new Collider{AABB {
+            Vec3{-1, -1, -1},
+            Vec3{1, 1, 1},
         }};
         return obj;
     };
