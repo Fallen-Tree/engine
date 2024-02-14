@@ -7,12 +7,14 @@
 
 Texture::Texture() {}
 
-Texture::Texture(std::vector<std::string> paths) {
-    loadImages(paths);
+Texture::Texture(std::string diffuse, std::string specular) {
+    loadImage(diffuse);
+    loadImage(specular);
 }
 
-Texture::Texture(std::string path) {
-    loadImage(path);
+Texture::Texture(std::string diffuse) {
+    loadImage(diffuse);
+    loadImage(diffuse);
 }
 
 void Texture::loadImages(std::vector<std::string> paths) {
