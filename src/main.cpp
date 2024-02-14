@@ -144,14 +144,14 @@ int main() {
 
     obj->renderData->material = {
         4.f,
-        Texture(GetResourcePath(Resource::TEXTURE, "/Cat_diffuse.png"), 
+        Texture(GetResourcePath(Resource::TEXTURE, "/Cat_diffuse.png"),
                 GetResourcePath(Resource::TEXTURE, "/Cat_specular.png")),
     };
     engine.AddObject<>(obj);
 
     Material material = {
         4.f,
-        Texture(GetResourcePath(Resource::TEXTURE, "/wall.png"), 
+        Texture(GetResourcePath(Resource::TEXTURE, "/wall.png"),
                 GetResourcePath(Resource::TEXTURE, "/wallspecular.png")),
     };
 
