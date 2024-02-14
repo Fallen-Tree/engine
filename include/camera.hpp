@@ -19,14 +19,16 @@ enum Camera_Movement {
 
 class Camera {
  public:
-    // constructor with vectors
-    explicit Camera(Vec3 position, Vec3 up = Vec3(0.0f, 1.0f, 0.0f),
-                    float yaw = DFL_YAW, float pitch = DFL_PITCH,
-                    float nearPlane = DFL_NEAR_PLANE, float farPlane = DFL_FAR_PLANE);
+    // Transform class
+    Transform tranform;
 
-    void SetPosition(Vec3 position = Vec3(0.0f, 0.0f, -3.0f),
-                    Vec3 up = Vec3(0.0f, 1.0f, 0.0f),
-                    float yaw = DFL_YAW, float pitch = DFL_PITCH);
+    // constructor with vectors
+    explicit Camera(Vec3 translation, Vec3 up = Vec3(0.0f, 1.0f, 0.0f), 
+            Vec3 scale = Vec3(1), Mat4 rotation = Mat4(1), 
+            float nearPlane = DFL_NEAR_PLANE, float farPlane = DFL_FAR_PLANE);
+
+    void SetPosition(Vec3 translation, Vec3 up = Vec3(0.0f, 1.0f, 0.0f), 
+            Vec3 scale = Vec3(1), Mat4 rotation = Mat4(1));
 
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
     Mat4 GetViewMatrix();
@@ -59,15 +61,10 @@ class Camera {
 
  private:
     // camera Attributes
-    Vec3 m_Position;
     Vec3 m_Front;
     Vec3 m_Up;
     Vec3 m_Right;
     Vec3 m_WorldUp;
-
-    // euler Angles
-    float m_Yaw;
-    float m_Pitch;
 
     // camera options
     float m_MovementSpeed;
@@ -79,6 +76,8 @@ class Camera {
 
     // calculates the front vector from the Camera's (updated) Euler Angles
     void UpdateCameraVectors();
+
+    Vec3 NewFront(Mat4 rotation);
 };
 
 #endif  // SRC_CAMERA_CAMERA_HPP_

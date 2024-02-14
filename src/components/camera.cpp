@@ -1,15 +1,22 @@
 #include "camera.hpp"
 #include "input.hpp"
 #include "math_types.hpp"
+#include "math.h"
 #include "user_config.hpp"
 #include "logger.hpp"
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/string_cast.hpp>
 
-Camera::Camera(Vec3 position, Vec3 up, float yaw, float pitch, float nPlane, float fPlane) {
-    this->m_Position = position;
+Vec3 Mul(Vec3 vec, Mat4 mat) {
+    Vec4 res = Vec4(vec, 1.0) * mat;
+    return Vec3(res.x / res.w, res.y / res.w, res.z / res.w);
+}
+
+Camera::Camera(Vec3 translation, Vec3 up,
+        Vec3 scale, Mat4 rotation,
+        float nPlane, float fPlane) {
+    tranform  = Transform(translation, scale, rotation);
     this->m_WorldUp = up;
-    this->m_Yaw = yaw;
-    this->m_Pitch = pitch;
     this->m_Front = Vec3(0.0f, 0.0f, -1.0f);
     this->m_MovementSpeed = DFL_SPEED;
     this->m_MouseSensitivity = SENSIVITY;
@@ -19,13 +26,10 @@ Camera::Camera(Vec3 position, Vec3 up, float yaw, float pitch, float nPlane, flo
     UpdateCameraVectors();
 }
 
-void Camera::SetPosition(Vec3 position,
-                Vec3 up, float yaw,
-                float pitch) {
-    this->m_Position = position;
+void Camera::SetPosition(Vec3 translation, Vec3 up,
+        Vec3 scale, Mat4 rotation) {
+    tranform  = Transform(translation, scale, rotation);
     this->m_WorldUp = up;
-    this->m_Yaw = yaw;
-    this->m_Pitch = pitch;
     this->m_Front = Vec3(0.0f, 0.0f, -1.0f);
     this->m_Zoom = DFL_ZOOM;
     UpdateCameraVectors();
@@ -34,7 +38,8 @@ void Camera::SetPosition(Vec3 position,
 // returns the view matrix calculated using Euler Angles and the LookAt
 // Matrix
 Mat4 Camera::GetViewMatrix() {
-    return glm::lookAt(this->m_Position, this->m_Position + this->m_Front, this->m_Up);
+    return glm::lookAt(tranform.GetTranslation(),
+            tranform.GetTranslation() + this->m_Front, this->m_Up);
 }
 
 Mat4 Camera::GetProjectionMatrix() {
@@ -67,11 +72,11 @@ Ray Camera::GetRayThroughScreenPoint(Vec2 pos) {
 }
 
 float Camera::GetZoom() {
-    return this->m_Zoom;
+    return this->m_Zoom; 
 }
 
 Vec3 Camera::GetPosition() {
-    return this->m_Position;
+    return tranform.GetTranslation();
 }
 
 Vec3 Camera::GetFront() {
@@ -87,27 +92,26 @@ void Camera::SetScreenSize(Vec2 size) {
 // windowing systems)
 void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime) {
     float velocity = m_MovementSpeed * deltaTime;
-    if (direction == FORWARD)  this->m_Position += this->m_Front * velocity;
-    if (direction == BACKWARD) this->m_Position -= this->m_Front * velocity;
-    if (direction == LEFT)     this->m_Position -= this->m_Right * velocity;
-    if (direction == RIGHT)    this->m_Position += this->m_Right * velocity;
+    Vec3 newTranslation = tranform.GetTranslation();
+    if (direction == FORWARD)  newTranslation += this->m_Front * velocity;
+    if (direction == BACKWARD) newTranslation -= this->m_Front * velocity;
+    if (direction == LEFT)     newTranslation -= this->m_Right * velocity;
+    if (direction == RIGHT)    newTranslation += this->m_Right * velocity;
+    tranform.SetTranslation(newTranslation);
 }
 
 // processes input received from a mouse input system. Expects the offset
 // value in both the x and y direction.
 void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch) {
+
     xoffset *= m_MouseSensitivity;
     yoffset *= m_MouseSensitivity;
 
-    this->m_Yaw += xoffset;
-    this->m_Pitch += yoffset;
-
-    // make sure that when pitch is out of bounds, screen doesn't get
-    // flipped
-    if (constrainPitch) {
-        if (this->m_Pitch > MAX_PITCH)  this->m_Pitch = MAX_PITCH;
-        if (this->m_Pitch < MIN_PITCH) this->m_Pitch = MIN_PITCH;
-    }
+    auto rotate = tranform.GetRotation();
+    auto t = glm::rotate(rotate, yoffset, Mul(Vec3(1.f, 0.f, 0.f), rotate)); 
+    Vec3 nextFront = NewFront(glm::rotate(rotate, yoffset, Mul(Vec3(1.f, 0.f, 0.f), rotate))); 
+    if (constrainPitch && abs(glm::dot(nextFront, m_WorldUp)) > 0.95) return; 
+    tranform.SetRotation(t);
 
     // update Front, Right and Up Vectors using the updated Euler angles
     UpdateCameraVectors();
@@ -121,18 +125,16 @@ void Camera::ProcessMouseScroll(float yoffset) {
     if (this->m_Zoom > MAX_FOV) this->m_Zoom = MAX_FOV;
 }
 
-// calculates the front vector from the Camera's (updated) Euler Angles
-void Camera::UpdateCameraVectors() {
-    // calculate the new Front vector
-    Vec3 front;
-    front.x = cos(glm::radians(m_Yaw)) * cos(glm::radians(m_Pitch));
-    front.y = sin(glm::radians(m_Pitch));
-    front.z = sin(glm::radians(m_Yaw)) * cos(glm::radians(m_Pitch));
-
-
+Vec3 Camera::NewFront(Mat4 rotation) {
+    Vec3 front = Mul(Vec3(0, 0, -1), rotation);
     // normalize the vectors, because their length gets closer to 0 the more you look
     // up or down which results in slower movement.
-    this->m_Front = glm::normalize(front);
+    return glm::normalize(Mul(Vec3(0, 0, -1), rotation));
+}
+
+// calculates the front vector from the Camera's (updated) Euler Angles
+void Camera::UpdateCameraVectors() {
+    this->m_Front = NewFront(tranform.GetRotation());
     // also re-calculate the Right and Up vector
     this->m_Right = glm::normalize(glm::cross(m_Front, m_WorldUp));
     this->m_Up    = glm::normalize(glm::cross(m_Right, m_Front));

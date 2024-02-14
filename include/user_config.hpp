@@ -8,5 +8,5 @@
 #define FPS_LIMIT 1000
 
 // Movement
-#define SENSIVITY 0.1f
+#define SENSIVITY 0.001f
 
