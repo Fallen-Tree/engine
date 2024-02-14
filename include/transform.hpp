@@ -26,10 +26,13 @@ class Transform {
     void SetRotation(float radiansDegree, Vec3 rotationAxis);
     void SetRotation(float radiansDegreeX, float radiansDegreeY, float radiansDegreeZ);
     void SetRotation(Mat4 rotationMatrix);
+
     void Rotate(float radiansDegree, Vec3 rotationAxis);
     void Rotate(float radiansDegreeX, float radiansDegreeY, float radiansDegreeZ);
     void Rotate(Mat4 rotationMatrix);
 
+    void RotateGlobal(float radiansDegree, Vec3 rotationAxis);
+    void RotateGlobal(float radiansDegreeX, float radiansDegreeY, float radiansDegreeZ);
 
     // Getters
     Vec3 GetTranslation();
