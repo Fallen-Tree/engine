@@ -142,23 +142,17 @@ int main() {
 
     bindRenderData(render_data);
 
-    auto imagesCat = std::vector<std::string>();
-    imagesCat.push_back(GetResourcePath(Resource::TEXTURE, "/Cat_diffuse.png"));
-    imagesCat.push_back(GetResourcePath(Resource::TEXTURE, "/Cat_specular.png"));
     obj->renderData->material = {
         4.f,
-        Texture(imagesCat),
+        Texture(GetResourcePath(Resource::TEXTURE, "/Cat_diffuse.png"), 
+                GetResourcePath(Resource::TEXTURE, "/Cat_specular.png")),
     };
     engine.AddObject<>(obj);
 
-    // Maybe this can be less clunky?
-    // Perhaps variadic functions?
-    auto imagesCube = std::vector<std::string>();
-    imagesCube.push_back(GetResourcePath(Resource::TEXTURE, "/wall.png"));
-    imagesCube.push_back(GetResourcePath(Resource::TEXTURE, "/wallspecular.png"));
     Material material = {
         4.f,
-        Texture(imagesCube),
+        Texture(GetResourcePath(Resource::TEXTURE, "/wall.png"), 
+                GetResourcePath(Resource::TEXTURE, "/wallspecular.png")),
     };
 
     auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model) {
@@ -239,13 +233,9 @@ int main() {
     bindRenderData(renderData);
 
     observer->transform = new Transform(Vec3(0), Vec3(1), 0, Vec3(1));
-
-    auto imagesCue = std::vector<std::string>();
-    imagesCue.push_back(GetResourcePath(Resource::TEXTURE, "/kiy.png"));
-    imagesCue.push_back(GetResourcePath(Resource::TEXTURE, "/kiy.png"));
     observer->renderData->material = {
         4.f,
-        Texture(imagesCue),
+        Texture(GetResourcePath(Resource::TEXTURE, "/kiy.png")),
     };
     engine.AddObject<>(observer);
 
