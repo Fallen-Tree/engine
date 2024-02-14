@@ -29,16 +29,12 @@ void Texture::loadImage(std::string path) {
     }
 
     int width, height, nrComponents;
-    char finalPath[512];
-    snprintf(finalPath, sizeof(finalPath),
-        reinterpret_cast<const char*>
-        ((RESOURCE_DIR"/textures/%s")), path.c_str());
     unsigned char *data = reinterpret_cast<unsigned char*>(
-        stbi_load(finalPath, &width, &height, &nrComponents, 0));
+        stbi_load(path.c_str(), &width, &height, &nrComponents, 0));
 
     if (!data) {
         stbi_image_free(data);
-        Logger::Error("TEXTURE::LOADER::PROGRAM::FILE_NOT_FOUND_FAILED: %s", finalPath);
+        Logger::Error("TEXTURE::LOADER::PROGRAM::FILE_NOT_FOUND_FAILED: %s", path.c_str());
         return;
     }
     GLenum format = GL_RGBA;

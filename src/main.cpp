@@ -10,7 +10,6 @@ const char *benchSource = "/bench.obj";
 const char *vertexShaderSource = "/standart.vshader";
 const char *fragmentShaderSource = "/standart.fshader";
 
-
 class MovingSphere : public Object {
  public:
     void Update(float dt) override {
@@ -144,8 +143,8 @@ int main() {
     bindRenderData(render_data);
 
     auto imagesCat = std::vector<std::string>();
-    imagesCat.push_back("/Cat_diffuse.png");
-    imagesCat.push_back("/Cat_specular.png");
+    imagesCat.push_back(GetResourcePath(Resource::TEXTURE, "/Cat_diffuse.png"));
+    imagesCat.push_back(GetResourcePath(Resource::TEXTURE, "/Cat_specular.png"));
     obj->renderData->material = {
         4.f,
         Texture(imagesCat),
@@ -155,8 +154,8 @@ int main() {
     // Maybe this can be less clunky?
     // Perhaps variadic functions?
     auto imagesCube = std::vector<std::string>();
-    imagesCube.push_back("/wall.png");
-    imagesCube.push_back("/wallspecular.png");
+    imagesCube.push_back(GetResourcePath(Resource::TEXTURE, "/wall.png"));
+    imagesCube.push_back(GetResourcePath(Resource::TEXTURE, "/wallspecular.png"));
     Material material = {
         4.f,
         Texture(imagesCube),
@@ -242,8 +241,8 @@ int main() {
     observer->transform = new Transform(Vec3(0), Vec3(1), 0, Vec3(1));
 
     auto imagesCue = std::vector<std::string>();
-    imagesCue.push_back("/kiy.png");
-    imagesCue.push_back("/kiy.png");
+    imagesCue.push_back(GetResourcePath(Resource::TEXTURE, "/kiy.png"));
+    imagesCue.push_back(GetResourcePath(Resource::TEXTURE, "/kiy.png"));
     observer->renderData->material = {
         4.f,
         Texture(imagesCue),
@@ -260,7 +259,7 @@ int main() {
         }
     };
 
-    auto textOcra = new Font("OCRAEXT.TTF", 20);
+    auto textOcra = new Font(GetResourcePath(Resource::FONT, "OCRAEXT.TTF"), 20);
     auto fpsObj = new FpsText();
     fpsObj->text = new Text(textOcra, "", 685.0f, 575.0f, 1.f, Vec3(0, 0, 0));
     engine.AddObject<>(fpsObj);
