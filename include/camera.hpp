@@ -19,7 +19,6 @@ enum Camera_Movement {
 
 class Camera {
  public:
-
     // constructor with vectors
     explicit Camera(Vec3 translation, Vec3 up = Vec3(0.0f, 1.0f, 0.0f), 
             Vec3 scale = Vec3(1), Mat4 rotation = Mat4(1), 
