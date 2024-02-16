@@ -67,7 +67,7 @@ Ray Camera::GetRayThroughScreenPoint(Vec2 pos) {
 }
 
 float Camera::GetZoom() {
-    return this->m_Zoom; 
+    return this->m_Zoom;
 }
 
 Vec3 Camera::GetPosition() {
@@ -97,16 +97,15 @@ void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime) {
 
 // processes input received from a mouse input system. Expects the offset
 // value in both the x and y direction.
-void Camera::ProcessMouseMovement(float xoffset, float yoffset, 
+void Camera::ProcessMouseMovement(float xoffset, float yoffset,
         GLboolean constrainPitch) {
-
     xoffset *= m_MouseSensitivity;
     yoffset *= m_MouseSensitivity;
 
     m_Transform.Rotate(0, xoffset, 0);
     m_Transform.RotateGlobal(-yoffset, 0, 0);
- 
-    Vec3 nextFront = NewFront(m_Transform.GetRotation()); 
+
+    Vec3 nextFront = NewFront(m_Transform.GetRotation());
     if (constrainPitch && abs(glm::dot(nextFront, m_WorldUp)) > MAX_DOT) {
         m_Transform.RotateGlobal(yoffset, 0, 0);
     }
@@ -126,7 +125,7 @@ void Camera::ProcessMouseScroll(float yoffset) {
 Vec3 Camera::NewFront(Mat4 rotation) {
     // normalize the vectors, because their length gets closer to 0 the more you look
     // up or down which results in slower movement.
-    const Vec3 startingPos = STARTING_POSITION; 
+    const Vec3 startingPos = STARTING_POSITION;
     return glm::normalize(Mul(startingPos, rotation));
 }
 
