@@ -7,17 +7,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-Vec3 Mul(Vec3 vec, Mat4 mat) {
-    Vec4 res = Vec4(vec, 1.0) * mat;
-    return Vec3(res.x / res.w, res.y / res.w, res.z / res.w);
-}
-
 Camera::Camera(Vec3 translation, Vec3 up,
         Vec3 scale, Mat4 rotation,
         float nPlane, float fPlane) {
-    tranform  = Transform(translation, scale, rotation);
+    m_Transform  = Transform(translation, scale, rotation);
     this->m_WorldUp = up;
-    this->m_Front = Vec3(0.0f, 0.0f, -1.0f);
+    this->m_Front = STARTING_POSITION;
     this->m_MovementSpeed = DFL_SPEED;
     this->m_MouseSensitivity = SENSIVITY;
     this->m_Zoom = DFL_ZOOM;
@@ -28,9 +23,9 @@ Camera::Camera(Vec3 translation, Vec3 up,
 
 void Camera::SetPosition(Vec3 translation, Vec3 up,
         Vec3 scale, Mat4 rotation) {
-    tranform  = Transform(translation, scale, rotation);
+    m_Transform  = Transform(translation, scale, rotation);
     this->m_WorldUp = up;
-    this->m_Front = Vec3(0.0f, 0.0f, -1.0f);
+    this->m_Front = STARTING_POSITION;
     this->m_Zoom = DFL_ZOOM;
     UpdateCameraVectors();
 }
@@ -38,8 +33,8 @@ void Camera::SetPosition(Vec3 translation, Vec3 up,
 // returns the view matrix calculated using Euler Angles and the LookAt
 // Matrix
 Mat4 Camera::GetViewMatrix() {
-    return glm::lookAt(tranform.GetTranslation(),
-            tranform.GetTranslation() + this->m_Front, this->m_Up);
+    return glm::lookAt(m_Transform.GetTranslation(),
+            m_Transform.GetTranslation() + this->m_Front, this->m_Up);
 }
 
 Mat4 Camera::GetProjectionMatrix() {
@@ -76,7 +71,7 @@ float Camera::GetZoom() {
 }
 
 Vec3 Camera::GetPosition() {
-    return tranform.GetTranslation();
+    return m_Transform.GetTranslation();
 }
 
 Vec3 Camera::GetFront() {
@@ -92,26 +87,29 @@ void Camera::SetScreenSize(Vec2 size) {
 // windowing systems)
 void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime) {
     float velocity = m_MovementSpeed * deltaTime;
-    Vec3 newTranslation = tranform.GetTranslation();
+    Vec3 newTranslation = m_Transform.GetTranslation();
     if (direction == FORWARD)  newTranslation += this->m_Front * velocity;
     if (direction == BACKWARD) newTranslation -= this->m_Front * velocity;
     if (direction == LEFT)     newTranslation -= this->m_Right * velocity;
     if (direction == RIGHT)    newTranslation += this->m_Right * velocity;
-    tranform.SetTranslation(newTranslation);
+    m_Transform.SetTranslation(newTranslation);
 }
 
 // processes input received from a mouse input system. Expects the offset
 // value in both the x and y direction.
-void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch) {
+void Camera::ProcessMouseMovement(float xoffset, float yoffset, 
+        GLboolean constrainPitch) {
 
     xoffset *= m_MouseSensitivity;
     yoffset *= m_MouseSensitivity;
 
-    auto rotate = tranform.GetRotation();
-    auto t = glm::rotate(rotate, yoffset, Mul(Vec3(1.f, 0.f, 0.f), rotate)); 
-    Vec3 nextFront = NewFront(glm::rotate(rotate, yoffset, Mul(Vec3(1.f, 0.f, 0.f), rotate))); 
-    if (constrainPitch && abs(glm::dot(nextFront, m_WorldUp)) > 0.95) return; 
-    tranform.SetRotation(t);
+    m_Transform.Rotate(0, xoffset, 0);
+    m_Transform.RotateGlobal(-yoffset, 0, 0);
+ 
+    Vec3 nextFront = NewFront(m_Transform.GetRotation()); 
+    if (constrainPitch && abs(glm::dot(nextFront, m_WorldUp)) > MAX_DOT) {
+        m_Transform.RotateGlobal(yoffset, 0, 0);
+    }
 
     // update Front, Right and Up Vectors using the updated Euler angles
     UpdateCameraVectors();
@@ -126,15 +124,15 @@ void Camera::ProcessMouseScroll(float yoffset) {
 }
 
 Vec3 Camera::NewFront(Mat4 rotation) {
-    Vec3 front = Mul(Vec3(0, 0, -1), rotation);
     // normalize the vectors, because their length gets closer to 0 the more you look
     // up or down which results in slower movement.
-    return glm::normalize(Mul(Vec3(0, 0, -1), rotation));
+    const Vec3 startingPos = STARTING_POSITION; 
+    return glm::normalize(Mul(startingPos, rotation));
 }
 
 // calculates the front vector from the Camera's (updated) Euler Angles
 void Camera::UpdateCameraVectors() {
-    this->m_Front = NewFront(tranform.GetRotation());
+    this->m_Front = NewFront(m_Transform.GetRotation());
     // also re-calculate the Right and Up vector
     this->m_Right = glm::normalize(glm::cross(m_Front, m_WorldUp));
     this->m_Up    = glm::normalize(glm::cross(m_Right, m_Front));

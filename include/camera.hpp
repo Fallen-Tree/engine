@@ -19,8 +19,6 @@ enum Camera_Movement {
 
 class Camera {
  public:
-    // Transform class
-    Transform tranform;
 
     // constructor with vectors
     explicit Camera(Vec3 translation, Vec3 up = Vec3(0.0f, 1.0f, 0.0f), 
@@ -60,6 +58,9 @@ class Camera {
     void Update(Input * input, float deltaTime);
 
  private:
+    // Transform class
+    Transform m_Transform;
+
     // camera Attributes
     Vec3 m_Front;
     Vec3 m_Up;
