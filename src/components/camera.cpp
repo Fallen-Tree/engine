@@ -7,6 +7,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+
+Vec3 NewFront(Mat4 rotation);
+
 Camera::Camera(Vec3 translation, Vec3 up,
         Vec3 scale, Mat4 rotation,
         float nPlane, float fPlane) {
@@ -21,9 +24,8 @@ Camera::Camera(Vec3 translation, Vec3 up,
     UpdateCameraVectors();
 }
 
-void Camera::SetPosition(Vec3 translation, Vec3 up,
-        Vec3 scale, Mat4 rotation) {
-    m_Transform  = Transform(translation, scale, rotation);
+void Camera::SetTransform(Transform transform, Vec3 up) {
+    m_Transform = transform;
     this->m_WorldUp = up;
     this->m_Front = STARTING_POSITION;
     this->m_Zoom = DFL_ZOOM;
@@ -121,8 +123,7 @@ void Camera::ProcessMouseScroll(float yoffset) {
     if (this->m_Zoom < MIN_FOV) this->m_Zoom = MIN_FOV;
     if (this->m_Zoom > MAX_FOV) this->m_Zoom = MAX_FOV;
 }
-
-Vec3 Camera::NewFront(Mat4 rotation) {
+Vec3 NewFront(Mat4 rotation) {
     // normalize the vectors, because their length gets closer to 0 the more you look
     // up or down which results in slower movement.
     const Vec3 startingPos = STARTING_POSITION;

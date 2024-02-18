@@ -24,8 +24,7 @@ class Camera {
             Vec3 scale = Vec3(1), Mat4 rotation = Mat4(1), 
             float nearPlane = DFL_NEAR_PLANE, float farPlane = DFL_FAR_PLANE);
 
-    void SetPosition(Vec3 translation, Vec3 up = Vec3(0.0f, 1.0f, 0.0f), 
-            Vec3 scale = Vec3(1), Mat4 rotation = Mat4(1));
+    void SetTransform(Transform transform, Vec3 up = Vec3(0.0f, 1.0f, 0.0f));
 
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
     Mat4 GetViewMatrix();
@@ -77,7 +76,6 @@ class Camera {
     // calculates the front vector from the Camera's (updated) Euler Angles
     void UpdateCameraVectors();
 
-    Vec3 NewFront(Mat4 rotation);
 };
 
 #endif  // SRC_CAMERA_CAMERA_HPP_
