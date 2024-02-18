@@ -75,7 +75,6 @@ class Camera {
 
     // calculates the front vector from the Camera's (updated) Euler Angles
     void UpdateCameraVectors();
-
 };
 
 #endif  // SRC_CAMERA_CAMERA_HPP_
