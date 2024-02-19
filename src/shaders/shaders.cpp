@@ -57,7 +57,7 @@ int Shader::Compile() {
 Shader::Shader(ShaderType shaderType, std::string path) {
     m_Type = shaderType;
     m_Shader = 0;
-    if (shaderType == VertexShader) {    
+    if (shaderType == VertexShader) {
         path = GetResourcePath(Resource::VSHADER, path);
     } else {
         path = GetResourcePath(Resource::FSHADER, path);
