@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 
 Plane::Plane(Triangle triangle) {
-    Plane(triangle.normal, triangle.a);
+    *this = Plane(triangle.normal, triangle.a);
 }
 
 Plane::Plane(Vec3 normal, Vec3 point) {
