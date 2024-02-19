@@ -29,6 +29,7 @@ add_library(ENGINE STATIC
             src/components/camera.cpp 
             src/engine/time.cpp
             src/engine/path_resolver.cpp
+            src/engine/math.cpp
 )
 
 add_subdirectory(thirdparty/glfw)
