@@ -7,7 +7,7 @@
 #include <fstream>
 #include <cstdarg>
 #include "logger.hpp"
-
+#include "path_resolver.hpp"
 #include "glm/ext.hpp"
 #include "engine_config.hpp"
 
@@ -57,6 +57,11 @@ int Shader::Compile() {
 Shader::Shader(ShaderType shaderType, std::string path) {
     m_Type = shaderType;
     m_Shader = 0;
+    if (shaderType == VertexShader) {    
+        path = GetResourcePath(Resource::VSHADER, path);
+    } else {
+        path = GetResourcePath(Resource::FSHADER, path);
+    }
     LoadSourceFromFile(path);
     Compile();
 }

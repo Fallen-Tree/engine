@@ -119,8 +119,8 @@ int main() {
         -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
     };
 
-    Shader vShader = Shader(VertexShader, GetResourcePath(Resource::VSHADER, vertexShaderSource));
-    Shader fShader = Shader(FragmentShader, GetResourcePath(Resource::FSHADER, fragmentShaderSource));
+    Shader vShader = Shader(VertexShader, vertexShaderSource);
+    Shader fShader = Shader(FragmentShader, fragmentShaderSource);
     ShaderProgram *shaderProgram = new ShaderProgram(vShader, fShader);
 
     // ShaderProgram shaderProgram = ShaderProgram(vShader, fShader2);
@@ -129,7 +129,7 @@ int main() {
     cubeModel->shader = shaderProgram;
     Model *sphereModel = Model::GetSphere();
     sphereModel->shader = shaderProgram;
-    Model * model = Model::loadFromFile(GetResourcePath(Resource::MODEL, catSource));
+    Model * model = Model::loadFromFile(catSource);
 
     auto obj = new Object();
     obj->renderData = new RenderData();
@@ -144,15 +144,14 @@ int main() {
 
     obj->renderData->material = {
         4.f,
-        Texture(GetResourcePath(Resource::TEXTURE, "/Cat_diffuse.png"),
-                GetResourcePath(Resource::TEXTURE, "/Cat_specular.png")),
+        Texture("/Cat_diffuse.png",
+                "/Cat_specular.png")
     };
     engine.AddObject<>(obj);
 
     Material material = {
         4.f,
-        Texture(GetResourcePath(Resource::TEXTURE, "/wall.png"),
-                GetResourcePath(Resource::TEXTURE, "/wallspecular.png")),
+        Texture("/wall.png", "/wallspecular.png")
     };
 
     auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model) {
@@ -228,14 +227,14 @@ int main() {
 
     observer->renderData = new RenderData();
     auto renderData = observer->renderData;
-    renderData->model = Model::loadFromFile(GetResourcePath(Resource::MODEL, "/kiy.obj"));
+    renderData->model = Model::loadFromFile("/kiy.obj");
     renderData->model->shader = shaderProgram;
     bindRenderData(renderData);
 
     observer->transform = new Transform(Vec3(0), Vec3(1), 0, Vec3(1));
     observer->renderData->material = {
         4.f,
-        Texture(GetResourcePath(Resource::TEXTURE, "/kiy.png")),
+        Texture("/kiy.png")
     };
     engine.AddObject<>(observer);
 
@@ -249,7 +248,7 @@ int main() {
         }
     };
 
-    auto textOcra = new Font(GetResourcePath(Resource::FONT, "OCRAEXT.TTF"), 20);
+    auto textOcra = new Font("OCRAEXT.TTF", 20);
     auto fpsObj = new FpsText();
     fpsObj->text = new Text(textOcra, "", 685.0f, 575.0f, 1.f, Vec3(0, 0, 0));
     engine.AddObject<>(fpsObj);

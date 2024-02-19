@@ -66,6 +66,8 @@ void Font::RenderText(std::string text, float x, float y, float scale, glm::vec3
 }
 
 Font::Font(std::string path, unsigned int fontSize) {
+    path = GetResourcePath(Resource::FONT, path);
+
     FT_Library ft;
     if (FT_Init_FreeType(&ft)) {
         Logger::Error("FREETYPE: Can't initialize FreeType");
@@ -129,7 +131,7 @@ Font::Font(std::string path, unsigned int fontSize) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    Shader vShader = Shader(VertexShader, GetResourcePath(Resource::VSHADER, "text.vshader"));
-    Shader fShader = Shader(FragmentShader, GetResourcePath(Resource::FSHADER, "text.fshader"));
+    Shader vShader = Shader(VertexShader, "text.vshader");
+    Shader fShader = Shader(FragmentShader, "text.fshader");
     m_ShaderProgram = ShaderProgram(vShader, fShader);
 }

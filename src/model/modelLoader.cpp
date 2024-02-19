@@ -5,12 +5,14 @@
 #include <filesystem>
 #include <cstdarg>
 #include "logger.hpp"
-
+#include "path_resolver.hpp"
 #include "engine_config.hpp"
 
 #include "model.hpp"
 
 Model* Model::loadFromFile(std::string filePath) {
+    filePath = GetResourcePath(Resource::MODEL, filePath);
+
     std::filesystem::path fileExtension = ((std::filesystem::path) filePath).extension();
     if (fileExtension != ".obj") {
         Logger::Error("MODEL::LOADER::INCORRECT::FILE::FORMAT::%s", fileExtension.c_str());
