@@ -47,6 +47,10 @@ jobs:
       with:
         submodules: true
 
+    - name: Update package registry
+      run: sudo apt update
+      if: runner.os == 'Linux'
+
     - name: Download depedencies
       run: sudo apt-get install libgl1-mesa-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
       if: runner.os == 'Linux'
