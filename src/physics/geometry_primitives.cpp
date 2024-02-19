@@ -53,7 +53,7 @@ AABB AABB::Transformed(Transform transform) {
 
 Triangle::Triangle(Vec3 a, Vec3 b, Vec3 c) {
     this->a = a;
-    this->b = a;
+    this->b = b;
     this->c = c;
     this->normal = glm::cross(a - b, a - c);
 }
