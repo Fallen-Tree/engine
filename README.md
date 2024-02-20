@@ -29,10 +29,25 @@ To render text on the screen you need create Text object with font in .ttf forma
 
 * New *
 
+```C++
 auto textOcra = new Font("OCRAEXT.TTF", 20); // Create new Font object
-auto fpsObj = new FpsText(); // create new fpsObj,
+auto fpsObj = new FpsText(); // create new fpsObj
 fpsObj->text = new Text(textOcra, "", 685.0f, 575.0f, 1.f, Vec3(0, 0, 0)); // set new text component to fpsObj
 engine.AddObject<>(fpsObj); // add to objects list
+```
+
+### Text Rendering
+```C++
+Object* healthBar1 = new Object();
+healthBar1->image = new Image("hp.png", 0.03, 0.15, 0.4);
+engine.AddObject<>(healthBar1);
+```
+
+To render image see code above and *Image.hpp*. 
+
++ Coordinates are relative, range [0; 1]. 
++ Coodrinates starts in left bottom corner in both image and screen.
++ Image have to be in resources/images folder.
 
 #### Probably bugs and problems
 + No game-window: Text objects can be created only after glfw initialization

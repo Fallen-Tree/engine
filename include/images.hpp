@@ -15,9 +15,12 @@ class Image {
     bool m_Visible = true;
 
  public:
-    // relative path to image from resources/images/
+    // path - relative path to image from resources/images/
+    // relX, relY - relative coordinates of left bottom corner in range [0; 1]
+    // coordinates of screen also starts from left bottom corner
+    // Scale
     Image(std::string, float, float, float);
-    // relative x, y from -1 to 1 each, scale
+    // Render image
     void Render();
     // to not render picture, default
     void Hide();

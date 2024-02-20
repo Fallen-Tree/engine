@@ -253,9 +253,13 @@ int main() {
     fpsObj->text = new Text(textOcra, "", 685.0f, 575.0f, 1.f, Vec3(0, 0, 0));
     engine.AddObject<>(fpsObj);
 
-    Object* healthBar = new Object();
-    healthBar->image = new Image("wall.png", 0.9, 0.9, 0.5);
-    engine.AddObject<>(healthBar);
+    Object* healthBar1 = new Object();
+    healthBar1->image = new Image("hp.png", 0.03, 0.15, 0.4);
+    engine.AddObject<>(healthBar1);
+
+    Object* healthBar2 = new Object();
+    healthBar2->image = new Image("hp_bar.png", 0.015, 0.01, 0.4);
+    engine.AddObject<>(healthBar2);
 
     // init light objects
     Object* pointLight1 = new Object();
