@@ -4,6 +4,7 @@
 #include "stb_image.h"
 #include "engine_config.hpp"
 #include "logger.hpp"
+#include "path_resolver.hpp"
 
 Texture::Texture() {}
 
@@ -24,6 +25,8 @@ void Texture::loadImages(std::vector<std::string> paths) {
 }
 
 void Texture::loadImage(std::string path) {
+    path = GetResourcePath(Resource::TEXTURE, path);
+
     if (m_Count >= MAX_COUNT_TEXTURE) {
         Logger::Error(
             "TEXTURE::PROGRAM::LOADER::FAILED_TO_LOAD_TEXTURE_AT_PATH_%s_BECAUSE_OVERFLOW", path.c_str());
@@ -31,16 +34,12 @@ void Texture::loadImage(std::string path) {
     }
 
     int width, height, nrComponents;
-    char finalPath[512];
-    snprintf(finalPath, sizeof(finalPath),
-        reinterpret_cast<const char*>
-        ((RESOURCE_DIR"/textures/%s")), path.c_str());
     unsigned char *data = reinterpret_cast<unsigned char*>(
-        stbi_load(finalPath, &width, &height, &nrComponents, 0));
+        stbi_load(path.c_str(), &width, &height, &nrComponents, 0));
 
     if (!data) {
         stbi_image_free(data);
-        Logger::Error("TEXTURE::LOADER::PROGRAM::FILE_NOT_FOUND_FAILED: %s", finalPath);
+        Logger::Error("TEXTURE::LOADER::PROGRAM::FILE_NOT_FOUND_FAILED: %s", path.c_str());
         return;
     }
     GLenum format = GL_RGBA;

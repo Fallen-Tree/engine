@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <vector>
 // #include <fstream>
 #include "shaders.hpp"
@@ -21,7 +22,7 @@ class Model {
 
     explicit Model(const std::vector<float>& Points, int vectorSize);
 
-    static Model* loadFromFile(const char* path);
+    static Model* loadFromFile(std::string);
     // getter and setter for working with class.
     float* getPoints();
 

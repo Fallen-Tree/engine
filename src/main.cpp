@@ -7,9 +7,8 @@ const char *cubeSource = "/cube2.obj";
 const char *catSource = "/cat.obj";
 const char *benchSource = "/bench.obj";
 
-const char *vertexShaderSource = "/vertex/standart.vshader";
-const char *fragmentShaderSource = "/fragment/standart.fshader";
-
+const char *vertexShaderSource = "/standart.vshader";
+const char *fragmentShaderSource = "/standart.fshader";
 
 class MovingSphere : public Object {
  public:
@@ -145,13 +144,14 @@ int main() {
 
     obj->renderData->material = {
         4.f,
-        Texture("/Cat_diffuse.png", "/Cat_specular.png"),
+        Texture("/Cat_diffuse.png",
+                "/Cat_specular.png")
     };
     engine.AddObject<>(obj);
 
     Material material = {
         4.f,
-        Texture("/wall.png", "/wallspecular.png"),
+        Texture("/wall.png", "/wallspecular.png")
     };
 
     auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model) {
@@ -232,10 +232,9 @@ int main() {
     bindRenderData(renderData);
 
     observer->transform = new Transform(Vec3(0), Vec3(1), 0, Vec3(1));
-
     observer->renderData->material = {
         4.f,
-        Texture("/kiy.png"),
+        Texture("/kiy.png")
     };
     engine.AddObject<>(observer);
 
