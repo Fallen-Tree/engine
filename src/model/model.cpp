@@ -18,6 +18,7 @@ Model* Model::loadFromFile(const char* path) {
         return 0;
     }
     newModel->processNode(scene->mRootNode, scene);
+    return newModel;
 }
 
 void Model::processNode(aiNode *node, const aiScene *scene) {
@@ -35,7 +36,6 @@ void Model::processNode(aiNode *node, const aiScene *scene) {
 RenderMesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
     std::vector<float> points;
     std::vector<unsigned int> indices;
-    Material material;
 
     for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
         // process vertex positions, normals and texture coordinates
@@ -68,9 +68,11 @@ RenderMesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
             indices.push_back(face.mIndices[j]);
     }
     // process material
-    material.shininess = 1.0;
+    Material material = Material{1.0, Texture("default.png")};
+    // does not work now
     if (mesh->mMaterialIndex >= 0) {
         aiMaterial *mat = scene->mMaterials[mesh->mMaterialIndex];
+        // convert material from assimp to our material
     }
     RenderMesh newMesh = RenderMesh(points, indices, material);
     bindRenderData(&newMesh);

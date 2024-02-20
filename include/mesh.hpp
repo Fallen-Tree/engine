@@ -10,7 +10,7 @@ class Mesh {
 
  public:
 
-    Mesh();
+    Mesh() {}
 
     Mesh(const std::vector<float>& Points, const std::vector<unsigned int>& Indices);
 

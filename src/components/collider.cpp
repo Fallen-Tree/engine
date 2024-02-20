@@ -22,12 +22,12 @@ bool CollideShifted(T lhs, Transform lhsTransform, U rhs, Transform rhsTransform
 
 template<typename T>
 bool CollideShifted(T lhs, Transform lhsTransform, Mesh *rhs, Transform rhsTransform) {
-    return CollideModelAt(lhs.Transformed(lhsTransform), rhs, rhsTransform);
+    return CollideMeshAt(lhs.Transformed(lhsTransform), rhs, rhsTransform);
 }
 
 template<typename U>
 bool CollideShifted(Mesh *lhs, Transform lhsTransform, U rhs, Transform rhsTransform) {
-    return CollideModelAt(rhs.Transformed(rhsTransform), lhs, lhsTransform);
+    return CollideMeshAt(rhs.Transformed(rhsTransform), lhs, lhsTransform);
 }
 
 bool CollideShifted(Mesh *lhs, Transform lhsTransform, Mesh *rhs, Transform rhsTransform) {

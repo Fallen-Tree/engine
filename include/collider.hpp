@@ -6,7 +6,7 @@
 #include "mesh.hpp"
 
 struct Collider {
-    std::variant<AABB, Sphere, Mesh> shape;
+    std::variant<AABB, Sphere, Mesh *> shape;
 
     bool Collide(Transform self, Collider *other, Transform otherTransform);
     bool Raycast(Transform self, Ray ray);
