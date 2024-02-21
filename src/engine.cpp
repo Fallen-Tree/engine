@@ -136,7 +136,7 @@ void Engine::Run() {
     int fpsFrames = 0;
     const float frameTime = 1.f / FPS_LIMIT;
     float deltaTime = 0.0f;
-    float lastTime = 0.0f;
+    float lastTime = static_cast<float>(glfwGetTime());
 
 
     // render loop
