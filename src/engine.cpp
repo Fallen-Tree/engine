@@ -47,6 +47,7 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 void processInput(GLFWwindow *window);
 
 Engine::Engine() {
+    Time::SetCurrentTime(0);
     m_Objects = std::vector<Object *>();
     camera = new Camera(Vec3(0.0f, 0.0f, 3.0f));
     s_Engine = this;
@@ -136,16 +137,35 @@ void Engine::Run() {
     int fpsFrames = 0;
     const float frameTime = 1.f / FPS_LIMIT;
     float deltaTime = 0.0f;
-    float lastTime = 0.0f;
-
+    float lastTime = LOADING_STAGE_TIME;
 
     // render loop
     // -----------
     while (!glfwWindowShouldClose(m_Window)) {
+        // waiting for timeStamp for next frame
         float currentTime = static_cast<float>(glfwGetTime());
+        while (floor(currentTime / frameTime) == lastRenderedFrame) {
+            currentTime = static_cast<float>(glfwGetTime());
+        }
+        lastRenderedFrame = floor(currentTime / frameTime);
+        fpsFrames++;
+
+        // case if it's loading stage
+        if (currentTime - lastTime < 0) {
+            if (currentTime - lastFpsShowedTime > FPS_SHOWING_INTERVAL) {
+                Logger::Info("Loading stage...");
+                lastFpsShowedTime = currentTime;
+                fpsFrames = 0;
+            }
+            continue;
+        }
+
+        // Common rendering loop
         deltaTime = currentTime - lastTime;
-        Time::SetDeltaTime(deltaTime);
         lastTime = currentTime;
+
+        Time::SetDeltaTime(deltaTime);
+        Time::SetCurrentTime(currentTime);
 
         if (currentTime - lastFpsShowedTime > FPS_SHOWING_INTERVAL) {
             fps = static_cast<unsigned int>(fpsFrames / (currentTime - lastFpsShowedTime));
@@ -161,11 +181,6 @@ void Engine::Run() {
         camera->Update(&m_Input, deltaTime);
         updateObjects(deltaTime);
 
-        while (static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime)) == lastRenderedFrame) {
-        }
-
-        fpsFrames++;
-        lastRenderedFrame = static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime));
         Render(SCR_WIDTH, SCR_HEIGHT);
     }
 

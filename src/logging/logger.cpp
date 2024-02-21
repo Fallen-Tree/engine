@@ -55,7 +55,6 @@ void Logger::Warn(const char *format, ...) {
     va_end(args);
 }
 
-
 void Logger::Error(const char *format, ...) {
     va_list args;
     va_start(args, format);

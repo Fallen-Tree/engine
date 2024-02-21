@@ -21,6 +21,7 @@
 // engine
 #define EPS 0.001f
 #define FPS_SHOWING_INTERVAL 0.5f
+#define LOADING_STAGE_TIME 4.f
 
 // input
 #define MAX_VALID_KEY 350

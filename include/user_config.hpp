@@ -5,7 +5,7 @@
 #define SCR_WIDTH 800
 
 // Engine
-#define FPS_LIMIT 1000
+#define FPS_LIMIT 100
 
 // Movement
 #define SENSIVITY 0.1f
