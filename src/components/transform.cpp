@@ -51,10 +51,21 @@ void Transform::Rotate(float radiansDegree, Vec3 rotationAxis) {
     this->m_Rotation = glm::rotate(this->m_Rotation, radiansDegree, rotationAxis);
 }
 
+void Transform::RotateGlobal(float radiansDegree, Vec3 rotationAxis) {
+    auto axis = Mul(rotationAxis, m_Rotation);
+    m_Rotation = glm::rotate(m_Rotation, radiansDegree, axis);
+}
+
 void Transform::Rotate(float radiansDegreeX, float radiansDegreeY, float radiansDegreeZ) {
     this->m_Rotation = glm::rotate(this->m_Rotation, radiansDegreeX, Vec3(1.0f, 0.f, 0.f));
     this->m_Rotation = glm::rotate(this->m_Rotation, radiansDegreeY, Vec3(0.0f, 1.f, 0.f));
     this->m_Rotation = glm::rotate(this->m_Rotation, radiansDegreeZ, Vec3(0.0f, 0.f, 1.f));
+}
+
+void Transform::RotateGlobal(float radiansDegreeX, float radiansDegreeY, float radiansDegreeZ) {
+    m_Rotation = glm::rotate(m_Rotation, radiansDegreeX, Mul(Vec3(1.0f, 0.f, 0.f), m_Rotation));
+    m_Rotation = glm::rotate(m_Rotation, radiansDegreeY, Mul(Vec3(0.0f, 1.f, 0.f), m_Rotation));
+    m_Rotation = glm::rotate(m_Rotation, radiansDegreeZ, Mul(Vec3(0.0f, 0.f, 1.f), m_Rotation));
 }
 
 void Transform::Rotate(Mat4 rotationMatrix) {

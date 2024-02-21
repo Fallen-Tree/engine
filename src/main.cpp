@@ -7,9 +7,8 @@ const char *cubeSource = "/cube2.obj";
 const char *catSource = "/cat.obj";
 const char *benchSource = "/bench.obj";
 
-const char *vertexShaderSource = "/vertex/standart.vshader";
-const char *fragmentShaderSource = "/fragment/standart.fshader";
-
+const char *vertexShaderSource = "/standart.vshader";
+const char *fragmentShaderSource = "/standart.fshader";
 
 class MovingSphere : public Object {
  public:
@@ -143,23 +142,16 @@ int main() {
 
     bindRenderData(render_data);
 
-    auto imagesCat = std::vector<std::string>();
-    imagesCat.push_back("/Cat_diffuse.png");
-    imagesCat.push_back("/Cat_specular.png");
     obj->renderData->material = {
         4.f,
-        Texture(imagesCat),
+        Texture("/Cat_diffuse.png",
+                "/Cat_specular.png")
     };
     engine.AddObject<>(obj);
 
-    // Maybe this can be less clunky?
-    // Perhaps variadic functions?
-    auto imagesCube = std::vector<std::string>();
-    imagesCube.push_back("/wall.png");
-    imagesCube.push_back("/wallspecular.png");
     Material material = {
         4.f,
-        Texture(imagesCube),
+        Texture("/wall.png", "/wallspecular.png")
     };
 
     auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model) {
@@ -204,9 +196,9 @@ int main() {
 
         obj->transform = new Transform(transform);
 
-        obj->collider = new Collider{Sphere{
-            Vec3(0.0),
-            1.0f,
+        obj->collider = new Collider{AABB {
+            Vec3{-1, -1, -1},
+            Vec3{1, 1, 1},
         }};
         return obj;
     };
@@ -240,13 +232,9 @@ int main() {
     bindRenderData(renderData);
 
     observer->transform = new Transform(Vec3(0), Vec3(1), 0, Vec3(1));
-
-    auto imagesCue = std::vector<std::string>();
-    imagesCue.push_back("/kiy.png");
-    imagesCue.push_back("/kiy.png");
     observer->renderData->material = {
         4.f,
-        Texture(imagesCue),
+        Texture("/kiy.png")
     };
     engine.AddObject<>(observer);
 

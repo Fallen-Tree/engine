@@ -12,17 +12,18 @@ class Shader {
      std::string m_Source;
      ShaderType m_Type;
      int CheckSuccess();
-     int LoadSourceFromFile(const char* path);
+     int LoadSourceFromFile(std::string path);
      int Compile();
  public:
      unsigned int m_Shader;
-     explicit Shader(ShaderType shaderType, const char* path);
+     explicit Shader(ShaderType shaderType, std::string path);
 };
 
 class ShaderProgram {
  private:
      unsigned int m_Program = 0;
      unsigned int GetLoc(const char* name);
+
  public:
      int AttachShader(Shader shader);
      int Link();

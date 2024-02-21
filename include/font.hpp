@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include <ft2build.h>
 #include <freetype/freetype.h>
 
@@ -18,6 +20,6 @@ class Font {
     Character Characters[128];
 
  public:
-    Font(const char*, unsigned int);
+    Font(std::string, unsigned int);
     void RenderText(std::string, float, float, float, glm::vec3);
 };
