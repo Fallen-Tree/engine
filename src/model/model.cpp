@@ -74,7 +74,6 @@ Vec3 Model::ClosestPoint(Vec3 point, Transform *transform) {
         } * modelMat;
         return Vec3{ res.x / res.w, res.y / res.w, res.z / res.w };
     };
-   
     Vec3 res = Vec3(std::numeric_limits<float>::max());
     for (int i = 0; i < getLenIndices(); i += 3) {
         Triangle tri = Triangle(loadPos(i), loadPos(i + 1), loadPos(i + 2));
