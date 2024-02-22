@@ -45,6 +45,7 @@ class Engine {
     void AddObject(T *a) {
         AddObject(static_cast<Object *>(a));
     }
+    void RemoveObject(Object *o);
 
     Camera* SwitchCamera(Camera* newCamera);
     void Run();

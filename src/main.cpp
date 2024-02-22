@@ -15,23 +15,29 @@ class MovingSphere : public Object {
     void Update(float dt) override {
         if (!collider->Collide(*transform, m_Target->collider, *m_Target->transform)) {
             transform->Translate(m_Speed * dt);
+        } else {
+            m_Engine->RemoveObject(m_Target);
         }
     }
 
-    MovingSphere(Object *target, Vec3 speed) {
+    MovingSphere(Object *target, Vec3 speed, Engine *engine) {
         m_Target = target;
         m_Speed = speed;
+        m_Engine = engine;
     }
  private:
     Object *m_Target;
     Vec3 m_Speed;
+    Engine *m_Engine;
 };
 
 class Pointer : public Object {
  public:
-     Pointer(std::vector<Object *> objects, Camera *camera) {
+     Pointer(std::vector<Object *> objects, Camera *camera, Engine *engine, Object *light) {
          m_Objects = objects;
          m_Camera = camera;
+         m_Engine = engine;
+         m_Light = light;
      }
 
     void Update(float dt) override {
@@ -48,6 +54,9 @@ class Pointer : public Object {
         }
         if (s_Input->IsKeyPressed(Key::MouseLeft))
             m_CurrentTarget = target;
+
+        if (s_Input->IsKeyPressed(Key::Space))
+            m_Engine->RemoveObject(m_Light);
 
         if (m_CurrentTarget != nullptr) {
             Vec3 center = m_CurrentTarget->GetTranslation();
@@ -67,6 +76,8 @@ class Pointer : public Object {
     Transform *m_CurrentTarget = nullptr;
     std::vector<Object *> m_Objects;
     Camera *m_Camera;
+    Object *m_Light;
+    Engine *m_Engine;
 };
 
 Object* initModel();
@@ -186,8 +197,8 @@ int main() {
         sphereModel,
         sphereModel);
 
-    auto getSphereObj = [=](Transform transform, Object *target, Vec3 speed) {
-        auto obj = new MovingSphere(target, speed);
+    auto getSphereObj = [=, &engine](Transform transform, Object *target, Vec3 speed) {
+        auto obj = new MovingSphere(target, speed, &engine);
         obj->renderData = new RenderData();
         auto renderData = obj->renderData;
         renderData->model = sphereModel;
@@ -220,23 +231,6 @@ int main() {
     engine.AddObject<>(spheres[0]);
     engine.AddObject<>(spheres[1]);
     engine.AddObject<>(spheres[2]);
-
-    auto observer = new Pointer(
-        {spheres[0], spheres[1], spheres[2], aabb, sphere},
-        engine.camera);
-
-    observer->renderData = new RenderData();
-    auto renderData = observer->renderData;
-    renderData->model = Model::loadFromFile("/kiy.obj");
-    renderData->model->shader = shaderProgram;
-    bindRenderData(renderData);
-
-    observer->transform = new Transform(Vec3(0), Vec3(1), 0, Vec3(1));
-    observer->renderData->material = {
-        4.f,
-        Texture("/kiy.png")
-    };
-    engine.AddObject<>(observer);
 
     class FpsText : public Object {
      public:
@@ -295,6 +289,23 @@ int main() {
             glm::cos(glm::radians(15.0f)));
     auto sptLight = std::get<SpotLight*>(spotLight->light);
     engine.AddObject<>(spotLight);
+
+    auto observer = new Pointer(
+        {spheres[0], spheres[1], spheres[2], aabb, sphere},
+        engine.camera, &engine, spotLight);
+
+    observer->renderData = new RenderData();
+    auto renderData = observer->renderData;
+    renderData->model = Model::loadFromFile("/kiy.obj");
+    renderData->model->shader = shaderProgram;
+    bindRenderData(renderData);
+
+    observer->transform = new Transform(Vec3(0), Vec3(1), 0, Vec3(1));
+    observer->renderData->material = {
+        4.f,
+        Texture("/kiy.png")
+    };
+    engine.AddObject<>(observer);
 
     engine.Run();
 }

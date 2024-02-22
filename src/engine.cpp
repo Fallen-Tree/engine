@@ -116,6 +116,52 @@ void Engine::AddObject(Object *a) {
     m_Objects.push_back(a);
 }
 
+void Engine::RemoveObject(Object *obj) {
+    int target = -1;
+    for (int i = 0; i < m_Objects.size(); i++)
+        if (m_Objects[i] == obj)
+            target = i;
+    if (target != -1)
+        m_Objects.erase(m_Objects.begin() + target);
+
+    switch (obj->light.index()) {
+        case 0: {
+            auto light = std::get<DirLight*>(obj->light);
+            int target = -1;
+            for (int i = 0; i < m_DirLights.size(); i++)
+                if (m_DirLights[i] == light)
+                    target = i;
+            if (target != -1)
+                m_DirLights.erase(m_DirLights.begin() + target);
+            break;
+        }
+        case 1: {
+            auto light = std::get<PointLight*>(obj->light);
+            int target = -1;
+            for (int i = 0; i < m_PointLights.size(); i++)
+                if (m_PointLights[i] == light)
+                    target = i;
+            if (target != -1)
+                m_PointLights.erase(m_PointLights.begin() + target);
+            break;
+        }
+        case 2: {
+            auto light = std::get<SpotLight*>(obj->light);
+            int target = -1;
+            for (int i = 0; i < m_SpotLights.size(); i++)
+                if (m_SpotLights[i] == light)
+                    target = i;
+            if (target != -1)
+                m_SpotLights.erase(m_SpotLights.begin() + target);
+            break;
+        }
+        case 3:
+            break;
+        default:
+            Logger::Error("ENGINE::REMOVE_OBJECT::INVALID_TYPE_OF_OBJECT");
+    }
+}
+
 void Engine::Run() {
     scrWidth = SCR_WIDTH;
     scrHeight = SCR_HEIGHT;
