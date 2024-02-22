@@ -11,3 +11,5 @@
 // Movement
 #define SENSIVITY 0.001f
 
+// Rigid body
+#define GRAVITATIONAL_ACCELERATION  0.980665 // why not 9.806 ??? idk

@@ -15,6 +15,7 @@
 #include "time.hpp"
 #include "light.hpp"
 #include "path_resolver.hpp"
+#include "rigidbody.hpp"
 
 extern Input *s_Input;
 
@@ -29,6 +30,7 @@ class Object {
      Collider *collider = nullptr;
      Animation *animation = nullptr;
      Text *text = nullptr;
+     RigidBody *rigidbody = nullptr;
 
      // monostate is canonical c++ empty state in variant
      std::variant<DirLight*, PointLight*, SpotLight*, std::monostate> light

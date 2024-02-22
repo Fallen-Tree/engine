@@ -17,6 +17,7 @@
 #include "logger.hpp"
 #include "collisions.hpp"
 #include "animation.hpp"
+#include "rigidbody.hpp"
 #include <glm/gtx/string_cast.hpp>
 
 
@@ -173,13 +174,33 @@ void Engine::Run() {
     return;
 }
 
-
 void Engine::updateObjects(float deltaTime) {
+    // system which detect all collisions of physics object 
+    auto size = m_Objects.size();
+    for (int i = 0; i < size - 1; i++) {
+        if (!m_Objects[i]->rigidbody)
+            continue;
+        auto obj = m_Objects[i];
+        for (int j = i + 1; j < size; j++) {
+            if (!m_Objects[j]->rigidbody)
+                continue;
+            auto other = m_Objects[j];
+            if (obj->collider->Collide(*obj->transform, other->collider, *other->transform)) {
+                obj->rigidbody->ResolveCollisions(other->rigidbody, deltaTime);
+                other->rigidbody->ResolveCollisions(obj->rigidbody, deltaTime);
+            }
+        }
+    }
+
     for (int i = 0; i < m_Objects.size(); i++) {
         auto object = m_Objects[i];
         object->Update(deltaTime);
         if (object->animation) {
             object->animation->applyAnimations(object->transform, deltaTime);
+        }
+        if (object->rigidbody) {
+            object->rigidbody->Compute_Force_Torque(deltaTime);
+            object->rigidbody->Update(object->transform, deltaTime);
         }
     }
 }

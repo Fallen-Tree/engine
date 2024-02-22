@@ -2,6 +2,7 @@
 #include "engine.hpp"
 #include "collisions.hpp"
 #include "logger.hpp"
+#include <glm/gtx/string_cast.hpp>
 
 const char *cubeSource = "/cube2.obj";
 const char *catSource = "/cat.obj";
@@ -12,19 +13,9 @@ const char *fragmentShaderSource = "/standart.fshader";
 
 class MovingSphere : public Object {
  public:
-    void Update(float dt) override {
-        if (!collider->Collide(*transform, m_Target->collider, *m_Target->transform)) {
-            transform->Translate(m_Speed * dt);
-        }
-    }
 
-    MovingSphere(Object *target, Vec3 speed) {
-        m_Target = target;
-        m_Speed = speed;
+    MovingSphere() {
     }
- private:
-    Object *m_Target;
-    Vec3 m_Speed;
 };
 
 class Pointer : public Object {
@@ -59,7 +50,9 @@ class Pointer : public Object {
             Vec3 toCenter = center - onCircle;
             float angle = glm::acos(glm::dot(toCenter, ray.direction) / m_CueDistance);
             transform->SetRotation(-glm::pi<float>()/2, glm::cross(Vec3{0.f, 1.f, 0.f}, toCenter));
+        
         }
+        // Logger::Info("coord: %s", glm::to_string(transform->GetTranslation()));
      }
 
  private:
@@ -69,7 +62,7 @@ class Pointer : public Object {
     Camera *m_Camera;
 };
 
-Object* initModel();
+// Object* initModel();
 
 int main() {
     auto engine = Engine();
@@ -138,6 +131,10 @@ int main() {
 
     obj->transform = new Transform(Vec3(0.f, -3.f, -8.f), Vec3(.1f, .1f, .1f), Mat4(1.0));
     obj->transform->Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
+    obj->collider = new Collider{AABB {
+            Vec3{-1, -1, -1},
+            Vec3{1, 1, 1},
+        }};
     auto render_data = obj->renderData;
 
     bindRenderData(render_data);
@@ -163,31 +160,25 @@ int main() {
         bindRenderData(renderData);
 
         obj->transform = new Transform(transform);
-        obj->collider = new Collider { primitive };
+        obj->rigidbody = new RigidBody(1, Mat3(1), Vec3(0, 1, 0), NONE);
+        obj->collider = new Collider{AABB {
+            Vec3{-1, -1, -1},
+            Vec3{1, 1, 1},
+        }};
         engine.AddObject<>(obj);
         return obj;
     };
 
     auto aabb = setUpObj(
-        Transform(Vec3(-4, 0, -3), Vec3(1.0), 0, Vec3(1)),
+        Transform(Vec3(0, -65, 0), Vec3(100.0), 0, Vec3(1)),
         AABB {
             Vec3{-0.5, -0.5, -0.5},
             Vec3{0.5, 0.5, 0.5},
         },
         cubeModel);
 
-    auto sphere = setUpObj(
-        Transform(Vec3(0, 0, -3), Vec3(1.0), 0, Vec3(1)),
-        Sphere { Vec3(0.0), 1.0f },
-        sphereModel);
-
-    auto mesh = setUpObj(
-        Transform(Vec3(4.0, 0, -3), Vec3(1.0), 0, Vec3(1)),
-        sphereModel,
-        sphereModel);
-
-    auto getSphereObj = [=](Transform transform, Object *target, Vec3 speed) {
-        auto obj = new MovingSphere(target, speed);
+    auto getSphereObj = [=](Transform transform, Vec3 speed) {
+        auto obj = new MovingSphere();
         obj->renderData = new RenderData();
         auto renderData = obj->renderData;
         renderData->model = sphereModel;
@@ -200,43 +191,24 @@ int main() {
             Vec3{-1, -1, -1},
             Vec3{1, 1, 1},
         }};
+        obj->rigidbody = new RigidBody(1.f, Mat3(1), Vec3(0), LINEAR);
         return obj;
     };
 
     Object *spheres[3] = {
         getSphereObj(
-            Transform(Vec3(-4, 0, 2.0), Vec3(1.0), 0, Vec3(1)),
-            aabb,
+            Transform(Vec3(-4, 0, 2.0), Vec3(1.0), 0, Vec3(0)),
             Vec3(0, 0, -1)),
         getSphereObj(
-            Transform(Vec3(0, 0, 2.0), Vec3(1.0), 0, Vec3(1)),
-            sphere,
+            Transform(Vec3(0, 0, 2.0), Vec3(1.0), 0, Vec3(0, 0, 1)),
             Vec3(0, 0, -1)),
         getSphereObj(
-            Transform(Vec3(4, 0, 2.0), Vec3(1.0), 0, Vec3(1)),
-            mesh,
+            Transform(Vec3(4, 0, 2.0), Vec3(1.0), 0, Vec3(0, 1, 1)),
             Vec3(0, 0, -1)),
     };
     engine.AddObject<>(spheres[0]);
     engine.AddObject<>(spheres[1]);
     engine.AddObject<>(spheres[2]);
-
-    auto observer = new Pointer(
-        {spheres[0], spheres[1], spheres[2], aabb, sphere},
-        engine.camera);
-
-    observer->renderData = new RenderData();
-    auto renderData = observer->renderData;
-    renderData->model = Model::loadFromFile("/kiy.obj");
-    renderData->model->shader = shaderProgram;
-    bindRenderData(renderData);
-
-    observer->transform = new Transform(Vec3(0), Vec3(1), 0, Vec3(1));
-    observer->renderData->material = {
-        4.f,
-        Texture("/kiy.png")
-    };
-    engine.AddObject<>(observer);
 
     class FpsText : public Object {
      public:
