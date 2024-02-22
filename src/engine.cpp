@@ -98,6 +98,7 @@ Engine::~Engine() {
 
 void Engine::AddObject(Object *a) {
     if (a != nullptr) {
+        Logger::Info("index : %d", a->light.index());
         switch (a->light.index()) {
             case 0:
                 m_DirLights.push_back(std::get<DirLight*>(a->light));
@@ -185,9 +186,11 @@ void Engine::updateObjects(float deltaTime) {
             if (!m_Objects[j]->rigidbody)
                 continue;
             auto other = m_Objects[j];
-            if (obj->collider->Collide(*obj->transform, other->collider, *other->transform)) {
-                obj->rigidbody->ResolveCollisions(other->rigidbody, deltaTime);
-                other->rigidbody->ResolveCollisions(obj->rigidbody, deltaTime);
+            if (obj->collider->Collide(*obj->transform, 
+                        other->collider, *other->transform)) {
+                obj->rigidbody->ResolveCollisions(
+                        obj->transform, other->transform, other->rigidbody, 
+                        other->collider, deltaTime);
             }
         }
     }

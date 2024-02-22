@@ -160,7 +160,8 @@ int main() {
         bindRenderData(renderData);
 
         obj->transform = new Transform(transform);
-        obj->rigidbody = new RigidBody(1, Mat3(1), Vec3(0, 1, 0), NONE);
+        //obj->rigidbody = new RigidBody(1, Mat3(1), Vec3(0), NONE, 
+        //    1, Vec3(0), Vec3(0));
         obj->collider = new Collider{AABB {
             Vec3{-1, -1, -1},
             Vec3{1, 1, 1},
@@ -191,14 +192,12 @@ int main() {
             Vec3{-1, -1, -1},
             Vec3{1, 1, 1},
         }};
-        obj->rigidbody = new RigidBody(1.f, Mat3(1), Vec3(0), LINEAR);
+        //obj->rigidbody = new RigidBody(1, Mat3(1), speed, LINEAR, 
+        //    1, Vec3(0), Vec3(0));
         return obj;
     };
 
-    Object *spheres[3] = {
-        getSphereObj(
-            Transform(Vec3(-4, 0, 2.0), Vec3(1.0), 0, Vec3(0)),
-            Vec3(0, 0, -1)),
+    Object *spheres[2] = {
         getSphereObj(
             Transform(Vec3(0, 0, 2.0), Vec3(1.0), 0, Vec3(0, 0, 1)),
             Vec3(0, 0, -1)),
@@ -206,7 +205,6 @@ int main() {
             Transform(Vec3(4, 0, 2.0), Vec3(1.0), 0, Vec3(0, 1, 1)),
             Vec3(0, 0, -1)),
     };
-    engine.AddObject<>(spheres[0]);
     engine.AddObject<>(spheres[1]);
     engine.AddObject<>(spheres[2]);
 
