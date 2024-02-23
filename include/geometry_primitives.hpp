@@ -21,6 +21,8 @@ struct Sphere {
     Vec3 center;
     float radius;
 
+    Vec3 ClosestPoint(Vec3);
+
     Sphere Transformed(Transform);
 };
 

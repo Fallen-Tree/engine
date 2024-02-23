@@ -22,6 +22,10 @@ Vec3 AABB::ClosestPoint(Vec3 point) {
     return result;
 }
 
+Vec3 Sphere::ClosestPoint(Vec3 point) {
+    return center + radius * glm::normalize(point - center);
+}
+
 float AABB::Distance2(Vec3 point) {
     float res = 0.0f;
     if (point.x < min.x) {
