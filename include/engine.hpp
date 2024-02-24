@@ -50,9 +50,9 @@ class Engine {
     DirLight &AddDirLight(ObjectHandle, DirLight);
 
     template<typename T>
-    T &AddBehaviour(ObjectHandle id, T t) {
+    T &AddBehaviour(ObjectHandle id, T *t) {
         m_Behaviours.SetData(id, t);
-        return static_cast<T &>(m_Behaviours.GetData(id));
+        return static_cast<T &>(*m_Behaviours.GetData(id));
     }
 
     Object NewObject();

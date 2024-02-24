@@ -9,6 +9,9 @@
 
 class Object {
  public:
+    Object(Object &) = default;
+    Object(Object &&) = default;
+    Object& operator=(const Object &);
     Object(Engine &, ObjectHandle);
 
     Transform *GetTransform();
@@ -59,6 +62,11 @@ class Object {
     template<typename ...Ts>
     DirLight &AddDirLight(Ts... ts) {
         return m_Engine.AddDirLight(m_Handle, DirLight{ts...});
+    }
+
+    template<typename T, typename ...Ts>
+    T &AddBehaviour(Ts... ts) {
+        return m_Engine.AddBehaviour(m_Handle, new T{*this, ts...});
     }
 
  private:

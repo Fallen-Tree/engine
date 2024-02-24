@@ -3,6 +3,12 @@
 
 Object::Object(Engine &engine, ObjectHandle id) : m_Engine(engine), m_Handle(id) {}
 
+Object &Object::operator=(const Object &rhs) {
+    m_Engine = rhs.m_Engine;
+    m_Handle = rhs.m_Handle;
+    return *this;
+}
+
 Transform *Object::GetTransform() {
     return m_Engine.GetTransform(m_Handle);
 }

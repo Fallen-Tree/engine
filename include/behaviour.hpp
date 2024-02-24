@@ -11,7 +11,7 @@
 // Maybe add support for lambdas as behaviours?
 class Behaviour {
  public:
-    virtual void Start(float dt) = 0;
+    virtual void Start(float dt) {}
     virtual void Update(float dt) = 0;
 
     explicit Behaviour(Object);
