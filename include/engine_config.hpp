@@ -5,7 +5,7 @@
 // Camera
 #define MAX_PITCH               89.0f
 #define MIN_PITCH               -89.0f
-#define MAX_FOV                 70.0f 
+#define MAX_FOV                 70.0f
 #define MIN_FOV                 1.0f
 #define DFL_ZOOM                70.f
 #define DFL_YAW                 -90.f
@@ -22,6 +22,7 @@
 // engine
 #define EPS                     0.001f
 #define FPS_SHOWING_INTERVAL    0.5f
+#define MAX_OBJECT_COUNT        10
 
 // input
 #define MAX_VALID_KEY           350

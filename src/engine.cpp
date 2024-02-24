@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 
+#include "engine_config.hpp"
 #include "math_types.hpp"
 #include "camera.hpp"
 #include "shaders.hpp"
@@ -17,6 +18,7 @@
 #include "logger.hpp"
 #include "collisions.hpp"
 #include "animation.hpp"
+#include "behaviour.hpp"
 #include <glm/gtx/string_cast.hpp>
 
 
@@ -47,21 +49,25 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 void processInput(GLFWwindow *window);
 
 Engine::Engine() {
-    m_Objects = std::vector<Object *>();
     camera = new Camera(Vec3(0.0f, 0.0f, 3.0f));
     s_Engine = this;
+    // Pre-allocate all needed memory
+    m_Transforms = ComponentArray<Transform>();
+    m_RenderDatas = ComponentArray<RenderData>();
+    m_Animations = ComponentArray<Animation>();
+    m_Colliders = ComponentArray<Collider>();
+    m_Texts = ComponentArray<Text>();
+
+    m_PointLights = ComponentArray<PointLight>();
+    m_DirLights = ComponentArray<DirLight>();
+    m_SpotLights = ComponentArray<SpotLight>();
+    m_ObjectCount = 0;
 
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-
-    // glfw window creation
-    // --------------------
     m_Window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
     if (m_Window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -83,37 +89,92 @@ Engine::Engine() {
 }
 
 Engine::~Engine() {
-    // optional: de-allocate all resources once they've outlived their purpose:
-    // ------------------------------------------------------------------------
-    for (int i = 0; i < m_Objects.size(); i++) {
-        if (m_Objects[i] == nullptr || m_Objects[i]->renderData == nullptr)
-            continue;
-        glDeleteVertexArrays(1, &m_Objects[i]->renderData->VAO);
-        glDeleteBuffers(1, &m_Objects[i]->renderData->VBO);
-        glDeleteBuffers(1, &m_Objects[i]->renderData->EBO);
+    for (int i = 0; i < m_RenderDatas.GetSize(); i++) {
+        glDeleteVertexArrays(1, &m_RenderDatas.entries[i].VAO);
+        glDeleteBuffers(1, &m_RenderDatas.entries[i].VBO);
+        glDeleteBuffers(1, &m_RenderDatas.entries[i].EBO);
     }
-    std::cout << "Goodbye";
 }
 
-void Engine::AddObject(Object *a) {
-    if (a != nullptr) {
-        switch (a->light.index()) {
-            case 0:
-                m_DirLights.push_back(std::get<DirLight*>(a->light));
-                break;
-            case 1:
-                m_PointLights.push_back(std::get<PointLight*>(a->light));
-                break;
-            case 2:
-                m_SpotLights.push_back(std::get<SpotLight*>(a->light));
-                break;
-            case 3:
-                break;
-            default:
-                Logger::Error("ENGINE::ADD_OBJECT::INVALID_TYPE_OF_OBJEC");
-        }
-    }
-    m_Objects.push_back(a);
+Object Engine::NewObject() {
+    return Object(*this, m_ObjectCount++);
+}
+
+Transform *Engine::GetTransform(ObjectHandle handle) {
+    return m_Transforms.HasData(handle) ? &m_Transforms.GetData(handle) : nullptr;
+}
+
+RenderData *Engine::GetRenderData(ObjectHandle handle) {
+    return m_RenderDatas.HasData(handle) ? &m_RenderDatas.GetData(handle) : nullptr;
+}
+
+Collider *Engine::GetCollider(ObjectHandle handle) {
+    return m_Colliders.HasData(handle) ? &m_Colliders.GetData(handle) : nullptr;
+}
+
+Animation *Engine::GetAnimation(ObjectHandle handle) {
+    return m_Animations.HasData(handle) ? &m_Animations.GetData(handle) : nullptr;
+}
+
+Text *Engine::GetText(ObjectHandle handle) {
+    return m_Texts.HasData(handle) ? &m_Texts.GetData(handle) : nullptr;
+}
+
+PointLight *Engine::GetPointLight(ObjectHandle handle) {
+    return m_PointLights.HasData(handle) ? &m_PointLights.GetData(handle) : nullptr;
+}
+
+SpotLight *Engine::GetSpotLight(ObjectHandle handle) {
+    return m_SpotLights.HasData(handle) ? &m_SpotLights.GetData(handle) : nullptr;
+}
+
+DirLight *Engine::GetDirLight(ObjectHandle handle) {
+    return m_DirLights.HasData(handle) ? &m_DirLights.GetData(handle) : nullptr;
+}
+
+Behaviour *Engine::GetBehaviour(ObjectHandle handle) {
+    return m_Behaviours.HasData(handle) ? m_Behaviours.GetData(handle) : nullptr;
+}
+
+Transform &Engine::AddTransform(ObjectHandle id, Transform v) {
+    m_Transforms.SetData(id, v);
+    return m_Transforms.GetData(id);
+}
+
+RenderData &Engine::AddRenderData(ObjectHandle id, RenderData v) {
+    m_RenderDatas.SetData(id, v);
+    return m_RenderDatas.GetData(id);
+}
+
+Collider &Engine::AddCollider(ObjectHandle id, Collider v) {
+    m_Colliders.SetData(id, v);
+    return m_Colliders.GetData(id);
+}
+
+
+Text &Engine::AddText(ObjectHandle id, Text v) {
+    m_Texts.SetData(id, v);
+    return m_Texts.GetData(id);
+}
+
+Animation &Engine::AddAnimation(ObjectHandle id, Animation v) {
+    m_Animations.SetData(id, v);
+    return m_Animations.GetData(id);
+}
+
+PointLight &Engine::AddPointLight(ObjectHandle id, PointLight v) {
+    m_PointLights.SetData(id, v);
+    return m_PointLights.GetData(id);
+}
+
+SpotLight &Engine::AddSpotLight(ObjectHandle id, SpotLight v) {
+    m_SpotLights.SetData(id, v);
+    return m_SpotLights.GetData(id);
+}
+
+DirLight &Engine::AddDirLight(ObjectHandle id, DirLight v) {
+    m_DirLights.SetData(id, v);
+    return m_DirLights.GetData(id);
 }
 
 void Engine::Run() {
@@ -175,19 +236,19 @@ void Engine::Run() {
 
 
 void Engine::updateObjects(float deltaTime) {
-    for (int i = 0; i < m_Objects.size(); i++) {
-        auto object = m_Objects[i];
-        object->Update(deltaTime);
-        if (object->animation) {
-            object->animation->applyAnimations(object->transform, deltaTime);
+    for (int i = 0; i < m_Behaviours.GetSize(); i++) {
+        m_Behaviours.entries[i]->Update(deltaTime);
+    }
+    for (int i = 0; i < m_Animations.GetSize(); i++) {
+        ObjectHandle id = m_Animations.GetFromInternal(i);
+        if (!m_Transforms.HasData(id)) {
+            Logger::Warn("Animation component on object %d requires transform component to work");
         }
+        m_Animations.entries[i].applyAnimations(&m_Transforms.GetData(id), deltaTime);
     }
 }
 
 void Engine::Render(int scr_width, int scr_height) {
-    // render
-    // ------
-
     // Coloring all window (black)
     glClearColor(0.f, 0.f, 0.f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -200,17 +261,14 @@ void Engine::Render(int scr_width, int scr_height) {
     glDisable(GL_SCISSOR_TEST);
 
     camera->SetScreenSize({static_cast<float>(scr_width), static_cast<float>(scr_height)});
-    for (uint64_t i = 0; i < m_Objects.size(); i++) {
-        auto object = m_Objects[i];
-        if (!object->renderData || !object->transform)
-            continue;
+    for (int i = 0; i < m_RenderDatas.GetSize(); i++) {
+        ObjectHandle id = m_RenderDatas.GetFromInternal(i);
+        if (!m_Transforms.HasData(id)) continue;
 
-        auto data = object->renderData;
-        auto transform = object->transform;
+        auto data = m_RenderDatas.GetData(i);
+        auto transform = m_Transforms.GetData(id);
 
-        auto model = data->model;
-
-        float timeValue = glfwGetTime();
+        auto model = data.model;
 
         ShaderProgram* shader = model->shader;
         shader->Use();
@@ -221,71 +279,71 @@ void Engine::Render(int scr_width, int scr_height) {
         Mat4 projection = camera->GetProjectionMatrix();
 
         // send matrix transform to shader
-        shader->SetMat4("model", transform->GetTransformMatrix());
+        shader->SetMat4("model", transform.GetTransformMatrix());
         shader->SetMat4("view", view);
         shader->SetVec3("viewPos", viewPos);
 
         // send material to shaders
-        shader->SetFloat("material.shininess", data->material.shininess);
+        shader->SetFloat("material.shininess", data.material.shininess);
         // send light to shaders
         // pointLight
         char str[100];
-        for (int i = 0; i < m_PointLights.size(); i++) {
+        for (int i = 0; i < m_PointLights.GetSize(); i++) {
             snprintf(str, sizeof(str), "pointLights[%d].position", i);
-            shader->SetVec3(str, m_PointLights[i]->position);
+            shader->SetVec3(str, m_PointLights.entries[i].position);
             snprintf(str, sizeof(str), "pointLights[%d].ambient", i);
-            shader->SetVec3(str, m_PointLights[i]->ambient);
+            shader->SetVec3(str, m_PointLights.entries[i].ambient);
             snprintf(str, sizeof(str), "pointLights[%d].diffuse", i);
-            shader->SetVec3(str, m_PointLights[i]->diffuse);
+            shader->SetVec3(str, m_PointLights.entries[i].diffuse);
             snprintf(str, sizeof(str), "pointLights[%d].specular", i);
-            shader->SetVec3(str, m_PointLights[i]->specular);
+            shader->SetVec3(str, m_PointLights.entries[i].specular);
             snprintf(str, sizeof(str), "pointLights[%d].linearDistCoeff", i);
-            shader->SetFloat(str, m_PointLights[i]->linearDistCoeff);
+            shader->SetFloat(str, m_PointLights.entries[i].linearDistCoeff);
             snprintf(str, sizeof(str), "pointLights[%d].quadraticDistCoeff", i);
-            shader->SetFloat(str, m_PointLights[i]->quadraticDistCoeff);
+            shader->SetFloat(str, m_PointLights.entries[i].quadraticDistCoeff);
             snprintf(str, sizeof(str), "pointLights[%d].constDistCoeff", i);
-            shader->SetFloat(str, m_PointLights[i]->constDistCoeff);
+            shader->SetFloat(str, m_PointLights.entries[i].constDistCoeff);
         }
 
-        shader->SetInt("lenArrPointL", m_PointLights.size());
+        shader->SetInt("lenArrPointL", m_PointLights.GetSize());
         // directionLight
-        for (int i = 0; i < m_DirLights.size(); i++) {
+        for (int i = 0; i < m_DirLights.GetSize(); i++) {
             snprintf(str, sizeof(str), "dirLight[%d].ambinet", i);
-            shader->SetVec3(str, m_DirLights[0]->ambient);
+            shader->SetVec3(str, m_DirLights.entries[i].ambient);
             snprintf(str, sizeof(str), "dirLight[%d].specular", i);
-            shader->SetVec3(str, m_DirLights[0]->specular);
+            shader->SetVec3(str, m_DirLights.entries[i].specular);
             snprintf(str, sizeof(str), "dirLight[%d].direction", i);
-            shader->SetVec3(str, m_DirLights[0]->direction);
+            shader->SetVec3(str, m_DirLights.entries[i].direction);
             snprintf(str, sizeof(str), "dirLight[%d].diffuse", i);
-            shader->SetVec3(str, m_DirLights[0]->diffuse);
+            shader->SetVec3(str, m_DirLights.entries[i].diffuse);
         }
-        shader->SetInt("lenArrDirL", m_DirLights.size());
+        shader->SetInt("lenArrDirL", m_DirLights.GetSize());
         // spotLight
-        for (int i = 0; i < m_SpotLights.size(); i++) {
+        for (int i = 0; i < m_SpotLights.GetSize(); i++) {
             snprintf(str, sizeof(str), "spotLight[%d].diffuse", i);
-            shader->SetVec3(str, m_SpotLights[i]->diffuse);
+            shader->SetVec3(str, m_SpotLights.entries[i].diffuse);
             snprintf(str, sizeof(str), "spotLight[%d].direction", i);
             shader->SetVec3(str, camera->GetFront());
             snprintf(str, sizeof(str), "spotLight[%d].ambient", i);
-            shader->SetVec3(str, m_SpotLights[i]->ambient);
+            shader->SetVec3(str, m_SpotLights.entries[i].ambient);
             snprintf(str, sizeof(str), "spotLight[%d].position", i);
             shader->SetVec3(str, camera->GetPosition());
             snprintf(str, sizeof(str), "spotLight[%d].specular", i);
-            shader->SetVec3(str, m_SpotLights[i]->specular);
+            shader->SetVec3(str, m_SpotLights.entries[i].specular);
             snprintf(str, sizeof(str), "spotLight[%d].cutOff", i);
-            shader->SetFloat(str, m_SpotLights[i]->cutOff);
+            shader->SetFloat(str, m_SpotLights.entries[i].cutOff);
             snprintf(str, sizeof(str), "spotLight[%d].linearDistCoeff", i);
-            shader->SetFloat(str, m_SpotLights[i]->linearDistCoeff);
+            shader->SetFloat(str, m_SpotLights.entries[i].linearDistCoeff);
             snprintf(str, sizeof(str), "spotLight[%d].outerCutOff", i);
-            shader->SetFloat(str, m_SpotLights[i]->outerCutOff);
+            shader->SetFloat(str, m_SpotLights.entries[i].outerCutOff);
             snprintf(str, sizeof(str), "spotLight[%d].constDistCoeff", i);
-            shader->SetFloat(str, m_SpotLights[i]->constDistCoeff);
+            shader->SetFloat(str, m_SpotLights.entries[i].constDistCoeff);
             snprintf(str, sizeof(str), "spotLight[%d].quadraticDistCoeff", i);
-            shader->SetFloat(str, m_SpotLights[i]->quadraticDistCoeff);
+            shader->SetFloat(str, m_SpotLights.entries[i].quadraticDistCoeff);
         }
-        shader->SetInt("lenArrSpotL", m_SpotLights.size());
+        shader->SetInt("lenArrSpotL", m_SpotLights.GetSize());
         // send inf about texture
-        data->material.texture.bind();
+        data.material.texture.bind();
         shader->SetInt("material.duffuse", 0);
         shader->SetInt("material.specular", 1);
         // Note: currently we set the projection matrix each frame,
@@ -293,19 +351,13 @@ void Engine::Render(int scr_width, int scr_height) {
         // often best practice to set it outside the main loop only once.
         shader->SetMat4("projection", projection);
 
-        glBindVertexArray(data->VAO);
+        glBindVertexArray(data.VAO);
 
         glDrawElements(GL_TRIANGLES, model->getLenIndices(), GL_UNSIGNED_INT, 0);
     }
 
-    // Text rendering
-    for (uint64_t i = 0; i < m_Objects.size(); i++) {
-        auto object = m_Objects[i];
-        if (!object->text) {
-            continue;
-        }
-
-        object->text->RenderText();
+    for (int i = 0; i < m_Texts.GetSize(); i++) {
+        m_Texts.entries[i].RenderText();
     }
 
     glfwSwapBuffers(m_Window);
