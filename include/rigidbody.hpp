@@ -3,6 +3,7 @@
 #include "math_types.hpp"
 #include "transform.hpp"
 #include "collider.hpp"
+#include "collisions.hpp"
 
 enum TypeRigidBody{
     LINEAR,
@@ -20,9 +21,9 @@ public:
 
  void Update(Transform *tranform, float dt);
 
- void ResolveCollisions(Transform *tranform, 
-        Transform *otherTransform, RigidBody *otherRigidBody, 
-        Collider *otherColider, float dt);
+void ResolveCollisions(Transform tranform, Transform otherTransform, 
+        Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody, 
+        float dt);
 
  void AddVelocity(Vec3 velocity);
 
@@ -49,8 +50,9 @@ private:
 
  void CalcForce(float dt);
 
- void CalcForce(Transform *tranform, Transform *otherTransform, 
-         RigidBody *otherRigidBody, Collider *otherColider, float dt);
+void CalcForce(Transform tranform, Transform otherTransform, 
+        Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody, 
+        float dt);
 
  void CalcTorque(float dt);
 

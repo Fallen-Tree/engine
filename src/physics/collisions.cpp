@@ -323,3 +323,55 @@ std::optional<float> CollisionPrimitive(Ray r, Sphere s) {
 
     return x;
 }
+
+Vec3 CollisionNormal(AABB a1, AABB a2, Transform tr1, Transform tr2,
+        Vec3 velocity, float dt) {
+    auto tranformed1 = a1.Transformed(tr1).PrevState(velocity, dt);
+    auto tranformed2 = a2.Transformed(tr2);
+
+    if (tranformed1.min.x >= tranformed2.max.x) {
+        return Vec3(1, 0, 0);
+    } else if (tranformed1.max.x <= tranformed2.min.x) {
+        return Vec3(-1, 0, 0);
+    } else if (tranformed1.min.y >= tranformed2.max.y) {
+        return Vec3(0, 1, 0);
+    } else if (tranformed1.max.y <= tranformed2.min.y) {
+        return Vec3(0, -1, 0);
+    } else if (tranformed1.min.z >= tranformed2.max.z) {
+        return Vec3(0, 0, 1);
+    } else if (tranformed1.max.z <= tranformed2.min.z) {
+        return Vec3(0, 0, -1);
+    }
+
+    Logger::Error("COLLISIONS::COLLISION_NORMAL::FAILED_TO_FIND_NORMAL");
+    return Vec3(0);
+}
+
+Vec3 CollisionNormal(Sphere,AABB,Transform,Transform,Vec3,float) {
+    return Vec3(0);
+}
+Vec3 CollisionNormal(AABB,Sphere,Transform,Transform,Vec3,float) {
+    return Vec3(0);
+}
+Vec3 CollisionNormal(AABB,Model*,Transform,Transform,Vec3,float) {
+    return Vec3(0);
+}
+Vec3 CollisionNormal(Model*,AABB,Transform,Transform,Vec3,float) {
+    return Vec3(0);
+}
+Vec3 CollisionNormal(Sphere sph1, Sphere sph2, 
+        Transform tr1, Transform tr2, Vec3 vel, float dt) {
+    auto tranformed1 = sph1.Transformed(tr1);
+    auto tranformed2 = sph2.Transformed(tr2);
+
+    return Norm(tranformed1.center - tranformed2.center);
+}
+Vec3 CollisionNormal(Sphere,Model*,Transform,Transform,Vec3,float) {
+    return Vec3(0);
+}
+Vec3 CollisionNormal(Model*,Sphere,Transform,Transform,Vec3,float) {
+    return Vec3(0);
+}
+Vec3 CollisionNormal(Model*,Model*,Transform,Transform,Vec3,float) {
+    return Vec3(0);
+}

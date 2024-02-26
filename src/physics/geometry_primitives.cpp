@@ -13,6 +13,21 @@ Plane::Plane(Vec3 normal, Vec3 point) {
     d = -glm::dot(normal, point);
 }
 
+/*
+Vec3 AABB::CollisionNormal(Vec3 point) {
+    Vec3 res = point;
+    res.x = (res.x < max.x && res.x > min.x) 
+        ? 0 : res.x;
+    Logger::Info("%d", res.y < max.y && res.y > min.y);
+    res.y = (res.y < max.y && res.y > min.y) 
+        ? 0 : res.y;
+    res.z = (res.z < max.z && res.z > min.z) 
+        ? 0 : res.z;
+    Logger::Info("Point %s\nMax%s\nMin%s\n%s\n", glm::to_string(point).c_str(), glm::to_string(max).c_str(), glm::to_string(min).c_str(), glm::to_string(res).c_str());
+    return res / glm::length2(res);
+}
+*/
+
 Vec3 AABB::ClosestPoint(Vec3 point) {
     Vec3 result = {
         glm::clamp(point.x, min.x, max.x),
@@ -22,8 +37,15 @@ Vec3 AABB::ClosestPoint(Vec3 point) {
     return result;
 }
 
+/*
+Vec3 Sphere::CollisionNormal(Vec3 point) {
+    return glm::normalize(point - center);
+}
+*/
+
 Vec3 Sphere::ClosestPoint(Vec3 point) {
-    return center + radius * glm::normalize(point - center);
+    return center + radius 
+        * glm::normalize(point - center);
 }
 
 float AABB::Distance2(Vec3 point) {
@@ -50,9 +72,16 @@ float AABB::Distance2(Vec3 point) {
 
 AABB AABB::Transformed(Transform transform) {
     return AABB {
-        (min + transform.GetTranslation()) * transform.GetScale(),
-        (max + transform.GetTranslation()) * transform.GetScale()
+        min + transform.GetTranslation(),
+        max + transform.GetTranslation()
     };
+}
+
+AABB AABB::PrevState(Vec3 velocity, float dt) { 
+    return AABB {
+        min - velocity * dt,
+        max - velocity * dt,
+    }; 
 }
 
 Triangle::Triangle(Vec3 a, Vec3 b, Vec3 c) {
@@ -125,12 +154,19 @@ Triangle Triangle::Transformed(Transform transform) {
 }
 
 Sphere Sphere::Transformed(Transform transform) {
-    auto mat = glm::transpose(transform.GetTransformMatrix());
-    auto mul = [](Vec3 v, Mat4 mat) {
-        Vec4 res = Vec4(v, 1) * mat;
-        return Vec3(res.x / res.w, res.y / res.w, res.z / res.w);
-    };
-    return Sphere{mul(center, mat), radius};
+    auto scale = transform.GetScale();
+    if (scale.x != scale.y || scale.y != scale.z) {
+        Logger::Error(
+         "GEOMETRY_PRIMITIVES::SPHERE::TRANSFORMED::SCALE_SHOULD_BE_EQUAL_ON_ALL_AXES"); 
+    }
+    return Sphere{center + transform.GetTranslation(), radius * scale.x};
+}
+
+Sphere Sphere::PrevState(Vec3 velocity, float dt) {
+    return Sphere {
+        center - velocity * dt,
+        radius,
+    }; 
 }
 
 Ray::Ray(Vec3 from, Vec3 to) {

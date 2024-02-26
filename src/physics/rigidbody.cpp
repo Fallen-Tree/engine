@@ -4,6 +4,7 @@
 #include "engine_config.hpp"
 #include "user_config.hpp"
 #include "collider.hpp"
+#include <glm/gtx/string_cast.hpp>
 
 RigidBody::RigidBody(float mass, Mat3 Ibody, Vec3 initalVelocity, TypeRigidBody type, 
         float restitution, Vec3 defaultForce, Vec3 defaultTorque) {
@@ -58,20 +59,21 @@ void RigidBody::Update(Transform *tranform, float dt) {
     m_Torque = Vec3(0);
 }
 
-void RigidBody::ResolveCollisions(Transform *tranform, 
-        Transform *otherTransform, RigidBody *otherRigidBody, 
-        Collider *otherColider, float dt) {
+void RigidBody::ResolveCollisions(Transform tranform, Transform otherTransform, 
+        Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody, 
+        float dt) {
+    Logger::Info("collision");
     switch (m_Type) {
         case LINEAR:
-            CalcForce(tranform, otherTransform, otherRigidBody, 
-                    otherColider, dt);
+            CalcForce(tranform, otherTransform, 
+                collider, otherCollider, otherRigidBody, dt);
             break;
         case ANGULAR:
             CalcTorque(otherRigidBody, dt);
             break;
         case LINEAR_ANGULAR:
-            CalcForce(tranform, otherTransform, otherRigidBody, 
-                    otherColider, dt);
+            CalcForce(tranform, otherTransform, 
+                collider, otherCollider, otherRigidBody, dt);
             CalcTorque(otherRigidBody, dt);
             break;
         case NONE:
@@ -109,6 +111,7 @@ void RigidBody::Mass(float mass) {
 }
 
 void RigidBody::LinearCalculation(Transform *transform, float dt) {
+    Logger::Info("res force: %s", glm::to_string(m_ResForce).c_str());
     Vec3 acceleration = m_ResForce * m_MassInverse;
     m_Velocity += acceleration * dt;
     transform->Translate(m_Velocity);
@@ -138,40 +141,34 @@ void RigidBody::CalcForce(float dt) {
     // TODO:: this block
 }
 
-Vec3 calcCollisionNormal(Vec3 point, Transform *otherTransform,
-        std::variant<AABB, Sphere, Model *> var) {
-    Vec3 collisionPoint;
-    Logger::Info("index : %d", var.index());
-    switch (var.index()) {
-    case 0:
-        collisionPoint = std::get<AABB>(var).ClosestPoint(point);
-        break;
-    case 1:
-        collisionPoint = std::get<Sphere>(var).ClosestPoint(point);
-        break;
-    case 2:
-        collisionPoint = std::get<Model*>(var)->
-            ClosestPoint(point, otherTransform);
-        break;
-    default:
-        Logger::Error("RIGID_BODY::CALCFORCE::UNDEFINED_TYPE_OF_SHAPE");
-        break;
-    }
-    return glm::normalize(collisionPoint - point);
+Vec3 calcCollisionNormal(Collider *coll1, Collider *coll2,
+    Transform tranform1, Transform tranform2, Vec3 vel, float dt) {
+    return std::visit([=](auto var1) {
+            return std::visit(
+                [=](auto var2) {
+                    return CollisionNormal(
+                            var1, var2, tranform1, tranform2, vel, dt);
+                }, coll2->shape);
+        }, coll1->shape);
 }
 
-void RigidBody::CalcForce(Transform *tranform, Transform *otherTransform, 
-        RigidBody *otherRigidBody, Collider *otherColider, float dt) {
+void RigidBody::CalcForce(Transform tranform, Transform otherTransform, 
+        Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody, 
+        float dt) {
     Vec3 rv = m_Velocity - otherRigidBody->m_Velocity;
 
-    Vec3 normal = calcCollisionNormal(tranform->GetTranslation(),
-            otherTransform, otherColider->shape);
+    //Logger::Info("point: %s", glm::to_string(tranform->GetTranslation()).c_str());
+    Vec3 normal = calcCollisionNormal(collider, otherCollider,
+        tranform, otherTransform, rv, dt);
+    Logger::Info("norm : %s", glm::to_string(normal).c_str());
 
     float velAlongNormal = glm::dot(rv, normal);
 
+    Logger::Info("dot : %f", velAlongNormal);
+
     if (velAlongNormal > 0)
         return;
-    
+
     // Calculate restitution
     float e = std::min(m_Restitution, otherRigidBody->m_Restitution);
     // Calculate impulse scalar
@@ -179,8 +176,12 @@ void RigidBody::CalcForce(Transform *tranform, Transform *otherTransform,
     impulseScalar /= m_MassInverse + otherRigidBody->m_MassInverse;
     // Apply impulse
     Vec3 impulse = impulseScalar * normal;
+    Logger::Info("impulse : %s", glm::to_string(impulse).c_str());
 
-    m_ResForce -= impulse * dt;
-    otherRigidBody->m_ResForce += impulse * dt;
+    Logger::Info("impulse: %s", glm::to_string(impulse).c_str());
+    //m_ResForce += m_ResForce * normal;
+    //otherRigidBody->m_ResForce += otherRigidBody->m_ResForce * normal;
+    m_ResForce += impulse / dt;
+    otherRigidBody->m_ResForce -= impulse / dt;
 }
 

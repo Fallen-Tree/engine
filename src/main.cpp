@@ -13,56 +13,10 @@ const char *fragmentShaderSource = "/standart.fshader";
 
 class MovingSphere : public Object {
  public:
-
-    MovingSphere() {
-    }
-};
-
-class Pointer : public Object {
- public:
-     Pointer(std::vector<Object *> objects, Camera *camera) {
-         m_Objects = objects;
-         m_Camera = camera;
-     }
-
     void Update(float dt) override {
-        Ray ray = m_Camera->GetRayThroughScreenPoint({s_Input->MouseX(), s_Input->MouseY()});
-        Transform *target = nullptr;
-        float closest = std::numeric_limits<float>::max();
-        for (int i = 0; i < m_Objects.size(); i++) {
-            auto obj = m_Objects[i];
-            auto hit = obj->collider->RaycastHit(*obj->transform, ray);
-            if (hit && *hit < closest) {
-                target = obj->transform;
-                closest = *hit;
-            }
-        }
-        if (s_Input->IsKeyPressed(Key::MouseLeft))
-            m_CurrentTarget = target;
+    }
 
-        if (m_CurrentTarget != nullptr) {
-            Vec3 center = m_CurrentTarget->GetTranslation();
-            Vec3 closest = ray.origin + glm::dot(center - ray.origin, ray.direction) * ray.direction;
-            closest.y = center.y;
-            Vec3 onCircle = glm::normalize(closest - center) * m_CueDistance;
-            transform->SetTranslation(onCircle);
-
-            Vec3 toCenter = center - onCircle;
-            float angle = glm::acos(glm::dot(toCenter, ray.direction) / m_CueDistance);
-            transform->SetRotation(-glm::pi<float>()/2, glm::cross(Vec3{0.f, 1.f, 0.f}, toCenter));
-        
-        }
-        // Logger::Info("coord: %s", glm::to_string(transform->GetTranslation()));
-     }
-
- private:
-    float m_CueDistance = 1.f;
-    Transform *m_CurrentTarget = nullptr;
-    std::vector<Object *> m_Objects;
-    Camera *m_Camera;
 };
-
-// Object* initModel();
 
 int main() {
     auto engine = Engine();
@@ -129,12 +83,8 @@ int main() {
     obj->renderData->model = model;
     obj->renderData->model->shader = shaderProgram;
 
-    obj->transform = new Transform(Vec3(0.f, -3.f, -8.f), Vec3(.1f, .1f, .1f), Mat4(1.0));
+    obj->transform = new Transform(Vec3(0.f, 10.f, -8.f), Vec3(.1f, .1f, .1f), Mat4(1.0));
     obj->transform->Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
-    obj->collider = new Collider{AABB {
-            Vec3{-1, -1, -1},
-            Vec3{1, 1, 1},
-        }};
     auto render_data = obj->renderData;
 
     bindRenderData(render_data);
@@ -144,7 +94,9 @@ int main() {
         Texture("/Cat_diffuse.png",
                 "/Cat_specular.png")
     };
-    engine.AddObject<>(obj);
+    obj->collider = new Collider{Collider::GetDefaultAABB(model)};
+    obj->rigidbody = new RigidBody(0, Mat3(0), Vec3(0), LINEAR, 1, Vec3(0), Vec3(0));
+    //engine.AddObject<>(obj);
 
     Material material = {
         4.f,
@@ -160,25 +112,21 @@ int main() {
         bindRenderData(renderData);
 
         obj->transform = new Transform(transform);
-        //obj->rigidbody = new RigidBody(1, Mat3(1), Vec3(0), NONE, 
-        //    1, Vec3(0), Vec3(0));
-        obj->collider = new Collider{AABB {
-            Vec3{-1, -1, -1},
-            Vec3{1, 1, 1},
-        }};
-        engine.AddObject<>(obj);
+        obj->collider = new Collider { primitive };
+        obj->rigidbody = new RigidBody(0, Mat4(0), Vec3(0), LINEAR, 1000000000000, Vec3(0), Vec3(0));
+        //engine.AddObject<>(obj);
         return obj;
     };
 
     auto aabb = setUpObj(
-        Transform(Vec3(0, -65, 0), Vec3(100.0), 0, Vec3(1)),
+        Transform(Vec3(0, -53, 0), Vec3(100.0), 0, Vec3(1)),
         AABB {
             Vec3{-0.5, -0.5, -0.5},
             Vec3{0.5, 0.5, 0.5},
         },
         cubeModel);
 
-    auto getSphereObj = [=](Transform transform, Vec3 speed) {
+    auto getSphereObj = [=](Transform transform, Vec3 speed, float mass) {
         auto obj = new MovingSphere();
         obj->renderData = new RenderData();
         auto renderData = obj->renderData;
@@ -188,25 +136,31 @@ int main() {
 
         obj->transform = new Transform(transform);
 
-        obj->collider = new Collider{AABB {
-            Vec3{-1, -1, -1},
-            Vec3{1, 1, 1},
+        obj->collider = new Collider{Sphere {
+            Vec3(0),
+            1.f, 
         }};
-        //obj->rigidbody = new RigidBody(1, Mat3(1), speed, LINEAR, 
-        //    1, Vec3(0), Vec3(0));
+       obj->rigidbody = new RigidBody(mass, Mat3(1), 1/100.f * speed, LINEAR, 0, Vec3(0, 0, 0), Vec3(0));
         return obj;
     };
 
-    Object *spheres[2] = {
+    Object *spheres[3] = {
         getSphereObj(
-            Transform(Vec3(0, 0, 2.0), Vec3(1.0), 0, Vec3(0, 0, 1)),
-            Vec3(0, 0, -1)),
+            Transform(Vec3(-4, 0, 2.0), Vec3(1), 0, Vec3(1)),
+            Vec3(1, 0, 0),
+            1),
         getSphereObj(
-            Transform(Vec3(4, 0, 2.0), Vec3(1.0), 0, Vec3(0, 1, 1)),
-            Vec3(0, 0, -1)),
+            Transform(Vec3(0, 0, 2.0), Vec3(1), 0, Vec3(1)),
+            Vec3(-1, 0, 0),
+            1),
+        getSphereObj(
+            Transform(Vec3(4, 0, 2.0), Vec3(1.0), 0, Vec3(1)),
+            Vec3(0, 0, 0),
+            1),
     };
+    engine.AddObject<>(spheres[0]);
     engine.AddObject<>(spheres[1]);
-    engine.AddObject<>(spheres[2]);
+    //engine.AddObject<>(spheres[2]);
 
     class FpsText : public Object {
      public:
@@ -217,7 +171,7 @@ int main() {
             this->text->SetContent(buf);
         }
     };
-
+   
     auto textOcra = new Font("OCRAEXT.TTF", 20);
     auto fpsObj = new FpsText();
     fpsObj->text = new Text(textOcra, "", 685.0f, 575.0f, 1.f, Vec3(0, 0, 0));
