@@ -11,7 +11,7 @@
 #include "user_config.hpp"
 #include "engine_config.hpp"
 
-void Font::RenderText(std::string text, float x, float y, float scale, glm::vec3 color) {
+void Font::RenderText(std::string text, float relX, float relY, float scale, glm::vec3 color) {
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -26,6 +26,8 @@ void Font::RenderText(std::string text, float x, float y, float scale, glm::vec3
     glBindVertexArray(m_VAO);
 
     // iterate through all characters
+    float x = relX * SCR_WIDTH;
+    float y = relY * SCR_HEIGHT;
     std::string::const_iterator c;
     for (c = text.begin(); c != text.end(); c++) {
         Character ch = Characters[*c];
