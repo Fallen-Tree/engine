@@ -133,15 +133,11 @@ int main() {
     Model * model = Model::loadFromFile(catSource);
 
     auto obj = new Object();
-    obj->renderData = new RenderData();
-    obj->renderData->model = model;
-    obj->renderData->model->shader = shaderProgram;
+    obj->renderData = new RenderData(model, shaderProgram);
+
 
     obj->transform = new Transform(Vec3(0.f, -3.f, -8.f), Vec3(.1f, .1f, .1f), Mat4(1.0));
     obj->transform->Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
-    auto render_data = obj->renderData;
-
-    bindRenderData(render_data);
 
     auto imagesCat = std::vector<std::string>();
     imagesCat.push_back("/Cat_diffuse.png");
@@ -164,11 +160,7 @@ int main() {
 
     auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model) {
         auto obj = new Object();
-        obj->renderData = new RenderData();
-        auto renderData = obj->renderData;
-        renderData->model = model;
-        renderData->material = material;
-        bindRenderData(renderData);
+        obj->renderData = new RenderData(model, shaderProgram, material);
 
         obj->transform = new Transform(transform);
         obj->collider = new Collider { primitive };
@@ -196,11 +188,7 @@ int main() {
 
     auto getSphereObj = [=](Transform transform, Object *target, Vec3 speed) {
         auto obj = new MovingSphere(target, speed);
-        obj->renderData = new RenderData();
-        auto renderData = obj->renderData;
-        renderData->model = sphereModel;
-        renderData->material = material;
-        bindRenderData(renderData);
+        obj->renderData = new RenderData(sphereModel, shaderProgram, material);
 
         obj->transform = new Transform(transform);
 
@@ -233,12 +221,7 @@ int main() {
         {spheres[0], spheres[1], spheres[2], aabb, sphere},
         engine.camera);
 
-    observer->renderData = new RenderData();
-    auto renderData = observer->renderData;
-    renderData->model = Model::loadFromFile("/kiy.obj");
-    renderData->model->shader = shaderProgram;
-    bindRenderData(renderData);
-
+    observer->renderData = new RenderData(Model::loadFromFile("/kiy.obj"), shaderProgram);
     observer->transform = new Transform(Vec3(0), Vec3(1), 0, Vec3(1));
 
     auto imagesCue = std::vector<std::string>();
