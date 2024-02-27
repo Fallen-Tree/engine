@@ -105,3 +105,12 @@ void Image::Show() {
   m_Visible = true;
 }
 
+void Image::SetScale(float scale) {
+  m_Scale = scale;
+}
+
+void Image::SetPosition(float relX, float relY) {
+  m_RelX = relX;
+  m_RelY = relY;
+}
+

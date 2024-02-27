@@ -26,4 +26,7 @@ class Image {
     void Hide();
     // to render picture again
     void Show();
+
+    void SetScale(float);
+    void SetPosition(float, float);
 };
