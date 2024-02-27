@@ -30,6 +30,7 @@ add_library(ENGINE STATIC
             src/engine/time.cpp
             src/engine/path_resolver.cpp
             src/engine/math.cpp
+            src/engine/pretty_print.cpp
 )
 
 add_subdirectory(thirdparty/glfw)

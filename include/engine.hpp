@@ -15,6 +15,7 @@
 #include "time.hpp"
 #include "light.hpp"
 #include "path_resolver.hpp"
+#include "pretty_print.hpp"
 
 extern Input *s_Input;
 

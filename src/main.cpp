@@ -142,6 +142,12 @@ int main() {
 
     bindRenderData(render_data);
 
+    Logger::Info("%s", ToString(Mat4(
+        Vec4(1., 2., 3., 4.),
+        Vec4(2., 3., 4., 5.),
+        Vec4(3., 4., 5., 6.),
+        Vec4(1., 2., 3., 7.))));
+
     obj->renderData->material = {
         4.f,
         Texture("/Cat_diffuse.png",
