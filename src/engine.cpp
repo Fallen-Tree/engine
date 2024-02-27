@@ -97,7 +97,7 @@ Engine::~Engine() {
 }
 
 Object Engine::NewObject() {
-    return Object(*this, m_ObjectCount++);
+    return Object(this, m_ObjectCount++);
 }
 
 Transform *Engine::GetTransform(ObjectHandle handle) {

@@ -13,7 +13,10 @@ class Object {
     Object(Object &&) = default;
     Object& operator=(const Object &);
     Object& operator=(const Object &&);
-    Object(Engine &, ObjectHandle);
+    Object();
+    Object(Engine *, ObjectHandle);
+
+    void SetEngine(Engine *);
 
     Transform *GetTransform();
     RenderData *GetRenderData();
@@ -27,50 +30,52 @@ class Object {
 
     template<typename ...Ts>
     Transform &AddTransform(Ts... ts) {
-        return m_Engine.AddTransform(m_Handle, Transform{ts...});
+        return m_Engine->AddTransform(m_Handle, Transform{ts...});
     }
 
     template<typename ...Ts>
     RenderData &AddRenderData(Ts... ts) {
-        return m_Engine.AddRenderData(m_Handle, RenderData{ts...});
+        return m_Engine->AddRenderData(m_Handle, RenderData{ts...});
     }
 
     template<typename ...Ts>
     Collider &AddCollider(Ts... ts) {
-        return m_Engine.AddCollider(m_Handle, Collider{ts...});
+        return m_Engine->AddCollider(m_Handle, Collider{ts...});
     }
 
     template<typename ...Ts>
     Text &AddText(Ts... ts) {
-        return m_Engine.AddText(m_Handle, Text{ts...});
+        return m_Engine->AddText(m_Handle, Text{ts...});
     }
 
     template<typename ...Ts>
     Animation &AddAnimation(Ts... ts) {
-        return m_Engine.AddAnimation(m_Handle, Animation{ts...});
+        return m_Engine->AddAnimation(m_Handle, Animation{ts...});
     }
 
     template<typename ...Ts>
     SpotLight &AddSpotLight(Ts... ts) {
-        return m_Engine.AddSpotLight(m_Handle, SpotLight{ts...});
+        return m_Engine->AddSpotLight(m_Handle, SpotLight{ts...});
     }
 
     template<typename ...Ts>
     PointLight &AddPointLight(Ts... ts) {
-        return m_Engine.AddPointLight(m_Handle, PointLight{ts...});
+        return m_Engine->AddPointLight(m_Handle, PointLight{ts...});
     }
 
     template<typename ...Ts>
     DirLight &AddDirLight(Ts... ts) {
-        return m_Engine.AddDirLight(m_Handle, DirLight{ts...});
+        return m_Engine->AddDirLight(m_Handle, DirLight{ts...});
     }
 
     template<typename T, typename ...Ts>
     T &AddBehaviour(Ts... ts) {
-        return m_Engine.AddBehaviour(m_Handle, new T{*this, ts...});
+        auto &res = m_Engine->AddBehaviour(m_Handle, new T{ts...});
+        res.self = *this;
+        return res;
     }
 
  private:
-    Engine &m_Engine;
+    Engine *m_Engine;
     ObjectHandle m_Handle;
 };

@@ -21,7 +21,7 @@ class MovingSphere : public Behaviour {
         }
     }
 
-    MovingSphere(Object self, Object target, Vec3 speed) : Behaviour(self), m_Target(target) {
+    MovingSphere(Object target, Vec3 speed) : m_Target(target) {
         m_Speed = speed;
     }
  private:
@@ -31,7 +31,7 @@ class MovingSphere : public Behaviour {
 
 class Pointer : public Behaviour {
  public:
-    Pointer(Object self, std::vector<Object> objects, Camera *camera) : Behaviour(self) {
+    Pointer(std::vector<Object> objects, Camera *camera) {
         m_Camera = camera;
         m_Objects = objects;
     }
@@ -226,7 +226,6 @@ int main() {
 
     class FpsText : public Behaviour {
      public:
-        FpsText(Object self) : Behaviour(self) {}
         void Update(float dt) override {
             int fps = Time::GetCurrentFps();
             char buf[12];
@@ -240,6 +239,14 @@ int main() {
         auto obj = engine.NewObject();
         obj.AddText(ocraFont, "", 685.0f, 575.0f, 1.f, Vec3(0, 0, 0));
         obj.AddBehaviour<FpsText>();
+        /*
+        obj.AddBehaviour<>([](auto &self, float dt) {
+            int fps = Time::GetCurrentFps();
+            char buf[12];
+            snprintf(buf, sizeof(buf), "Fps: %d", fps);
+            self.GetText()->SetContent(buf);
+        });
+         */
     }
 
     {

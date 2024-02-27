@@ -14,7 +14,7 @@ class Behaviour {
     virtual void Start(float dt) {}
     virtual void Update(float dt) = 0;
 
-    explicit Behaviour(Object);
+    Behaviour() = default;
 
     Object self;
 };
