@@ -132,17 +132,12 @@ int main() {
     Model * model = Model::loadFromFile(catSource);
 
     auto obj = new Object();
-    obj->renderData = new RenderData(model, shaderProgram);
-
+    obj->renderData = new RenderData(model,
+        shaderProgram,
+        {4.f, Texture("/Cat_diffuse.png", "/Cat_specular.png")});
 
     obj->transform = new Transform(Vec3(0.f, -3.f, -8.f), Vec3(.1f, .1f, .1f), Mat4(1.0));
     obj->transform->Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
-
-    obj->renderData->material = {
-        4.f,
-        Texture("/Cat_diffuse.png",
-                "/Cat_specular.png")
-    };
     engine.AddObject<>(obj);
 
     Material material = {
@@ -213,12 +208,11 @@ int main() {
         {spheres[0], spheres[1], spheres[2], aabb, sphere},
         engine.camera);
 
-    observer->renderData = new RenderData(Model::loadFromFile("/kiy.obj"), shaderProgram);
+    observer->renderData = new RenderData(
+        Model::loadFromFile("/kiy.obj"),
+        shaderProgram,
+        {4.f, Texture("/kiy.png")});
     observer->transform = new Transform(Vec3(0), Vec3(1), 0, Vec3(1));
-    observer->renderData->material = {
-        4.f,
-        Texture("/kiy.png")
-    };
     engine.AddObject<>(observer);
 
     class FpsText : public Object {
