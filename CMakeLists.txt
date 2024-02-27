@@ -37,6 +37,10 @@ add_subdirectory(thirdparty/glad)
 add_subdirectory(thirdparty/freetype/freetype)
 
 target_include_directories(ENGINE PUBLIC thirdparty PUBLIC include)
+target_include_directories(ENGINE PUBLIC thirdparty/irrKlang/include)
+
+add_library(irrKlang MODULE IMPORTED IMPORTED_IMPLIB ${CMAKE_SOURCE_DIR}/thirdparty/irrKlang/irrKlang.dll)
+
 target_link_libraries(ENGINE PUBLIC glfw glad freetype OpenGL::GL)
 
 add_executable(main src/main.cpp)

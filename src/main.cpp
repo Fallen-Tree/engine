@@ -71,8 +71,15 @@ class Pointer : public Object {
 
 Object* initModel();
 
+#include <irrKlang.h>
+using namespace irrklang;
+#pragma comment(lib, "irrKlang.dll");
+
 int main() {
     auto engine = Engine();
+
+    ISoundEngine *SoundEngine = createIrrKlangDevice();
+    SoundEngine->play2D("resources/audio/explosion.wav", true);
 
     std::vector<GLfloat> cubeVertices {
           // positions          // normals           // texture coords
