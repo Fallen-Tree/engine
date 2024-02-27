@@ -9,9 +9,10 @@
 
 class Object {
  public:
-    Object(Object &) = default;
+    Object(const Object &) = default;
     Object(Object &&) = default;
     Object& operator=(const Object &);
+    Object& operator=(const Object &&);
     Object(Engine &, ObjectHandle);
 
     Transform *GetTransform();

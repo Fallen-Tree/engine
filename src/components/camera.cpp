@@ -45,6 +45,7 @@ Mat4 Camera::GetProjectionMatrix() {
 }
 
 Ray Camera::GetRayThroughScreenPoint(Vec2 pos) {
+    pos = m_ScreenSize / 2.0f;
     pos.y = m_ScreenSize.y - pos.y;
     pos -= m_ScreenSize / 2.0f;
     float halfTan = glm::tan(glm::radians(m_Zoom)/2);
@@ -82,6 +83,10 @@ Vec3 Camera::GetFront() {
 
 void Camera::SetScreenSize(Vec2 size) {
     m_ScreenSize = size;
+}
+
+Vec2 Camera::GetScreenSize() {
+    return m_ScreenSize;
 }
 
 // processes input received from any keyboard-like input system. Accepts

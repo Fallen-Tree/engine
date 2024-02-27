@@ -227,7 +227,7 @@ void Engine::Run() {
 
         fpsFrames++;
         lastRenderedFrame = static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime));
-        Render(SCR_WIDTH, SCR_HEIGHT);
+        Render(viewportWidth, viewportHeight);
     }
 
     glfwTerminate();
@@ -260,7 +260,11 @@ void Engine::Render(int scr_width, int scr_height) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
-    camera->SetScreenSize({static_cast<float>(scr_width), static_cast<float>(scr_height)});
+    camera->SetScreenSize(
+        {
+            static_cast<float>(viewportWidth),
+            static_cast<float>(viewportHeight)
+        });
     for (int i = 0; i < m_RenderDatas.GetSize(); i++) {
         ObjectHandle id = m_RenderDatas.GetFromInternal(i);
         if (!m_Transforms.HasData(id)) continue;

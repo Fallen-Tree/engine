@@ -23,6 +23,10 @@ class PackedArray {
     }
 
     bool HasData(Index entry) {
+        if (entry < 0 || entry >= MAX_SIZE) {
+            Logger::Error("Invalid entry access at pos: %d", entry);
+            return false;
+        }
         return m_EntryToIndex[entry] < m_EntryCount;
     }
 
@@ -60,6 +64,10 @@ class PackedArray {
     }
 
     void SetData(Index entry, const T &data) {
+        if (entry < 0 || entry >= MAX_SIZE) {
+            Logger::Error("Invalid entry access at pos: %d", entry);
+            return;
+        }
         // If entry is new
         if (m_EntryToIndex[entry] >= m_EntryCount) {
             m_EntryToIndex[entry] = m_EntryCount;
@@ -88,6 +96,10 @@ class PackedArray {
     }
 
     Index AddData(const T &data) {
+        if (m_EntryCount == MAX_SIZE) {
+            Logger::Error("Adding entry into full array with size: %d", m_EntryCount);
+            return false;
+        }
         Index place = GetEmptyEntry();
         SetData(place, data);
         return place;

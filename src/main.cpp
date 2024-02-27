@@ -4,6 +4,7 @@
 #include "behaviour.hpp"
 #include "collisions.hpp"
 #include "logger.hpp"
+#include "render_data.hpp"
 
 const char *cubeSource = "/cube2.obj";
 const char *catSource = "/cat.obj";
@@ -28,49 +29,48 @@ class MovingSphere : public Behaviour {
     Vec3 m_Speed;
 };
 
-/* class Pointer : public Object { */
-/*  public: */
-/*      Pointer(std::vector<Object *> objects, Camera *camera) { */
-/*          m_Objects = objects; */
-/*          m_Camera = camera; */
-/*      } */
+class Pointer : public Behaviour {
+ public:
+    Pointer(Object self, std::vector<Object> objects, Camera *camera) : Behaviour(self) {
+        m_Camera = camera;
+        m_Objects = objects;
+    }
 
-/*     void Update(float dt) override { */
-/*         Ray ray = m_Camera->GetRayThroughScreenPoint({s_Input->MouseX(), s_Input->MouseY()}); */
-/*         Transform *target = nullptr; */
-/*         float closest = std::numeric_limits<float>::max(); */
-/*         for (int i = 0; i < m_Objects.size(); i++) { */
-/*             auto obj = m_Objects[i]; */
-/*             auto hit = obj->collider->RaycastHit(*obj->transform, ray); */
-/*             if (hit && *hit < closest) { */
-/*                 target = obj->transform; */
-/*                 closest = *hit; */
-/*             } */
-/*         } */
-/*         if (s_Input->IsKeyPressed(Key::MouseLeft)) */
-/*             m_CurrentTarget = target; */
+    void Update(float dt) override {
+        Ray ray = m_Camera->GetRayThroughScreenPoint(m_Camera->GetScreenSize() / 2.0f);
+        Transform *target = nullptr;
+        float closest = std::numeric_limits<float>::max();
+        for (int i = 0; i < m_Objects.size(); i++) {
+            auto obj = m_Objects[i];
+            auto hit = obj.GetCollider()->RaycastHit(*obj.GetTransform(), ray);
+            if (hit && *hit < closest) {
+                target = obj.GetTransform();
+                closest = *hit;
+            }
+        }
+        if (s_Input->IsKeyPressed(Key::MouseLeft)) {
+            m_CurrentTarget = target;
+        }
 
-/*         if (m_CurrentTarget != nullptr) { */
-/*             Vec3 center = m_CurrentTarget->GetTranslation(); */
-/*             Vec3 closest = ray.origin + glm::dot(center - ray.origin, ray.direction) * ray.direction; */
-/*             closest.y = center.y; */
-/*             Vec3 onCircle = glm::normalize(closest - center) * m_CueDistance; */
-/*             transform->SetTranslation(onCircle); */
+        if (m_CurrentTarget != nullptr) {
+            Vec3 center = m_CurrentTarget->GetTranslation();
+            Vec3 closest = ray.origin + glm::dot(center - ray.origin, ray.direction) * ray.direction;
+            closest.y = center.y;
+            Vec3 onCircle = glm::normalize(closest - center) * m_CueDistance;
+            self.GetTransform()->SetTranslation(onCircle);
 
-/*             Vec3 toCenter = center - onCircle; */
-/*             float angle = glm::acos(glm::dot(toCenter, ray.direction) / m_CueDistance); */
-/*             transform->SetRotation(-glm::pi<float>()/2, glm::cross(Vec3{0.f, 1.f, 0.f}, toCenter)); */
-/*         } */
-/*      } */
+            Vec3 toCenter = center - onCircle;
+            float angle = glm::acos(glm::dot(toCenter, ray.direction) / m_CueDistance);
+            self.GetTransform()->SetRotation(-glm::pi<float>()/2, glm::cross(Vec3{0.f, 1.f, 0.f}, toCenter));
+        }
+     }
 
-/*  private: */
-/*     float m_CueDistance = 1.f; */
-/*     Transform *m_CurrentTarget = nullptr; */
-/*     std::vector<Object *> m_Objects; */
-/*     Camera *m_Camera; */
-/* }; */
-
-/* Object* initModel(); */
+ private:
+    float m_CueDistance = 1.f;
+    Transform *m_CurrentTarget = nullptr;
+    std::vector<Object> m_Objects;
+    Camera *m_Camera;
+};
 
 int main() {
     auto engine = Engine();
@@ -153,82 +153,76 @@ int main() {
         };
     }
 
+    auto aabb = engine.NewObject();
+    aabb.AddTransform(Vec3(-4, 0, -3), Vec3(1), 0.0f, Vec3(1));
+    aabb.AddCollider(AABB { Vec3{-0.5, -0.5, -0.5}, Vec3{0.5, 0.5, 0.5} });
     {
-        auto aabb = engine.NewObject();
-        aabb.AddTransform(Vec3(-4, 0, -3), Vec3(1), 0.0f, Vec3(1));
-        aabb.AddCollider(AABB { Vec3{-0.5, -0.5, -0.5}, Vec3{0.5, 0.5, 0.5} });
         auto &renderData = aabb.AddRenderData();
         renderData.model = cubeModel;
         renderData.material = material;
         bindRenderData(&renderData);
     }
 
+        auto sphereCollider = engine.NewObject();
+        sphereCollider.AddTransform(Vec3(0, 0, -3), Vec3(1), 0.0f, Vec3(1));
+        sphereCollider.AddCollider(Sphere { Vec3(0.0), 1.0f });
     {
-        auto sphere = engine.NewObject();
-        sphere.AddTransform(Vec3(0, 0, -3), Vec3(1), 0.0f, Vec3(1));
-        sphere.AddCollider(Sphere { Vec3(0.0), 1.0f });
-        auto &renderData = sphere.AddRenderData();
+        auto &renderData = sphereCollider.AddRenderData();
         renderData.model = sphereModel;
         renderData.material = material;
         bindRenderData(&renderData);
     }
 
-/*     auto mesh = setUpObj( */
-/*         Transform(Vec3(4.0, 0, -3), Vec3(1.0), 0, Vec3(1)), */
-/*         sphereModel, */
-/*         sphereModel); */
+        auto mesh = engine.NewObject();
+        mesh.AddTransform(Vec3(4, 0, -3), Vec3(1), 0.0f, Vec3(1));
+        mesh.AddCollider(sphereModel);
+    {
+        auto &renderData = mesh.AddRenderData();
+        renderData.model = sphereModel;
+        renderData.material = material;
+        bindRenderData(&renderData);
+    }
 
-/*     auto getSphereObj = [=](Transform transform, Object *target, Vec3 speed) { */
-/*         auto obj = new MovingSphere(target, speed); */
-/*         obj->renderData = new RenderData(); */
-/*         auto renderData = obj->renderData; */
-/*         renderData->model = sphereModel; */
-/*         renderData->material = material; */
-/*         bindRenderData(renderData); */
+    Vec3 sphereSpeed = Vec3(0, 0, -1);
+    auto sphere0 = engine.NewObject();
+    {
+        sphere0.AddTransform(Vec3(-4, 0, 2.0), Vec3(1.0), 0, Vec3(1));
+        sphere0.AddCollider(AABB { Vec3{-1, -1, -1}, Vec3{1, 1, 1} });
+        auto &renderData = sphere0.AddRenderData();
+        renderData.model = sphereModel;
+        renderData.material = material;
+        bindRenderData(&renderData);
+        sphere0.AddBehaviour<MovingSphere>(aabb, sphereSpeed);
+    }
+    auto sphere1 = engine.NewObject();
+    {
+        sphere1.AddTransform(Vec3(0, 0, 2.0), Vec3(1.0), 0, Vec3(1));
+        sphere1.AddCollider(AABB { Vec3{-1, -1, -1}, Vec3{1, 1, 1} });
+        auto &renderData = sphere1.AddRenderData();
+        renderData.model = sphereModel;
+        renderData.material = material;
+        bindRenderData(&renderData);
+        sphere1.AddBehaviour<MovingSphere>(sphereCollider, sphereSpeed);
+    }
+    auto sphere2 = engine.NewObject();
+    {
+        sphere2.AddTransform(Vec3(4, 0, 2.0), Vec3(1.0), 0, Vec3(1));
+        sphere2.AddCollider(AABB { Vec3{-1, -1, -1}, Vec3{1, 1, 1} });
+        auto &renderData = sphere2.AddRenderData();
+        renderData.model = sphereModel;
+        renderData.material = material;
+        bindRenderData(&renderData);
+        sphere2.AddBehaviour<MovingSphere>(mesh, sphereSpeed);
+    }
 
-/*         obj->transform = new Transform(transform); */
-
-/*         obj->collider = new Collider{AABB { */
-/*             Vec3{-1, -1, -1}, */
-/*             Vec3{1, 1, 1}, */
-/*         }}; */
-/*         return obj; */
-/*     }; */
-
-/*     Object *spheres[3] = { */
-/*         getSphereObj( */
-/*             Transform(Vec3(-4, 0, 2.0), Vec3(1.0), 0, Vec3(1)), */
-/*             aabb, */
-/*             Vec3(0, 0, -1)), */
-/*         getSphereObj( */
-/*             Transform(Vec3(0, 0, 2.0), Vec3(1.0), 0, Vec3(1)), */
-/*             sphere, */
-/*             Vec3(0, 0, -1)), */
-/*         getSphereObj( */
-/*             Transform(Vec3(4, 0, 2.0), Vec3(1.0), 0, Vec3(1)), */
-/*             mesh, */
-/*             Vec3(0, 0, -1)), */
-/*     }; */
-/*     engine.AddObject<>(spheres[0]); */
-/*     engine.AddObject<>(spheres[1]); */
-/*     engine.AddObject<>(spheres[2]); */
-
-/*     auto observer = new Pointer( */
-/*         {spheres[0], spheres[1], spheres[2], aabb, sphere}, */
-/*         engine.camera); */
-
-/*     observer->renderData = new RenderData(); */
-/*     auto renderData = observer->renderData; */
-/*     renderData->model = Model::loadFromFile("/kiy.obj"); */
-/*     renderData->model->shader = shaderProgram; */
-/*     bindRenderData(renderData); */
-
-/*     observer->transform = new Transform(Vec3(0), Vec3(1), 0, Vec3(1)); */
-/*     observer->renderData->material = { */
-/*         4.f, */
-/*         Texture("/kiy.png") */
-/*     }; */
-/*     engine.AddObject<>(observer); */
+    auto pointer = engine.NewObject();
+    pointer.AddTransform(Vec3(0), Vec3(1), 0, Vec3(1));
+    auto &renderData = pointer.AddRenderData();
+    renderData.model = Model::loadFromFile("/kiy.obj");
+    renderData.model->shader = shaderProgram;
+    bindRenderData(&renderData);
+    renderData.material = { 4.f, Texture("/kiy.png") };
+    pointer.AddBehaviour<Pointer>(std::vector<Object>{sphere0, sphere1, sphere2}, engine.camera);
 
     class FpsText : public Behaviour {
      public:
