@@ -95,7 +95,8 @@ int main() {
                 "/Cat_specular.png")
     };
     obj->collider = new Collider{Collider::GetDefaultAABB(model)};
-    obj->rigidbody = new RigidBody(0, Mat3(0), Vec3(0), LINEAR, 1, Vec3(0), Vec3(0));
+    obj->rigidbody = new RigidBody(0, Mat3(0), Vec3(0), 1, Vec3(0), Vec3(0),
+            Vec3(0), Vec3(0));
     //engine.AddObject<>(obj);
 
     Material material = {
@@ -113,7 +114,8 @@ int main() {
 
         obj->transform = new Transform(transform);
         obj->collider = new Collider { primitive };
-        obj->rigidbody = new RigidBody(0, Mat4(0), Vec3(0), LINEAR, 1000000000000, Vec3(0), Vec3(0));
+        obj->rigidbody = new RigidBody(0, Mat4(0), Vec3(0), 3, Vec3(0), Vec3(0),
+                Vec3(0), Vec3(0));
         //engine.AddObject<>(obj);
         return obj;
     };
@@ -136,11 +138,11 @@ int main() {
 
         obj->transform = new Transform(transform);
 
-        obj->collider = new Collider{Sphere {
+        obj->collider = new Collider{ Sphere {
             Vec3(0),
-            1.f, 
+            1, 
         }};
-       obj->rigidbody = new RigidBody(mass, Mat3(1), 1/100.f * speed, LINEAR, 0, Vec3(0, 0, 0), Vec3(0));
+       obj->rigidbody = new RigidBody(mass, IBodySphere(1, 1), 1/100.f * speed, 1, Vec3(0, 0, 0), Vec3(0), Vec3(1), Vec3(1));
         return obj;
     };
 
@@ -148,19 +150,19 @@ int main() {
         getSphereObj(
             Transform(Vec3(-4, 0, 2.0), Vec3(1), 0, Vec3(1)),
             Vec3(1, 0, 0),
-            1),
+            20),
         getSphereObj(
             Transform(Vec3(0, 0, 2.0), Vec3(1), 0, Vec3(1)),
-            Vec3(-1, 0, 0),
-            1),
+            Vec3(0, 0, 0),
+            10),
         getSphereObj(
             Transform(Vec3(4, 0, 2.0), Vec3(1.0), 0, Vec3(1)),
             Vec3(0, 0, 0),
-            1),
+            3),
     };
     engine.AddObject<>(spheres[0]);
     engine.AddObject<>(spheres[1]);
-    //engine.AddObject<>(spheres[2]);
+    engine.AddObject<>(spheres[2]);
 
     class FpsText : public Object {
      public:

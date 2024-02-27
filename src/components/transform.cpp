@@ -92,3 +92,9 @@ Mat4 Transform::GetTransformMatrix() {
     transformMatrix = glm::scale(transformMatrix, this->m_Scale);
     return transformMatrix;
 }
+
+void Transform::RotateOmega(Vec3 omega) {
+    Rotate(omega.x, Vec3(1,0,0));
+    Rotate(omega.y, Vec3(0,1,0));
+    Rotate(omega.z, Vec3(0,0,1));
+}

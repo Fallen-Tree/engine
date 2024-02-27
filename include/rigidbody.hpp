@@ -5,67 +5,44 @@
 #include "collider.hpp"
 #include "collisions.hpp"
 
-enum TypeRigidBody{
-    LINEAR,
-    ANGULAR,
-    LINEAR_ANGULAR,
-    NONE
-};
+//TODO:: make much more IBody getter
+Mat3 IBodySphere(float, float);
 
 class RigidBody {
 public:
- RigidBody(float mass, Mat3 Ibody, Vec3 initalVelocity, TypeRigidBody type, 
-         float restitution, Vec3 defaultForce, Vec3 defaultTorque);
+ float restitution = 1;
+ float massInverse;
+ Mat3 ibodyInverse; // inverse matrix inertia tensor
+ Vec3 defaultForce;
+ Vec3 defaultTorque;
+ Vec3 velocity;
+ Vec3 lineraUnlock;
+ Vec3 angularUnlock;
 
- void Compute_Force_Torque(float dt);  
 
- void Update(Transform *tranform, float dt);
+ RigidBody(float mass, Mat3 Ibody, Vec3 initalVelocity, 
+         float restitution, Vec3 defaultForce, Vec3 defaultTorque,
+         Vec3 lineraUnlock, Vec3 angularUnlock);
+
+void Update(Transform *tranform, float dt);
 
 void ResolveCollisions(Transform tranform, Transform otherTransform, 
         Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody, 
         float dt);
 
- void AddVelocity(Vec3 velocity);
-
- void SetVelocity(Vec3 velocity);
-
- void AddInstantForce(Vec3 force);
-
- void AddDefaultForce(Vec3 force);
-
- void SetDefaultForce(Vec3 force);
-
- void AddInstantTorque(Vec3 torque);
-
- void AddDefaultTorque(Vec3 torque);
-
- void SetDefaultTorque(Vec3 torque);
-
- void Mass(float mass);
+void Mass(float mass);
 
 private:
  void LinearCalculation(Transform *transform, float dt);
 
  void AngularCalculation(Transform *transform, float dt);
 
- void CalcForce(float dt);
-
-void CalcForce(Transform tranform, Transform otherTransform, 
+ void CalcImpulseForce(Transform tranform, Transform otherTransform, 
         Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody, 
         float dt);
+ void CalcTorque(Vec3 force, Vec3 vec);
 
- void CalcTorque(float dt);
-
- void CalcTorque(RigidBody *otherRigidBody, float dt);
-
- float m_Restitution = 1;
- float m_MassInverse;
- Mat3 m_IbodyInverse; // inverse matrix inertia tensor
- Vec3 m_ResForce = Vec3(0); // resultant force
- Vec3 m_DefaultForce = Vec3(0);
- Vec3 m_DefaultTorque = Vec3(0);
- Vec3 m_Torque = Vec3(0);
- Vec3 m_Velocity = Vec3(0);
- TypeRigidBody m_Type;
+ Vec3 m_ResForce = Vec3(0); // resultant force 
+ Vec3 m_Torque = Vec3(0); // resulant torque
 };
 

@@ -72,8 +72,8 @@ float AABB::Distance2(Vec3 point) {
 
 AABB AABB::Transformed(Transform transform) {
     return AABB {
-        min + transform.GetTranslation(),
-        max + transform.GetTranslation()
+        min * transform.GetScale() + transform.GetTranslation(),
+        max * transform.GetScale() + transform.GetTranslation()
     };
 }
 

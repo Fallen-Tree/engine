@@ -324,22 +324,31 @@ std::optional<float> CollisionPrimitive(Ray r, Sphere s) {
     return x;
 }
 
-Vec3 CollisionNormal(AABB a1, AABB a2, Transform tr1, Transform tr2,
-        Vec3 velocity, float dt) {
-    auto tranformed1 = a1.Transformed(tr1).PrevState(velocity, dt);
-    auto tranformed2 = a2.Transformed(tr2);
+Vec3 CollisionNormal(AABB a1, AABB a2, Transform tr1, Transform tr2, Vec3 velocity, float dt) { 
+    float epsilon = 0.1;
+    auto transformed1 = a1.Transformed(tr1).PrevState(velocity, dt);
+    auto transformed2 = a2.Transformed(tr2);
 
-    if (tranformed1.min.x >= tranformed2.max.x) {
+    /*
+    Logger::Info("shift %s\nmax1 %s max2%s\nmin1 %s min2%s",
+            glm::to_string(velocity * dt).c_str(),
+            glm::to_string(transformed1.max).c_str(),
+            glm::to_string(transformed2.max).c_str(),
+            glm::to_string(transformed1.min).c_str(),
+            glm::to_string(transformed2.min).c_str());
+    */
+
+    if (transformed1.min.x + epsilon >= transformed2.max.x) {
         return Vec3(1, 0, 0);
-    } else if (tranformed1.max.x <= tranformed2.min.x) {
+    } else if (transformed1.max.x <= transformed2.min.x + epsilon) {
         return Vec3(-1, 0, 0);
-    } else if (tranformed1.min.y >= tranformed2.max.y) {
+    } else if (transformed1.min.y + epsilon >= transformed2.max.y) {
         return Vec3(0, 1, 0);
-    } else if (tranformed1.max.y <= tranformed2.min.y) {
+    } else if (transformed1.max.y <= transformed2.min.y + epsilon) {
         return Vec3(0, -1, 0);
-    } else if (tranformed1.min.z >= tranformed2.max.z) {
+    } else if (transformed1.min.z + epsilon >= transformed2.max.z) {
         return Vec3(0, 0, 1);
-    } else if (tranformed1.max.z <= tranformed2.min.z) {
+    } else if (transformed1.max.z <= transformed2.min.z + epsilon) {
         return Vec3(0, 0, -1);
     }
 
@@ -347,18 +356,42 @@ Vec3 CollisionNormal(AABB a1, AABB a2, Transform tr1, Transform tr2,
     return Vec3(0);
 }
 
-Vec3 CollisionNormal(Sphere,AABB,Transform,Transform,Vec3,float) {
+Vec3 CollisionNormal(Sphere sph, AABB a,Transform tr1, Transform tr2, 
+        Vec3 velocity, float dt) {
+    return -CollisionNormal(a, sph, tr2, tr1, velocity, dt);
+}
+
+Vec3 CollisionNormal(AABB a, Sphere sph, Transform tr1, Transform tr2,
+        Vec3 velocity, float dt) {
+    auto transformed2 = sph.Transformed(tr2);
+    auto transformed1 = a.Transformed(tr1).PrevState(velocity, dt);
+
+    auto closetPoint = sph.ClosestPoint((transformed1.max + transformed1.min) * 0.5f);
+    Logger::Info("shift %s\nmax%s\nmin%s\npoint%s\n",
+            glm::to_string(velocity * dt).c_str(),
+            glm::to_string(transformed1.max).c_str(),
+            glm::to_string(transformed1.min).c_str(),
+            glm::to_string(
+                (transformed1.max + transformed1.min) * 0.5f).c_str());
+
+    if (closetPoint.x >= a.max.x) {
+        return Vec3(1, 0, 0);
+    } else if (closetPoint.x <= a.min.x) {
+        return Vec3(-1, 0, 0);
+    } else if (closetPoint.y >= a.max.y) {
+        return Vec3(0, 1, 0);
+    } else if (closetPoint.y <= a.min.y) {
+        return Vec3(0, -1, 0);
+    } else if (closetPoint.z >= a.max.z) {
+        return Vec3(0, 0, 1);
+    } else if (closetPoint.z <= a.min.z) {
+        return Vec3(0, 0, -1);
+    }
+
+    Logger::Error("COLLISIONS::COLLISION_NORMAL::FAILED_TO_FIND_NORMAL");
     return Vec3(0);
 }
-Vec3 CollisionNormal(AABB,Sphere,Transform,Transform,Vec3,float) {
-    return Vec3(0);
-}
-Vec3 CollisionNormal(AABB,Model*,Transform,Transform,Vec3,float) {
-    return Vec3(0);
-}
-Vec3 CollisionNormal(Model*,AABB,Transform,Transform,Vec3,float) {
-    return Vec3(0);
-}
+
 Vec3 CollisionNormal(Sphere sph1, Sphere sph2, 
         Transform tr1, Transform tr2, Vec3 vel, float dt) {
     auto tranformed1 = sph1.Transformed(tr1);
@@ -366,12 +399,34 @@ Vec3 CollisionNormal(Sphere sph1, Sphere sph2,
 
     return Norm(tranformed1.center - tranformed2.center);
 }
+
+// TODO::make this operation with Model
+Vec3 CollisionNormal(AABB,Model*,Transform,Transform,Vec3,float) {
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
+    return Vec3(0);
+}
+
+Vec3 CollisionNormal(Model*,AABB,Transform,Transform,Vec3,float) {
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
+    return Vec3(0);
+}
+
 Vec3 CollisionNormal(Sphere,Model*,Transform,Transform,Vec3,float) {
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
     return Vec3(0);
 }
+
 Vec3 CollisionNormal(Model*,Sphere,Transform,Transform,Vec3,float) {
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
     return Vec3(0);
 }
+
 Vec3 CollisionNormal(Model*,Model*,Transform,Transform,Vec3,float) {
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
     return Vec3(0);
 }

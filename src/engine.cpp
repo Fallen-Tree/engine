@@ -181,10 +181,22 @@ void Engine::updateObjects(float deltaTime) {
         if (!m_Objects[i]->rigidbody)
             continue;
         auto obj = m_Objects[i];
+        if (!obj->collider || !obj->transform) {
+            Logger::Error(
+                    "ENGINE::UPDATE_OBJECTS::RIGID_BODY_SHOULD_HAVE_COLLIDER_TRANSFORM : %d"
+                    , i);
+            continue;
+        }
         for (int j = i + 1; j < size; j++) {
             if (!m_Objects[j]->rigidbody)
                 continue;
             auto other = m_Objects[j];
+            if (!other->collider || !other->transform) {
+                Logger::Error(
+                    "ENGINE::UPDATE_OBJECTS::RIGID_BODY_SHOULD_HAVE_COLLIDER_TRANSFORM : %d"
+                    , j);
+                continue;
+            }
             if (obj->collider->Collide(*obj->transform, other->collider, *other->transform)) {
                 obj->rigidbody->ResolveCollisions(
                         *obj->transform, *other->transform, 
@@ -201,7 +213,6 @@ void Engine::updateObjects(float deltaTime) {
             object->animation->applyAnimations(object->transform, deltaTime);
         }
         if (object->rigidbody) {
-            object->rigidbody->Compute_Force_Torque(deltaTime);
             object->rigidbody->Update(object->transform, deltaTime);
         }
     }
