@@ -1,8 +1,10 @@
 #pragma once
 
+#include <string>
 #include <vector>
 // #include <fstream>
 #include "shaders.hpp"
+#include "transform.hpp"
 
 class Model {
  private:
@@ -21,7 +23,7 @@ class Model {
 
     explicit Model(const std::vector<float>& Points, int vectorSize);
 
-    static Model* loadFromFile(const char* path);
+    static Model* loadFromFile(std::string);
     // getter and setter for working with class.
     float* getPoints();
 
@@ -41,4 +43,6 @@ class Model {
     int getLenIndices();
 
     int getLenArrPoints();
+
+    Vec3 ClosestPoint(Vec3 point, Transform *transform);
 };

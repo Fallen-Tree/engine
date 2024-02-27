@@ -10,6 +10,7 @@
 #include "shaders.hpp"
 #include "user_config.hpp"
 #include "engine_config.hpp"
+#include "path_resolver.hpp"
 
 void Font::RenderText(std::string text, float x, float y, float scale, glm::vec3 color) {
     glDisable(GL_DEPTH_TEST);
@@ -64,23 +65,18 @@ void Font::RenderText(std::string text, float x, float y, float scale, glm::vec3
     glDisable(GL_BLEND);
 }
 
-Font::Font(const char* font, unsigned int fontSize) {
+Font::Font(std::string path, unsigned int fontSize) {
+    path = GetResourcePath(Resource::FONT, path);
+
     FT_Library ft;
     if (FT_Init_FreeType(&ft)) {
         Logger::Error("FREETYPE: Can't initialize FreeType");
         return;
     }
 
-    char buf[128];
-    snprintf(
-        buf,
-        sizeof(buf),
-        reinterpret_cast<const char*>((RESOURCE_DIR"/fonts/%s")),
-        font);
-
     FT_Face face;
-    if (FT_New_Face(ft, buf, 0, &face)) {
-        Logger::Error("FREETYPE: Can't find font %s", font);
+    if (FT_New_Face(ft, path.c_str(), 0, &face)) {
+        Logger::Error("FREETYPE: Can't find font %s", path.c_str());
         return;
     }
 
@@ -135,7 +131,7 @@ Font::Font(const char* font, unsigned int fontSize) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    Shader vShader = Shader(VertexShader, "/vertex/text.vshader");
-    Shader fShader = Shader(FragmentShader, "/fragment/text.fshader");
+    Shader vShader = Shader(VertexShader, "text.vshader");
+    Shader fShader = Shader(FragmentShader, "text.fshader");
     m_ShaderProgram = ShaderProgram(vShader, fShader);
 }
