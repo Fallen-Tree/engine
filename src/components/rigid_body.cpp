@@ -12,7 +12,7 @@ Mat3 IBodySphere(float radius, float mass) {
 
 RigidBody::RigidBody(float mass, Mat3 iBody, Vec3 initalVelocity,
         float restitution, Vec3 defaultForce, Vec3 defaultTorque,
-        Vec3 lineraUnlock, Vec3 angularUnlock) { 
+        Vec3 lineraUnlock, Vec3 angularUnlock) {
     Mass(mass);
     IbodyInverse(iBody);
     this->velocity = initalVelocity;
