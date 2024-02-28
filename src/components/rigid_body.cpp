@@ -10,15 +10,15 @@ Mat3 IBodySphere(float radius, float mass) {
     return Mat3(2.f/5 * mass * radius * radius);
 }
 
-RigidBody::RigidBody(float mass, Mat3 iBody, Vec3 initalVelocity, 
+RigidBody::RigidBody(float mass, Mat3 iBody, Vec3 initalVelocity,
         float restitution, Vec3 defaultForce, Vec3 defaultTorque,
         Vec3 lineraUnlock, Vec3 angularUnlock) { 
     Mass(mass);
-    IbodyInverse(iBody); 
+    IbodyInverse(iBody);
     this->velocity = initalVelocity;
     this->restitution = restitution;
     this->defaultForce = defaultForce;
-    this->defaultTorque = defaultTorque; 
+    this->defaultTorque = defaultTorque;
     this->lineraUnlock = lineraUnlock;
     this->angularUnlock = angularUnlock;
 }
@@ -31,10 +31,10 @@ void RigidBody::Update(Transform *tranform, float dt) {
     m_Torque = defaultTorque;
 }
 
-void RigidBody::ResolveCollisions(Transform tranform, Transform otherTransform, 
-        Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody, 
+void RigidBody::ResolveCollisions(Transform tranform, Transform otherTransform,
+        Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody,
         float dt) {
-    Compute(tranform, otherTransform, 
+    Compute(tranform, otherTransform,
             collider, otherCollider, otherRigidBody, dt);
 }
 
@@ -65,7 +65,7 @@ void RigidBody::AngularCalculation(Transform *transform, float dt) {
         return;
     Mat3 rotation = transform->GetRotation();
     Mat3 Iinverse = rotation * ibodyInverse * glm::transpose(rotation);
-    Vec3 L = m_Torque * dt; 
+    Vec3 L = m_Torque * dt;
     Vec3 omega = Iinverse * L;
     transform->RotateOmega(omega * angularUnlock);
 }
@@ -101,12 +101,12 @@ Vec3 collisionNormal(Collider *coll1, Collider *coll2,
         }, coll1->shape);
 }
 
-void RigidBody::Compute(Transform tranform, Transform otherTransform, 
-        Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody, 
+void RigidBody::Compute(Transform tranform, Transform otherTransform,
+        Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody,
         float dt) {
     if (massInverse == 0 && otherRigidBody->massInverse == 0) {
         Logger::Error(
-                "RIGID_BODY::CALC_IMPULSE_FORCE::BOTH_RIGID_BODIES_HAVE_INFINITY_MASS"); 
+                "RIGID_BODY::CALC_IMPULSE_FORCE::BOTH_RIGID_BODIES_HAVE_INFINITY_MASS");
         return;
     }
     Vec3 rv = velocity - otherRigidBody->velocity;
@@ -135,7 +135,7 @@ void RigidBody::Compute(Transform tranform, Transform otherTransform,
             otherCollider, otherTransform) - otherTransform.GetTranslation();
     otherRigidBody->CalcTorque(force, r2);
 
-    m_ResForce -= m_ResForce * normal; 
+    m_ResForce -= m_ResForce * normal;
     otherRigidBody->m_ResForce += otherRigidBody->m_ResForce * normal;
 
     m_ResForce += force;

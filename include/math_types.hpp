@@ -12,4 +12,3 @@ typedef glm::fmat3 Mat3;
 typedef glm::fmat4 Mat4;
 
 Vec3 Mul(Vec3, Mat4);
-Vec3 Norm(Vec3);

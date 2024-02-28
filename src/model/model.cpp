@@ -1,6 +1,5 @@
 #include "model.hpp"
 #include "geometry_primitives.hpp"
-#include "geometry_primitives.hpp"
 
 #include <vector>
 #include <cassert>
@@ -8,7 +7,6 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-#include <limits.h>
 #include <limits.h>
 #include <fstream>
 #include <cstdarg>
@@ -76,7 +74,7 @@ Vec3 Model::ClosestPoint(Vec3 point, Transform transform) {
         } * modelMat;
         return Vec3{ res.x / res.w, res.y / res.w, res.z / res.w };
     };
-    
+
     Vec3 res = Vec3(std::numeric_limits<float>::max());
     for (int i = 0; i < getLenIndices(); i += 3) {
         Triangle tri = Triangle(loadPos(i), loadPos(i + 1), loadPos(i + 2));
@@ -101,7 +99,7 @@ Vec3 Model::CollisionNormal(Vec3 point, Transform transform) {
         } * modelMat;
         return Vec3{ res.x / res.w, res.y / res.w, res.z / res.w };
     };
-    
+
     float min = std::numeric_limits<float>::max();
 
     Triangle *res;
@@ -115,7 +113,7 @@ Vec3 Model::CollisionNormal(Vec3 point, Transform transform) {
     }
 
     return glm::normalize((*res).normal);
-    // Is ok direction or i should make smthg with this ? 
+    // Is ok direction or i should make smthg with this ?
 }
 
 // get length of array.

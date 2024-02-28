@@ -175,7 +175,7 @@ void Engine::Run() {
 }
 
 void Engine::updateObjects(float deltaTime) {
-    // system which detect all collisions of physics object 
+    // system which detect all collisions of physics object
     auto size = m_Objects.size();
     for (int i = 0; i < size - 1; i++) {
         if (!m_Objects[i]->rigidbody)
@@ -199,7 +199,7 @@ void Engine::updateObjects(float deltaTime) {
             }
             if (obj->collider->Collide(*obj->transform, other->collider, *other->transform)) {
                 obj->rigidbody->ResolveCollisions(
-                        *obj->transform, *other->transform, 
+                        *obj->transform, *other->transform,
                         obj->collider, other->collider,
                         other->rigidbody, deltaTime);
             }

@@ -95,8 +95,8 @@ int main() {
                 "/Cat_specular.png")
     };
     obj->collider = new Collider{Collider::GetDefaultAABB(model)};
-    //obj->rigidbody = new RigidBody(0, Mat3(0), Vec3(0), 1, Vec3(0, -1, 0), Vec3(0),
-    //        Vec3(1), Vec3(1));
+    obj->rigidbody = new RigidBody(0, Mat3(0), Vec3(0), 1, Vec3(0, -1, 0), Vec3(0),
+            Vec3(1), Vec3(1));
     engine.AddObject<>(obj);
 
     Material material = {
@@ -140,9 +140,10 @@ int main() {
 
         obj->collider = new Collider{ Sphere {
             Vec3(0),
-            1, 
+            1,
         }};
-       obj->rigidbody = new RigidBody(mass, IBodySphere(1, 1), 1/100.f * speed, 0, Vec3(0, -0.1, 0), Vec3(0), Vec3(1), Vec3(1));
+       obj->rigidbody = new RigidBody(mass, IBodySphere(1, 1), 
+        1/100.f * speed, 0, Vec3(0, -0.1, 0), Vec3(0), Vec3(1), Vec3(1));
         return obj;
     };
 
@@ -161,8 +162,8 @@ int main() {
             3),
     };
     engine.AddObject<>(spheres[0]);
-    //engine.AddObject<>(spheres[1]);
-    //engine.AddObject<>(spheres[2]);
+    engine.AddObject<>(spheres[1]);
+    engine.AddObject<>(spheres[2]);
 
     class FpsText : public Object {
      public:
@@ -173,7 +174,7 @@ int main() {
             this->text->SetContent(buf);
         }
     };
-   
+
     auto textOcra = new Font("OCRAEXT.TTF", 20);
     auto fpsObj = new FpsText();
     fpsObj->text = new Text(textOcra, "", 685.0f, 575.0f, 1.f, Vec3(0, 0, 0));

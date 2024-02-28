@@ -324,7 +324,7 @@ std::optional<float> CollisionPrimitive(Ray r, Sphere s) {
     return x;
 }
 
-Vec3 CollisionNormal(AABB a1, AABB a2, Transform tr1, Transform tr2, Vec3 velocity, float dt) { 
+Vec3 CollisionNormal(AABB a1, AABB a2, Transform tr1, Transform tr2, Vec3 velocity, float dt) {
     float epsilon = 0.1;
     auto transformed1 = a1.Transformed(tr1).PrevState(velocity, dt);
     auto transformed2 = a2.Transformed(tr2);
