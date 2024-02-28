@@ -10,11 +10,11 @@ Mat3 IBodySphere(float radius, float mass) {
     return Mat3(2.f/5 * mass * radius * radius);
 }
 
-RigidBody::RigidBody(float mass, Mat3 Ibody, Vec3 initalVelocity, 
+RigidBody::RigidBody(float mass, Mat3 iBody, Vec3 initalVelocity, 
         float restitution, Vec3 defaultForce, Vec3 defaultTorque,
         Vec3 lineraUnlock, Vec3 angularUnlock) { 
     Mass(mass);
-    this->ibodyInverse = glm::inverse(Ibody);
+    IbodyInverse(iBody); 
     this->velocity = initalVelocity;
     this->restitution = restitution;
     this->defaultForce = defaultForce;
@@ -34,21 +34,27 @@ void RigidBody::Update(Transform *tranform, float dt) {
 void RigidBody::ResolveCollisions(Transform tranform, Transform otherTransform, 
         Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody, 
         float dt) {
-    //Logger::Info("collision");
-    CalcImpulseForce(tranform, otherTransform, 
+    Compute(tranform, otherTransform, 
             collider, otherCollider, otherRigidBody, dt);
 }
 
 void RigidBody::Mass(float mass) {
     if (mass == 0) {
         massInverse = 0;
-    } else {
-        massInverse = 1 / mass;
+        return;
     }
+    massInverse = 1 / mass;
+}
+
+void RigidBody::IbodyInverse(Mat3 iBody) {
+    if (iBody == Mat3(0)) {
+        ibodyInverse = iBody;
+        return;
+    }
+    ibodyInverse = glm::inverse(iBody);
 }
 
 void RigidBody::LinearCalculation(Transform *transform, float dt) {
-    //Logger::Info("res force: %s", glm::to_string(m_ResForce).c_str());
     Vec3 acceleration = m_ResForce * massInverse;
     velocity += acceleration * dt;
     transform->Translate(velocity * lineraUnlock);
@@ -57,44 +63,32 @@ void RigidBody::LinearCalculation(Transform *transform, float dt) {
 void RigidBody::AngularCalculation(Transform *transform, float dt) {
     if (m_Torque == Vec3(0))
         return;
-    //Logger::Info("Here");
-    Logger::Info("Torque : %s", glm::to_string(m_Torque).c_str());
     Mat3 rotation = transform->GetRotation();
-    //Logger::Info("rotation: %s", glm::to_string(transform->GetRotation()).c_str());
     Mat3 Iinverse = rotation * ibodyInverse * glm::transpose(rotation);
-    //Logger::Info("Iinverse: %s", glm::to_string(Iinverse).c_str());
     Vec3 L = m_Torque * dt; 
-    //Logger::Info("L: %s", glm::to_string(L).c_str());
     Vec3 omega = Iinverse * L;
-    //Logger::Info("omega: %s", glm::to_string(omega).c_str());
     transform->RotateOmega(omega * angularUnlock);
-    //Logger::Info("rotation: %s", glm::to_string(transform->GetRotation()).c_str());
 }
 
-void RigidBody::CalcTorque(Vec3 force, Vec3 vec) {
-    m_Torque += glm::dot(force, vec);
+void RigidBody::CalcTorque(Vec3 force, Vec3 r) {
+    m_Torque += glm::cross(force, r);
 }
 
-/*
-Vec3 closetPoint(Vec3 point, Collider collider, Transform tranform,
-        Vec3 veloctiy, float dt) {
-    switch (collider.shape.index()) {
+Vec3 closetPoint(Vec3 point, Collider *collider, Transform tranform) {
+    switch (collider->shape.index()) {
     case 0:
-        AABB a = std::get<AABB>(collider.shape);
-        return a.Transformed(tranform)
-            .PrevState(veloctiy, dt).ClosestPoint(point);
+        return std::get<AABB>(collider->shape)
+            .Transformed(tranform).ClosestPoint(point);
     case 1:
-        Sphere sphere = std::get<Sphere>(collider.shape);
-        return sphere.Transformed(tranform)
-            .PrevState(veloctiy, dt).ClosestPoint(point);
+        return std::get<Sphere>(collider->shape)
+            .Transformed(tranform).ClosestPoint(point);
     case 2:
-        Model *model = std::get<Model*>(collider.shape);
-        return model->ClosestPoint(point, tranform);
+        return std::get<Model*>(collider->shape)->
+            ClosestPoint(point, tranform);
     }
     Logger::Error("RIGID_BODY::CLOSET_POINT::FALIE_TO_RETURN_SHAPE");
     return Vec3(0);
 }
-*/
 
 Vec3 collisionNormal(Collider *coll1, Collider *coll2,
     Transform tranform1, Transform tranform2, Vec3 vel, float dt) {
@@ -107,7 +101,7 @@ Vec3 collisionNormal(Collider *coll1, Collider *coll2,
         }, coll1->shape);
 }
 
-void RigidBody::CalcImpulseForce(Transform tranform, Transform otherTransform, 
+void RigidBody::Compute(Transform tranform, Transform otherTransform, 
         Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody, 
         float dt) {
     if (massInverse == 0 && otherRigidBody->massInverse == 0) {
@@ -117,15 +111,10 @@ void RigidBody::CalcImpulseForce(Transform tranform, Transform otherTransform,
     }
     Vec3 rv = velocity - otherRigidBody->velocity;
 
-    Logger::Info("veloctiy: %s", glm::to_string(rv).c_str());
-    //Logger::Info("point: %s", glm::to_string(tranform.GetTranslation()).c_str());
     Vec3 normal = collisionNormal(collider, otherCollider,
         tranform, otherTransform, rv, dt);
-    Logger::Info("norm : %s", glm::to_string(normal).c_str());
 
     float velAlongNormal = glm::dot(rv, normal);
-
-    Logger::Info("dot : %f", velAlongNormal);
 
     if (velAlongNormal > 0)
         return;
@@ -137,13 +126,15 @@ void RigidBody::CalcImpulseForce(Transform tranform, Transform otherTransform,
     impulseScalar /= massInverse + otherRigidBody->massInverse;
     // Apply impulse
     Vec3 impulse = impulseScalar * normal;
-    Logger::Info("impulse : %s", glm::to_string(impulse).c_str());
-
     Vec3 force = impulse / dt;
 
-    CalcTorque(force, tranform.GetScale() * normal);
+    auto r1 = closetPoint(otherTransform.GetTranslation() - rv * dt,
+            collider, tranform) - tranform.GetTranslation();
+    CalcTorque(-force, r1);
+    auto r2 = closetPoint(tranform.GetTranslation() + rv * dt,
+            otherCollider, otherTransform) - otherTransform.GetTranslation();
+    otherRigidBody->CalcTorque(force, r2);
 
-    Logger::Info("impulse: %s", glm::to_string(impulse).c_str());
     m_ResForce -= m_ResForce * normal; 
     otherRigidBody->m_ResForce += otherRigidBody->m_ResForce * normal;
 

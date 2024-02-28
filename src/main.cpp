@@ -95,9 +95,9 @@ int main() {
                 "/Cat_specular.png")
     };
     obj->collider = new Collider{Collider::GetDefaultAABB(model)};
-    obj->rigidbody = new RigidBody(0, Mat3(0), Vec3(0), 1, Vec3(0), Vec3(0),
-            Vec3(0), Vec3(0));
-    //engine.AddObject<>(obj);
+    //obj->rigidbody = new RigidBody(0, Mat3(0), Vec3(0), 1, Vec3(0, -1, 0), Vec3(0),
+    //        Vec3(1), Vec3(1));
+    engine.AddObject<>(obj);
 
     Material material = {
         4.f,
@@ -116,7 +116,7 @@ int main() {
         obj->collider = new Collider { primitive };
         obj->rigidbody = new RigidBody(0, Mat4(0), Vec3(0), 3, Vec3(0), Vec3(0),
                 Vec3(0), Vec3(0));
-        //engine.AddObject<>(obj);
+        engine.AddObject<>(obj);
         return obj;
     };
 
@@ -142,27 +142,27 @@ int main() {
             Vec3(0),
             1, 
         }};
-       obj->rigidbody = new RigidBody(mass, IBodySphere(1, 1), 1/100.f * speed, 1, Vec3(0, 0, 0), Vec3(0), Vec3(1), Vec3(1));
+       obj->rigidbody = new RigidBody(mass, IBodySphere(1, 1), 1/100.f * speed, 0, Vec3(0, -0.1, 0), Vec3(0), Vec3(1), Vec3(1));
         return obj;
     };
 
     Object *spheres[3] = {
         getSphereObj(
-            Transform(Vec3(-4, 0, 2.0), Vec3(1), 0, Vec3(1)),
+            Transform(Vec3(-4, 1, 2.0), Vec3(1), 0, Vec3(1)),
             Vec3(1, 0, 0),
             20),
         getSphereObj(
             Transform(Vec3(0, 0, 2.0), Vec3(1), 0, Vec3(1)),
-            Vec3(0, 0, 0),
-            10),
+            Vec3(0, 0, -1),
+            1),
         getSphereObj(
             Transform(Vec3(4, 0, 2.0), Vec3(1.0), 0, Vec3(1)),
-            Vec3(0, 0, 0),
+            Vec3(0, 0, 1),
             3),
     };
     engine.AddObject<>(spheres[0]);
-    engine.AddObject<>(spheres[1]);
-    engine.AddObject<>(spheres[2]);
+    //engine.AddObject<>(spheres[1]);
+    //engine.AddObject<>(spheres[2]);
 
     class FpsText : public Object {
      public:

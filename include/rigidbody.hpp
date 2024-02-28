@@ -24,23 +24,25 @@ public:
          float restitution, Vec3 defaultForce, Vec3 defaultTorque,
          Vec3 lineraUnlock, Vec3 angularUnlock);
 
-void Update(Transform *tranform, float dt);
+ void Update(Transform *tranform, float dt);
 
-void ResolveCollisions(Transform tranform, Transform otherTransform, 
+ void ResolveCollisions(Transform tranform, Transform otherTransform, 
         Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody, 
         float dt);
 
 void Mass(float mass);
+
+void IbodyInverse(Mat3 iBody);
 
 private:
  void LinearCalculation(Transform *transform, float dt);
 
  void AngularCalculation(Transform *transform, float dt);
 
- void CalcImpulseForce(Transform tranform, Transform otherTransform, 
+ void Compute(Transform tranform, Transform otherTransform, 
         Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody, 
         float dt);
- void CalcTorque(Vec3 force, Vec3 vec);
+ void CalcTorque(Vec3 force, Vec3 r);
 
  Vec3 m_ResForce = Vec3(0); // resultant force 
  Vec3 m_Torque = Vec3(0); // resulant torque

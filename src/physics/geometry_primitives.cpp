@@ -13,21 +13,6 @@ Plane::Plane(Vec3 normal, Vec3 point) {
     d = -glm::dot(normal, point);
 }
 
-/*
-Vec3 AABB::CollisionNormal(Vec3 point) {
-    Vec3 res = point;
-    res.x = (res.x < max.x && res.x > min.x) 
-        ? 0 : res.x;
-    Logger::Info("%d", res.y < max.y && res.y > min.y);
-    res.y = (res.y < max.y && res.y > min.y) 
-        ? 0 : res.y;
-    res.z = (res.z < max.z && res.z > min.z) 
-        ? 0 : res.z;
-    Logger::Info("Point %s\nMax%s\nMin%s\n%s\n", glm::to_string(point).c_str(), glm::to_string(max).c_str(), glm::to_string(min).c_str(), glm::to_string(res).c_str());
-    return res / glm::length2(res);
-}
-*/
-
 Vec3 AABB::ClosestPoint(Vec3 point) {
     Vec3 result = {
         glm::clamp(point.x, min.x, max.x),

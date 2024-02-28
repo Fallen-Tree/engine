@@ -329,15 +329,6 @@ Vec3 CollisionNormal(AABB a1, AABB a2, Transform tr1, Transform tr2, Vec3 veloci
     auto transformed1 = a1.Transformed(tr1).PrevState(velocity, dt);
     auto transformed2 = a2.Transformed(tr2);
 
-    /*
-    Logger::Info("shift %s\nmax1 %s max2%s\nmin1 %s min2%s",
-            glm::to_string(velocity * dt).c_str(),
-            glm::to_string(transformed1.max).c_str(),
-            glm::to_string(transformed2.max).c_str(),
-            glm::to_string(transformed1.min).c_str(),
-            glm::to_string(transformed2.min).c_str());
-    */
-
     if (transformed1.min.x + epsilon >= transformed2.max.x) {
         return Vec3(1, 0, 0);
     } else if (transformed1.max.x <= transformed2.min.x + epsilon) {
@@ -367,12 +358,6 @@ Vec3 CollisionNormal(AABB a, Sphere sph, Transform tr1, Transform tr2,
     auto transformed1 = a.Transformed(tr1).PrevState(velocity, dt);
 
     auto closetPoint = sph.ClosestPoint((transformed1.max + transformed1.min) * 0.5f);
-    Logger::Info("shift %s\nmax%s\nmin%s\npoint%s\n",
-            glm::to_string(velocity * dt).c_str(),
-            glm::to_string(transformed1.max).c_str(),
-            glm::to_string(transformed1.min).c_str(),
-            glm::to_string(
-                (transformed1.max + transformed1.min) * 0.5f).c_str());
 
     if (closetPoint.x >= a.max.x) {
         return Vec3(1, 0, 0);
