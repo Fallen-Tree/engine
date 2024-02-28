@@ -250,7 +250,7 @@ int main() {
 
     auto textOcra = new Font("OCRAEXT.TTF", 20);
     auto fpsObj = new FpsText();
-    fpsObj->text = new Text(textOcra, "", 685.0f, 575.0f, 1.f, Vec3(0, 0, 0));
+    fpsObj->text = new Text(textOcra, "", 0.85, 0.96, 1.0, Vec3(0, 0, 0));
     engine.AddObject<>(fpsObj);
 
     // init light objects
