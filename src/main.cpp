@@ -142,7 +142,7 @@ int main() {
             Vec3(0),
             1,
         }};
-       obj->rigidbody = new RigidBody(mass, IBodySphere(1, 1), 
+       obj->rigidbody = new RigidBody(mass, IBodySphere(1, 1),
         1/100.f * speed, 0, Vec3(0, -0.1, 0), Vec3(0), Vec3(1), Vec3(1));
         return obj;
     };
