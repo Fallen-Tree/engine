@@ -22,12 +22,6 @@ Vec3 AABB::ClosestPoint(Vec3 point) {
     return result;
 }
 
-/*
-Vec3 Sphere::CollisionNormal(Vec3 point) {
-    return glm::normalize(point - center);
-}
-*/
-
 Vec3 Sphere::ClosestPoint(Vec3 point) {
     return center + radius 
         * glm::normalize(point - center);
