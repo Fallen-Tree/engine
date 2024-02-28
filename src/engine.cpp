@@ -17,7 +17,7 @@
 #include "logger.hpp"
 #include "collisions.hpp"
 #include "animation.hpp"
-#include "rigidbody.hpp"
+#include "rigid_body.hpp"
 #include <glm/gtx/string_cast.hpp>
 
 

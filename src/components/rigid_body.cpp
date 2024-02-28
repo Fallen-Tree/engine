@@ -1,4 +1,4 @@
-#include "rigidbody.hpp"
+#include "rigid_body.hpp"
 #include "logger.hpp"
 #include "math.h"
 #include "engine_config.hpp"

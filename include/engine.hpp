@@ -15,7 +15,7 @@
 #include "time.hpp"
 #include "light.hpp"
 #include "path_resolver.hpp"
-#include "rigidbody.hpp"
+#include "rigid_body.hpp"
 
 extern Input *s_Input;
 
