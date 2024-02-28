@@ -4,11 +4,11 @@
 #include "logger.hpp"
 
 const char *cubeSource = "/cube2.obj";
-const char *catSource = "/cat.obj";
+const char *catSource = "cat.obj";
 const char *benchSource = "/bench.obj";
 
-const char *vertexShaderSource = "/standart.vshader";
-const char *fragmentShaderSource = "/standart.fshader";
+const char *vertexShaderSource = "standart.vshader";
+const char *fragmentShaderSource = "standart.fshader";
 
 class MovingSphere : public Object {
  public:
@@ -71,15 +71,20 @@ class Pointer : public Object {
 
 Object* initModel();
 
+
 #include <irrKlang.h>
+
+#include <conio.h>
+#pragma comment(lib, "irrKlang.lib");
+
 using namespace irrklang;
-#pragma comment(lib, "irrKlang.dll");
+
 
 int main() {
     auto engine = Engine();
 
     ISoundEngine *SoundEngine = createIrrKlangDevice();
-    SoundEngine->play2D("resources/audio/explosion.wav", true);
+    SoundEngine->play2D("resources/audio/georgian_disco.mp3", true);
 
     std::vector<GLfloat> cubeVertices {
           // positions          // normals           // texture coords

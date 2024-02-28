@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.5)
 
 project(Engine VERSION 0.1)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(OpenGL REQUIRED)
@@ -39,12 +39,27 @@ add_subdirectory(thirdparty/freetype/freetype)
 target_include_directories(ENGINE PUBLIC thirdparty PUBLIC include)
 target_include_directories(ENGINE PUBLIC thirdparty/irrKlang/include)
 
-add_library(irrKlang MODULE IMPORTED IMPORTED_IMPLIB ${CMAKE_SOURCE_DIR}/thirdparty/irrKlang/irrKlang.dll)
-
-target_link_libraries(ENGINE PUBLIC glfw glad freetype OpenGL::GL)
+if (UNIX)
+    target_link_libraries(ENGINE PUBLIC glfw glad freetype ${CMAKE_SOURCE_DIR}/thirdparty/irrKlang/libIrrKlang.so OpenGL::GL)
+else()
+    target_link_libraries(ENGINE PUBLIC glfw glad freetype ${CMAKE_SOURCE_DIR}/thirdparty/irrKlang/irrKlang.lib OpenGL::GL)
+endif()
 
 add_executable(main src/main.cpp)
 target_link_libraries(main PUBLIC ENGINE)
 
 add_custom_target(RESOURCES ALL COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/resources)
 
+add_custom_command (
+    TARGET ENGINE
+    POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+    "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/irrKlang/irrKlang.dll" 
+    "$<TARGET_FILE_DIR:ENGINE>/irrKlang.dll"
+)
+
+add_custom_command (
+    TARGET ENGINE
+    POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+    "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/irrKlang/ikpMP3.dll" 
+    "$<TARGET_FILE_DIR:ENGINE>/ikpMP3.dll"
+)
