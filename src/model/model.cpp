@@ -112,7 +112,7 @@ Vec3 Model::CollisionNormal(Vec3 point, Transform transform) {
         }
     }
 
-    return glm::normalize((*res).normal);
+    return -Norm((*res).normal);
     // Is ok direction or i should make smthg with this ?
 }
 

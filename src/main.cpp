@@ -83,8 +83,8 @@ int main() {
     obj->renderData->model = model;
     obj->renderData->model->shader = shaderProgram;
 
-    obj->transform = new Transform(Vec3(0.f, 10.f, -8.f), Vec3(.1f, .1f, .1f), Mat4(1.0));
-    obj->transform->Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
+    obj->transform = new Transform(Vec3(0.f, 5.f, -1.f), Vec3(0.5f), Mat4(1.0));
+    obj->transform->Rotate(1.f, Vec3(-1.f, 0.f, 0.f));
     auto render_data = obj->renderData;
 
     bindRenderData(render_data);
@@ -94,9 +94,9 @@ int main() {
         Texture("/Cat_diffuse.png",
                 "/Cat_specular.png")
     };
-    obj->collider = new Collider{Collider::GetDefaultAABB(model)};
-    obj->rigidbody = new RigidBody(0, Mat3(0), Vec3(0), 1, Vec3(0, -1, 0), Vec3(0),
-            Vec3(1), Vec3(1));
+    obj->collider = new Collider{model};
+    obj->rigidbody = new RigidBody(1, Mat3(0), Vec3(0), 1, Vec3(0, -0.01, 0), Vec3(0),
+        Vec3(1), Vec3(1));
     engine.AddObject<>(obj);
 
     Material material = {
