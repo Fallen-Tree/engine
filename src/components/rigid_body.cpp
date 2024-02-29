@@ -114,7 +114,10 @@ void RigidBody::Compute(Transform tranform, Transform otherTransform,
     Vec3 normal = collisionNormal(collider, otherCollider,
         tranform, otherTransform, rv, dt);
 
+    //Logger::Info("norm :%s", glm::to_string(normal).c_str());
+
     float velAlongNormal = glm::dot(rv, normal);
+    Logger::Info("dot :%f", velAlongNormal);
 
     if (velAlongNormal > 0)
         return;
@@ -135,7 +138,9 @@ void RigidBody::Compute(Transform tranform, Transform otherTransform,
             otherCollider, otherTransform) - otherTransform.GetTranslation();
     otherRigidBody->CalcTorque(force, r2);
 
+    Logger::Info("force :%s", glm::to_string(m_ResForce).c_str());
     m_ResForce -= m_ResForce * normal;
+    Logger::Info("force :%s", glm::to_string(m_ResForce).c_str());
     otherRigidBody->m_ResForce += otherRigidBody->m_ResForce * normal;
 
     m_ResForce += force;

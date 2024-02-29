@@ -11,6 +11,7 @@
 bool CollidePrimitive(Plane p, AABB a) {
     return CollidePrimitive(a, p);
 }
+
 bool CollidePrimitive(AABB aabb, Plane plane) {
     Vec3 center = (aabb.min + aabb.max) / 2.0f;
     Vec3 extents = (aabb.max - aabb.min) / 2.0f;
@@ -325,7 +326,7 @@ std::optional<float> CollisionPrimitive(Ray r, Sphere s) {
 }
 
 Vec3 CollisionNormal(AABB a1, AABB a2, Transform tr1, Transform tr2, Vec3 velocity, float dt) {
-    float epsilon = 0.1;
+    const float epsilon = 0.1;
     auto transformed1 = a1.Transformed(tr1).PrevState(velocity, dt);
     auto transformed2 = a2.Transformed(tr2);
 
@@ -343,8 +344,9 @@ Vec3 CollisionNormal(AABB a1, AABB a2, Transform tr1, Transform tr2, Vec3 veloci
         return Vec3(0, 0, -1);
     }
 
-    Logger::Error("COLLISIONS::COLLISION_NORMAL::FAILED_TO_FIND_NORMAL");
-    return Vec3(0);
+    // the case if one object is inside other
+    return Norm(tr1.GetTranslation() - tr2.GetTranslation())
+        * float(EJECTION_RATIO);
 }
 
 Vec3 CollisionNormal(Sphere sph, AABB a, Transform tr1, Transform tr2,
@@ -354,27 +356,37 @@ Vec3 CollisionNormal(Sphere sph, AABB a, Transform tr1, Transform tr2,
 
 Vec3 CollisionNormal(AABB a, Sphere sph, Transform tr1, Transform tr2,
         Vec3 velocity, float dt) {
+    const float epsilon = 0.1;
     auto transformed2 = sph.Transformed(tr2);
     auto transformed1 = a.Transformed(tr1).PrevState(velocity, dt);
 
-    auto closetPoint = sph.ClosestPoint((transformed1.max + transformed1.min) * 0.5f);
+    auto closetPoint = transformed2.ClosestPoint(
+            (transformed1.min + transformed1.max) * 0.5f);
 
-    if (closetPoint.x >= a.max.x) {
-        return Vec3(1, 0, 0);
-    } else if (closetPoint.x <= a.min.x) {
+    Logger::Info("\nmax %s\nmin %s\npoint %s\n",
+            glm::to_string(transformed1.max).c_str(),
+            glm::to_string(transformed1.min).c_str(),
+            glm::to_string(closetPoint).c_str());
+
+    if (closetPoint.x + epsilon >= transformed1.max.x) {
         return Vec3(-1, 0, 0);
-    } else if (closetPoint.y >= a.max.y) {
-        return Vec3(0, 1, 0);
-    } else if (closetPoint.y <= a.min.y) {
+    } else if (closetPoint.x <= transformed1.min.x + epsilon) {
+        return Vec3(1, 0, 0);
+    } else if (closetPoint.y + epsilon >= transformed1.max.y) {
         return Vec3(0, -1, 0);
-    } else if (closetPoint.z >= a.max.z) {
-        return Vec3(0, 0, 1);
-    } else if (closetPoint.z <= a.min.z) {
+    } else if (closetPoint.y <= transformed1.min.y + epsilon) {
+        return Vec3(0, 1, 0);
+    } else if (closetPoint.z + epsilon >= transformed1.max.z) {
         return Vec3(0, 0, -1);
-    }
+    } else if (closetPoint.z <= transformed1.min.z + epsilon) {
+        return Vec3(0, 0, 1);
+   }
 
-    Logger::Error("COLLISIONS::COLLISION_NORMAL::FAILED_TO_FIND_NORMAL");
-    return Vec3(0);
+    Logger::Info("!");
+
+    // the case if one object is inside other
+    return Norm(tr1.GetTranslation() - tr2.GetTranslation())
+        * float(EJECTION_RATIO);
 }
 
 Vec3 CollisionNormal(Sphere sph1, Sphere sph2,

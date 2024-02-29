@@ -28,3 +28,7 @@
 
 // Math
 #define DOWN                        Vec3(0, -1, 0)
+
+
+// COllisions
+#define EJECTION_RATIO              100
