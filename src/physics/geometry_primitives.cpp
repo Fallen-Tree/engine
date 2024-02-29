@@ -13,7 +13,7 @@ Plane::Plane(Vec3 normal, Vec3 point) {
     d = -glm::dot(normal, point);
 }
 
-Vec3 AABB::ClosestPoint(Vec3 point) {
+Vec3 AABB::ClosetPoint(Vec3 point) {
     Vec3 result = {
         glm::clamp(point.x, min.x, max.x),
         glm::clamp(point.y, min.y, max.y),
@@ -22,7 +22,7 @@ Vec3 AABB::ClosestPoint(Vec3 point) {
     return result;
 }
 
-Vec3 Sphere::ClosestPoint(Vec3 point) {
+Vec3 Sphere::ClosetPoint(Vec3 point) {
     return center + radius
         * glm::normalize(point - center);
 }

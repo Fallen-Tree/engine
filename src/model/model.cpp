@@ -60,7 +60,7 @@ void Model::setIndices(int vectorSize) {
     }
 }
 
-Vec3 Model::ClosestPoint(Vec3 point, Transform transform) {
+Vec3 Model::ClosetPoint(Vec3 point, Transform transform) {
     const int stride = 8;
     Mat4 modelMat = transform.GetTransformMatrix();
 

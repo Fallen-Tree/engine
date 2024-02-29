@@ -360,7 +360,7 @@ Vec3 CollisionNormal(AABB a, Sphere sph, Transform tr1, Transform tr2,
     auto transformed2 = sph.Transformed(tr2);
     auto transformed1 = a.Transformed(tr1).PrevState(velocity, dt);
 
-    auto closetPoint = transformed2.ClosestPoint(
+    auto closetPoint = transformed2.ClosetPoint(
             (transformed1.min + transformed1.max) * 0.5f);
 
     Logger::Info("\nmax %s\nmin %s\npoint %s\n",

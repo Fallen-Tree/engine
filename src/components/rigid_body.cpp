@@ -78,13 +78,13 @@ Vec3 closetPoint(Vec3 point, Collider *collider, Transform tranform) {
     switch (collider->shape.index()) {
     case 0:
         return std::get<AABB>(collider->shape)
-            .Transformed(tranform).ClosestPoint(point);
+            .Transformed(tranform).ClosetPoint(point);
     case 1:
         return std::get<Sphere>(collider->shape)
-            .Transformed(tranform).ClosestPoint(point);
+            .Transformed(tranform).ClosetPoint(point);
     case 2:
         return std::get<Model*>(collider->shape)->
-            ClosestPoint(point, tranform);
+            ClosetPoint(point, tranform);
     }
     Logger::Error("RIGID_BODY::CLOSET_POINT::FALIE_TO_RETURN_SHAPE");
     return Vec3(0);
