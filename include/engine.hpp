@@ -55,6 +55,7 @@ class Engine {
         return static_cast<T &>(*m_Behaviours.GetData(id));
     }
 
+    void RemoveObject(ObjectHandle);
     Object NewObject();
 
     Camera* SwitchCamera(Camera* newCamera);

@@ -100,6 +100,27 @@ Object Engine::NewObject() {
     return Object(this, m_ObjectCount++);
 }
 
+void Engine::RemoveObject(ObjectHandle handle) {
+    if (m_Transforms.HasData(handle))
+        m_Transforms.RemoveData(handle);
+    if (m_RenderDatas.HasData(handle))
+        m_RenderDatas.RemoveData(handle);
+    if (m_Colliders.HasData(handle))
+        m_Colliders.RemoveData(handle);
+    if (m_Texts.HasData(handle))
+        m_Texts.RemoveData(handle);
+    if (m_Animations.HasData(handle))
+        m_Animations.RemoveData(handle);
+    if (m_SpotLights.HasData(handle))
+        m_SpotLights.RemoveData(handle);
+    if (m_PointLights.HasData(handle))
+        m_PointLights.RemoveData(handle);
+    if (m_DirLights.HasData(handle))
+        m_DirLights.RemoveData(handle);
+    if (m_Behaviours.HasData(handle))
+        m_Behaviours.RemoveData(handle);
+}
+
 Transform *Engine::GetTransform(ObjectHandle handle) {
     return m_Transforms.HasData(handle) ? &m_Transforms.GetData(handle) : nullptr;
 }
@@ -269,7 +290,7 @@ void Engine::Render(int scr_width, int scr_height) {
         ObjectHandle id = m_RenderDatas.GetFromInternal(i);
         if (!m_Transforms.HasData(id)) continue;
 
-        auto data = m_RenderDatas.GetData(i);
+        auto data = m_RenderDatas.GetData(id);
         auto transform = m_Transforms.GetData(id);
 
         auto model = data.model;

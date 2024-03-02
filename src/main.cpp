@@ -16,8 +16,11 @@ const char *fragmentShaderSource = "/standart.fshader";
 class MovingSphere : public Behaviour {
  public:
     void Update(float dt) override {
+        if (!m_Target.IsValid()) return;
         if (!self.GetCollider()->Collide(*self.GetTransform(), m_Target.GetCollider(), *m_Target.GetTransform())) {
             self.GetTransform()->Translate(m_Speed * dt);
+        } else {
+            m_Target.Remove();
         }
     }
 
@@ -42,6 +45,7 @@ class Pointer : public Behaviour {
         float closest = std::numeric_limits<float>::max();
         for (int i = 0; i < m_Objects.size(); i++) {
             auto obj = m_Objects[i];
+            if (!obj.IsValid()) continue;
             auto hit = obj.GetCollider()->RaycastHit(*obj.GetTransform(), ray);
             if (hit && *hit < closest) {
                 target = obj.GetTransform();
@@ -163,9 +167,9 @@ int main() {
         bindRenderData(&renderData);
     }
 
-        auto sphereCollider = engine.NewObject();
-        sphereCollider.AddTransform(Vec3(0, 0, -3), Vec3(1), 0.0f, Vec3(1));
-        sphereCollider.AddCollider(Sphere { Vec3(0.0), 1.0f });
+    auto sphereCollider = engine.NewObject();
+    sphereCollider.AddTransform(Vec3(0, 0, -3), Vec3(1), 0.0f, Vec3(1));
+    sphereCollider.AddCollider(Sphere { Vec3(0.0), 1.0f });
     {
         auto &renderData = sphereCollider.AddRenderData();
         renderData.model = sphereModel;

@@ -1,8 +1,19 @@
 #include "object.hpp"
 #include "engine.hpp"
 
-Object::Object(Engine *engine, ObjectHandle id) : m_Engine(engine), m_Handle(id) {}
+Object::Object(Engine *engine, ObjectHandle id) : m_Engine(engine), m_Handle(id) {
+    Logger::Info("Created object %d", id);
+}
 Object::Object() : m_Engine(nullptr), m_Handle(-1) {}
+
+void Object::Remove() {
+    m_Engine->RemoveObject(m_Handle);
+    m_Handle = -1;
+}
+
+bool Object::IsValid() {
+    return m_Engine && m_Handle != -1;
+}
 
 Object &Object::operator=(const Object &rhs) {
     m_Engine = rhs.m_Engine;

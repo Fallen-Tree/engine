@@ -75,6 +75,9 @@ class Object {
         return res;
     }
 
+    void Remove();
+    bool IsValid();
+
  private:
     Engine *m_Engine;
     ObjectHandle m_Handle;
