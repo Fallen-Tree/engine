@@ -31,7 +31,7 @@
 
 
 // COllisions
-#define EJECTION_RATIO              3 
+#define EJECTION_RATIO              3
 
 
 // rigid body

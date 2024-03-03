@@ -363,12 +363,10 @@ Vec3 CollisionNormal(AABB a, Sphere sph, Transform tr1, Transform tr2,
     auto closetPoint = transformed2.ClosetPoint(
             (transformed1.min + transformed1.max) * 0.5f);
 
-    /*
     Logger::Info("\nmax %s\nmin %s\npoint %s\n",
             glm::to_string(transformed1.max).c_str(),
             glm::to_string(transformed1.min).c_str(),
             glm::to_string(closetPoint).c_str());
-    */
 
     if (closetPoint.x + epsilon >= transformed1.max.x) {
         return Vec3(-1, 0, 0);
@@ -384,11 +382,11 @@ Vec3 CollisionNormal(AABB a, Sphere sph, Transform tr1, Transform tr2,
         return Vec3(0, 0, 1);
    }
 
-    //Logger::Info("!");
+    Logger::Info("!");
 
     // the case if one object is inside other
-    return Norm(transformed1.ClosetPoint(transformed2.center) - transformed2.center)
-        * float(EJECTION_RATIO);
+    return Norm(transformed1.ClosetPoint(transformed2.center)
+            - transformed2.center) * float(EJECTION_RATIO);
 }
 
 Vec3 CollisionNormal(Sphere sph1, Sphere sph2,

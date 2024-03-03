@@ -82,7 +82,7 @@ int main() {
     obj->renderData->model = model;
     obj->renderData->model->shader = shaderProgram;
 
-    obj->transform = new Transform(Vec3(0.f, 100.f, -1.f), Vec3(1.f), Mat4(1.0));
+    obj->transform = new Transform(Vec3(0.f, 30.f, -1.f), Vec3(1.f), Mat4(1.0));
     auto render_data = obj->renderData;
 
     bindRenderData(render_data);
