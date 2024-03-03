@@ -10,11 +10,11 @@ Mat3 IBodySphere(float, float);
 
 class RigidBody {
 public:
- float restitution = 1;
+ float restitution;
+ float kineticFriction; 
  float massInverse;
  Mat3 ibodyInverse; // inverse matrix inertia tensor
  Vec3 defaultForce;
- Vec3 defaultTorque;
  Vec3 velocity;
  Vec3 lineraUnlock;
  Vec3 angularUnlock;
@@ -22,7 +22,7 @@ public:
 
  RigidBody(float mass, Mat3 Ibody, Vec3 initalVelocity, 
          float restitution, Vec3 defaultForce, Vec3 defaultTorque,
-         Vec3 lineraUnlock, Vec3 angularUnlock);
+         Vec3 lineraUnlock, Vec3 angularUnlock, float kineticFriction); 
 
  void Update(Transform *tranform, float dt);
 
@@ -39,12 +39,14 @@ private:
 
  void AngularCalculation(Transform *transform, float dt);
 
- void Compute(Transform tranform, Transform otherTransform, 
+ void ComputeForceTorque(Transform tranform, Transform otherTransform, 
         Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody, 
         float dt);
- void CalcTorque(Vec3 force, Vec3 r);
+
+ void ComputeTorque(Vec3 force, Vec3 r);
+
+ void ComputeFriction(Vec3 normalForce, float friction, Vec3 r);
 
  Vec3 m_ResForce = Vec3(0); // resultant force 
- Vec3 m_Torque = Vec3(0); // resulant torque
+ Vec3 m_Torque = Vec3(0);
 };
-

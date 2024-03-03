@@ -31,4 +31,8 @@
 
 
 // COllisions
-#define EJECTION_RATIO              100
+#define EJECTION_RATIO              3 
+
+
+// rigid body
+#define TORQUE_RATIO                0.001

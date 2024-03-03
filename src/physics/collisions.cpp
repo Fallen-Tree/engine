@@ -357,16 +357,18 @@ Vec3 CollisionNormal(Sphere sph, AABB a, Transform tr1, Transform tr2,
 Vec3 CollisionNormal(AABB a, Sphere sph, Transform tr1, Transform tr2,
         Vec3 velocity, float dt) {
     const float epsilon = 0.1;
-    auto transformed2 = sph.Transformed(tr2);
     auto transformed1 = a.Transformed(tr1).PrevState(velocity, dt);
+    auto transformed2 = sph.Transformed(tr2);
 
     auto closetPoint = transformed2.ClosetPoint(
             (transformed1.min + transformed1.max) * 0.5f);
 
+    /*
     Logger::Info("\nmax %s\nmin %s\npoint %s\n",
             glm::to_string(transformed1.max).c_str(),
             glm::to_string(transformed1.min).c_str(),
             glm::to_string(closetPoint).c_str());
+    */
 
     if (closetPoint.x + epsilon >= transformed1.max.x) {
         return Vec3(-1, 0, 0);
@@ -382,16 +384,16 @@ Vec3 CollisionNormal(AABB a, Sphere sph, Transform tr1, Transform tr2,
         return Vec3(0, 0, 1);
    }
 
-    Logger::Info("!");
+    //Logger::Info("!");
 
     // the case if one object is inside other
-    return Norm(tr1.GetTranslation() - tr2.GetTranslation())
+    return Norm(transformed1.ClosetPoint(transformed2.center) - transformed2.center)
         * float(EJECTION_RATIO);
 }
 
 Vec3 CollisionNormal(Sphere sph1, Sphere sph2,
         Transform tr1, Transform tr2, Vec3 vel, float dt) {
-    auto tranformed1 = sph1.Transformed(tr1);
+    auto tranformed1 = sph1.Transformed(tr1).PrevState(vel, dt);
     auto tranformed2 = sph2.Transformed(tr2);
 
     return Norm(tranformed1.center - tranformed2.center);
