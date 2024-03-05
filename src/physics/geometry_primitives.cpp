@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 
 Plane::Plane(Triangle triangle) {
-    Plane(triangle.normal, triangle.a);
+    *this = Plane(triangle.normal, triangle.a);
 }
 
 Plane::Plane(Vec3 normal, Vec3 point) {
@@ -20,6 +20,10 @@ Vec3 AABB::ClosestPoint(Vec3 point) {
         glm::clamp(point.z, min.z, max.z),
     };
     return result;
+}
+
+Vec3 Sphere::ClosestPoint(Vec3 point) {
+    return center + radius * glm::normalize(point - center);
 }
 
 float AABB::Distance2(Vec3 point) {
@@ -53,7 +57,7 @@ AABB AABB::Transformed(Transform transform) {
 
 Triangle::Triangle(Vec3 a, Vec3 b, Vec3 c) {
     this->a = a;
-    this->b = a;
+    this->b = b;
     this->c = c;
     this->normal = glm::cross(a - b, a - c);
 }

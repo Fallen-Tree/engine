@@ -1,26 +1,21 @@
 #include "model.hpp"
+#include "geometry_primitives.hpp"
 
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <vector>
-#include <assimp/Importer.hpp>
 
-#include "render_data.hpp"
-#include "shaders.hpp"
-#include "logger.hpp"
+// constructor of class.
+Model::Model(const std::vector<float>& Points, const std::vector<unsigned int>& Indices) {
+    setPoints(Points);
+    setIndices(Indices);
+}
 
-Model* Model::loadFromFile(const char* path) {
-    Model* newModel = new Model();
-    char finalPath[512];
-    snprintf(finalPath, sizeof(finalPath), RESOURCE_DIR"/models%s", path);
-    Assimp::Importer import;
-    const aiScene *scene = import.ReadFile(finalPath, aiProcess_Triangulate | aiProcess_FlipUVs);
-    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-        Logger::Error("ERROR::ASSIMP::%s", import.GetErrorString());
-        return 0;
-    }
-    newModel->processNode(scene->mRootNode, scene);
-    return newModel;
+
+Model::Model(const std::vector<float>& Points, int vectorSize) {
+    assert(vectorSize > 0);
+    setPoints(Points);
+    setIndices(vectorSize);
 }
 
 void Model::processNode(aiNode *node, const aiScene *scene) {

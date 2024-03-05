@@ -73,7 +73,7 @@ bool CollidePrimitive(AABB aabb, Triangle tri) {
 
     // a20 - a22
     for (int i = 0; i < 3; i++) {
-        float r = length.x * glm::abs(edges[i].y) + length.z * glm::abs(edges[i].y);
+        float r = length.x * glm::abs(edges[i].y) + length.y * glm::abs(edges[i].x);
         float p1 = -verts[(2 + i) % 3].x * edges[i].y + verts[(2 + i) % 3].y * edges[i].x;
         float p2 = -verts[(3 + i) % 3].x * edges[i].y + verts[(3 + i) % 3].y * edges[i].x;
         if (glm::max(p1, p2) < -r || glm::min(p1, p2) > r) {
@@ -96,7 +96,8 @@ bool CollidePrimitive(AABB aabb, Triangle tri) {
         return false;
     }
 
-    return CollidePrimitive(aabb, Plane(tri));
+    auto p = Plane(glm::cross(edges[0], edges[1]), verts[0]);
+    return CollidePrimitive(aabb, p);
 }
 
 bool CollidePrimitive(Sphere s1, Sphere s2) {

@@ -7,8 +7,25 @@ const char *cubeSource = "/cube2.obj";
 const char *catSource = "/cat.obj";
 const char *benchSource = "/bench.obj";
 
-const char *vertexShaderSource = "/vertex/standart.vshader";
-const char *fragmentShaderSource = "/fragment/standart.fshader";
+const char *vertexShaderSource = "/standart.vshader";
+const char *fragmentShaderSource = "/standart.fshader";
+
+class MovingSphere : public Object {
+ public:
+    void Update(float dt) override {
+        if (!collider->Collide(*transform, m_Target->collider, *m_Target->transform)) {
+            transform->Translate(m_Speed * dt);
+        }
+    }
+
+    MovingSphere(Object *target, Vec3 speed) {
+        m_Target = target;
+        m_Speed = speed;
+    }
+ private:
+    Object *m_Target;
+    Vec3 m_Speed;
+};
 
 class Pointer : public Object {
  public:
@@ -87,7 +104,7 @@ int main() {
 
     auto textOcra = new Font("OCRAEXT.TTF", 20);
     auto fpsObj = new FpsText();
-    fpsObj->text = new Text(textOcra, "", 685.0f, 575.0f, 1.f, Vec3(0, 0, 0));
+    fpsObj->text = new Text(textOcra, "", 0.85, 0.96, 1.0, Vec3(0, 0, 0));
     engine.AddObject<>(fpsObj);
 
     // init light objects

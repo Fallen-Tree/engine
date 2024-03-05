@@ -12,9 +12,14 @@ RenderMesh::RenderMesh(std::vector<float> points, std::vector<unsigned int> indi
     bindRenderData(this);
 }
 
+/*
+    Assuming that pattern of every point is: point, normal, texturecoord
+
+    IF YOU WANT TO CHANGE PATTERN, CHANGE IT IN COLLIDER TOO!!!
+*/
 void bindRenderData(RenderMesh* render_data) {
-    if (!render_data) {
-        Logger::Error("RENDER_DATA::BINDER::RENDER_DATA_ARE_NULL");
+    if (!render_data || !render_data->model) {
+        Logger::Error("RENDER_DATA::BINDER::RENDER_DATA_OR_MODEL_ARE_NULL");
     }
     glGenVertexArrays(1, &render_data->VAO);
     glGenBuffers(1, &render_data->VBO);

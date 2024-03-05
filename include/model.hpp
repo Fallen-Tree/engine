@@ -2,11 +2,13 @@
 
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <string>
 #include <vector>
 #include <assimp/Importer.hpp>
 
 #include "render_data.hpp"
 #include "shaders.hpp"
+#include "transform.hpp"
 
 class Model {
  private:

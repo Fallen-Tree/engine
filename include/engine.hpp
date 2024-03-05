@@ -1,7 +1,9 @@
 #pragma once
 #include <vector>
 #include <variant>
+#include <string>
 #include "collider.hpp"
+#include "collisions.hpp"
 #include "render_data.hpp"
 #include "transform.hpp"
 #include "camera.hpp"
@@ -13,6 +15,7 @@
 #include "time.hpp"
 #include "light.hpp"
 #include "model.hpp"
+#include "path_resolver.hpp"
 
 extern Input *s_Input;
 

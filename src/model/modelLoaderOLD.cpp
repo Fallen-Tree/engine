@@ -5,24 +5,24 @@
 #include <filesystem>
 #include <cstdarg>
 #include "logger.hpp"
-
+#include "path_resolver.hpp"
 #include "engine_config.hpp"
 
 #include "model.hpp"
 
-Model* Model::loadFromFile(const char* filePath) {
+Model* Model::loadFromFile(std::string filePath) {
+    filePath = GetResourcePath(Resource::MODEL, filePath);
+
     std::filesystem::path fileExtension = ((std::filesystem::path) filePath).extension();
     if (fileExtension != ".obj") {
         Logger::Error("MODEL::LOADER::INCORRECT::FILE::FORMAT::%s", fileExtension.c_str());
         return 0;
     }
-    char finalPath[512];
-    snprintf(finalPath, sizeof(finalPath), RESOURCE_DIR"/models%s", filePath);
     std::ifstream objFile;
-    objFile.open(finalPath);
+    objFile.open(filePath);
 
     if (objFile.fail()) {
-        Logger::Error("MODEL::LOADER::FAILED::TO::OPEN::FILE::%s", finalPath);
+        Logger::Error("MODEL::LOADER::FAILED::TO::OPEN::FILE::%s", filePath.c_str());
         return 0;
     }
     return loadFromObjFile(objFile);
