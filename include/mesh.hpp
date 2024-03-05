@@ -36,7 +36,9 @@ class Mesh {
 
     int getLenArrPoints();
 
-    static Mesh * GetSphere();
+    Vec3 ClosestPoint(Vec3 point, Transform *transform);
 
     Mesh* Transformed(Transform transform);
+
+    Mesh* GetSphere();
 };

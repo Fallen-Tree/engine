@@ -10,6 +10,7 @@
 #include <cstdarg>
 
 #include "math_types.hpp"
+#include "geometry_primitives.hpp"
 
 // constructor of class.
 Mesh::Mesh(const std::vector<float>& Points, const std::vector<unsigned int>& Indices) {
@@ -59,6 +60,30 @@ void Mesh::setIndices(int vectorSize) {
     for (unsigned int i = 0; i < points.size() / vectorSize; i++) {
         indices[i] = i;
     }
+}
+
+Vec3 Mesh::ClosestPoint(Vec3 point, Transform *transform) {
+    int stride = 8;
+    Mat4 meshMat = transform->GetTransformMatrix();
+
+    auto loadPos = [=](int i) {
+        int id = getIndices()[i];
+        Vec4 res = Vec4 {
+            getPoints()[id * stride],
+            getPoints()[id * stride + 1],
+            getPoints()[id * stride + 2],
+            1.0
+        } * meshMat;
+        return Vec3{ res.x / res.w, res.y / res.w, res.z / res.w };
+    };
+    Vec3 res = Vec3(std::numeric_limits<float>::max());
+    for (int i = 0; i < getLenIndices(); i += 3) {
+        Triangle tri = Triangle(loadPos(i), loadPos(i + 1), loadPos(i + 2));
+        Vec3 p = tri.ClosestPoint(point);
+        if (glm::length(p) < glm::length(res))
+            res = p;
+    }
+    return res;
 }
 
 // get length of array.

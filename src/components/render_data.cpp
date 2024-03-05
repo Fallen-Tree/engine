@@ -18,7 +18,7 @@ RenderMesh::RenderMesh(std::vector<float> points, std::vector<unsigned int> indi
     IF YOU WANT TO CHANGE PATTERN, CHANGE IT IN COLLIDER TOO!!!
 */
 void bindRenderData(RenderMesh* render_data) {
-    if (!render_data || !render_data->model) {
+    if (!render_data) {
         Logger::Error("RENDER_DATA::BINDER::RENDER_DATA_OR_MODEL_ARE_NULL");
     }
     glGenVertexArrays(1, &render_data->VAO);

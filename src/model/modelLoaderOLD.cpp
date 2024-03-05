@@ -1,3 +1,8 @@
+
+/*
+old model loader
+maybe we still need it for some reason
+
 #include <vector>
 #include <iostream>
 #include <sstream>
@@ -127,3 +132,4 @@ Model* Model::loadFromObjFile(std::ifstream &objFile) {  // assuming objFile alr
     Model* newModel = new Model(modelVertices, modelIndices);
     return newModel;
 }
+*/

@@ -3,7 +3,7 @@
 #include "collisions.hpp"
 #include "logger.hpp"
 
-AABB Collider::GetDefaultAABB(Model* m) {
+AABB Collider::GetDefaultAABB(Mesh* m) {
     int len = m->getLenArrPoints();
     if (len < 3) {
         Logger::Error("Collider::Model with no vertices!");
