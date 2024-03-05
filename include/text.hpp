@@ -9,13 +9,13 @@
 
 class Text {
  private:
-    Font* font;
+  Font* m_Font;
 
-    std::string text;
-    float x;
-    float y;
-    float scale;
-    Vec3 color;
+  std::string m_Text;
+  float m_RelX;
+  float m_RelY;
+  float m_Scale;
+  Vec3 m_Color;
 
  public:
     Text() = default;

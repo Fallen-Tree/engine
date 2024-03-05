@@ -4,6 +4,7 @@
 #include <vector>
 // #include <fstream>
 #include "shaders.hpp"
+#include "transform.hpp"
 
 class Model {
  private:
@@ -42,4 +43,6 @@ class Model {
     int getLenIndices();
 
     int getLenArrPoints();
+
+    Vec3 ClosestPoint(Vec3 point, Transform *transform);
 };
