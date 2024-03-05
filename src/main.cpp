@@ -95,7 +95,7 @@ int main() {
     obj->collider = new Collider{Collider::GetDefaultAABB(model)};
     obj->rigidbody = new RigidBody(100, Mat3(0), Vec3(0), 0, Vec3(0, -1000, 0),
         Vec3(0), Vec3(1), Vec3(1), 0.1);
-    engine.AddObject<>(obj);
+    //engine.AddObject<>(obj);
 
     Material material = {
         4.f,

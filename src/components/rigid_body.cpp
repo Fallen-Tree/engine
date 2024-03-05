@@ -70,7 +70,7 @@ void RigidBody::AngularCalculation(Transform *transform, float dt) {
 }
 
 void RigidBody::ComputeTorque(Vec3 force, Vec3 r) {
-    m_Torque += glm::cross(force, r) * float(TORQUE_RATIO);
+    m_Torque += glm::cross(force, r) * static_cast<float>(TORQUE_RATIO);
 }
 
 void RigidBody::ComputeFriction(Vec3 normalForce, float friction, Vec3 r) {
@@ -141,7 +141,7 @@ void RigidBody::ComputeForceTorque(Transform tranform, Transform otherTransform,
     m_ResForce += normalForce;
     otherRigidBody->m_ResForce += otherNormalForce;
 
-   // Compute friction
+    // Compute friction
     if (velAlongNormal == 0) {
         auto friction = std::max(kineticFriction,
                 otherRigidBody->kineticFriction);
