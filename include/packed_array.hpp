@@ -39,18 +39,9 @@ class PackedArray {
         // If not the last one
         if (m_EntryToIndex[entry] < m_EntryCount - 1) {
             // Move last one to deleted position
-            // Adjust helper arrays
-            Index removed_index = m_EntryToIndex[entry];
-            Index last_entry = m_IndexToEntry[m_EntryCount - 1];
-
-            m_EntryToIndex[last_entry] = removed_index;
-            m_IndexToEntry[removed_index] = last_entry;
-
-            m_EntryToIndex[entry] = m_EntryCount - 1;
-            m_IndexToEntry[m_EntryCount - 1] = entry;
-
-            // Actually move data
-            entries[removed_index] = entries[m_EntryCount - 1];
+            Index removedIndex = m_EntryToIndex[entry];
+            Swap(entry, m_EntryCount - 1);
+            entries[removedIndex] = entries[m_EntryCount - 1];
         }
 
         m_EntryCount--;
@@ -70,9 +61,7 @@ class PackedArray {
         }
         // If entry is new
         if (m_EntryToIndex[entry] >= m_EntryCount) {
-            m_EntryToIndex[entry] = m_EntryCount;
-            m_IndexToEntry[m_EntryCount] = entry;
-
+            Swap(entry, m_EntryCount);
             m_EntryCount++;
         }
 
@@ -103,5 +92,16 @@ class PackedArray {
         Index place = GetEmptyEntry();
         SetData(place, data);
         return place;
+    }
+
+ private:
+    // BEWARE: aEntry is a public index, while bIndex in a private one.
+    void Swap(Index aEntry, Index bIndex) {
+        Index bEntry = m_IndexToEntry[bIndex];
+        Index aIndex = m_EntryToIndex[aEntry];
+        m_EntryToIndex[aEntry] = bIndex;
+        m_EntryToIndex[bEntry] = aIndex;
+        m_IndexToEntry[aIndex] = bEntry;
+        m_IndexToEntry[bIndex] = aEntry;
     }
 };
