@@ -59,6 +59,7 @@ int main() {
 
     Shader vShader = Shader(VertexShader, vertexShaderSource);
     Shader fShader = Shader(FragmentShader, fragmentShaderSource);
+    
     ShaderProgram *shaderProgram = new ShaderProgram(vShader, fShader);
 
     // ShaderProgram shaderProgram = ShaderProgram(vShader, fShader2);

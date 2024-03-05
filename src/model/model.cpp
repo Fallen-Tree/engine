@@ -70,7 +70,7 @@ RenderMesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
             indices.push_back(face.mIndices[j]);
     }
     // process material
-    Material material = Material{1.0, Texture("default.png")};
+    Material material = Material{1.0, Texture("Cat_diffuse.png")};
     // does not work now
     if (mesh->mMaterialIndex >= 0) {
         aiMaterial *mat = scene->mMaterials[mesh->mMaterialIndex];
