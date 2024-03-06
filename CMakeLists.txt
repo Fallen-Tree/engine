@@ -31,7 +31,6 @@ add_library(ENGINE STATIC
             src/engine/path_resolver.cpp
             src/engine/math.cpp
             src/object.cpp
-            src/behaviour.cpp
 )
 
 add_subdirectory(thirdparty/glfw)

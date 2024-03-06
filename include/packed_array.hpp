@@ -7,12 +7,9 @@
 // TODO(theblek): Overload [] operator to get data for even slicker syntax
 template<typename T, int MAX_SIZE>
 class PackedArray {
-    using Index = int;
-    Index m_EntryCount;
-    std::array<Index, MAX_SIZE> m_EntryToIndex;
-    std::array<Index, MAX_SIZE> m_IndexToEntry;
-
  public:
+    using Index = int;
+
     std::array<T, MAX_SIZE> entries;
 
     PackedArray() : m_EntryCount(0) {
@@ -87,7 +84,7 @@ class PackedArray {
     Index AddData(const T &data) {
         if (m_EntryCount == MAX_SIZE) {
             Logger::Error("Adding entry into full array with size: %d", m_EntryCount);
-            return false;
+            return -1;
         }
         Index place = GetEmptyEntry();
         SetData(place, data);
@@ -104,4 +101,8 @@ class PackedArray {
         m_IndexToEntry[aIndex] = bEntry;
         m_IndexToEntry[bIndex] = aEntry;
     }
+
+    Index m_EntryCount;
+    std::array<Index, MAX_SIZE> m_EntryToIndex;
+    std::array<Index, MAX_SIZE> m_IndexToEntry;
 };

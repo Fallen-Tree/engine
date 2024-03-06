@@ -19,7 +19,6 @@
 
 extern Input *s_Input;
 
-struct GLFWwindow;
 struct Object;
 struct Behaviour;
 
