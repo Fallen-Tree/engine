@@ -200,7 +200,7 @@ int main() {
     }
     auto sphere1 = engine.NewObject();
     {
-        sphere1.AddTransform(Vec3(0, 0, 2.0), Vec3(1.0), 0, Vec3(1));
+        sphere1.AddTransform(Vec3(0, 0, 2.0), Vec3(1.0), 0.f, Vec3(1));
         sphere1.AddCollider(AABB { Vec3{-1, -1, -1}, Vec3{1, 1, 1} });
         auto &renderData = sphere1.AddRenderData();
         renderData.model = sphereModel;
@@ -210,7 +210,7 @@ int main() {
     }
     auto sphere2 = engine.NewObject();
     {
-        sphere2.AddTransform(Vec3(4, 0, 2.0), Vec3(1.0), 0, Vec3(1));
+        sphere2.AddTransform(Vec3(4, 0, 2.0), Vec3(1.0), 0.f, Vec3(1));
         sphere2.AddCollider(AABB { Vec3{-1, -1, -1}, Vec3{1, 1, 1} });
         auto &renderData = sphere2.AddRenderData();
         renderData.model = sphereModel;
@@ -220,7 +220,7 @@ int main() {
     }
 
     auto pointer = engine.NewObject();
-    pointer.AddTransform(Vec3(0), Vec3(1), 0, Vec3(1));
+    pointer.AddTransform(Vec3(0), Vec3(1), 0.f, Vec3(1));
     auto &renderData = pointer.AddRenderData();
     renderData.model = Model::loadFromFile("/kiy.obj");
     renderData.model->shader = shaderProgram;
@@ -274,7 +274,7 @@ int main() {
         pointLight.AddPointLight(
             Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
             Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0f,  0.0f, -3.0f),
-            1, 0.09f, 0.032f);
+            1.f, 0.09f, 0.032f);
     }
 
     {
