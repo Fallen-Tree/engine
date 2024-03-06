@@ -190,7 +190,7 @@ int main() {
     Vec3 sphereSpeed = Vec3(0, 0, -1);
     auto sphere0 = engine.NewObject();
     {
-        sphere0.AddTransform(Vec3(-4, 0, 2.0), Vec3(1.0), 0, Vec3(1));
+        sphere0.AddTransform(Vec3(-4, 0, 2.0), Vec3(1.0), 0.f, Vec3(1));
         sphere0.AddCollider(AABB { Vec3{-1, -1, -1}, Vec3{1, 1, 1} });
         auto &renderData = sphere0.AddRenderData();
         renderData.model = sphereModel;
@@ -266,7 +266,7 @@ int main() {
         pointLight.AddPointLight(
             Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
             Vec3(1.0f, 1.0f, 1.0f), Vec3(2.3f, -3.3f, -4.0f),
-            1, 0.09f, 0.032f);
+            1.f, 0.09f, 0.032f);
     }
 
     {
