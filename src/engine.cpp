@@ -298,6 +298,16 @@ void Engine::Render(int scr_width, int scr_height) {
         glDrawElements(GL_TRIANGLES, model->getLenIndices(), GL_UNSIGNED_INT, 0);
     }
 
+    //      Image rendering
+    for (uint64_t i = 0; i < m_Objects.size(); i++) {
+        auto object = m_Objects[i];
+        if (!object->image) {
+            continue;
+        }
+
+        object->image->Render();
+    }
+
     // Text rendering
     for (uint64_t i = 0; i < m_Objects.size(); i++) {
         auto object = m_Objects[i];

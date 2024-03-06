@@ -259,8 +259,16 @@ int main() {
 
     auto textOcra = new Font("OCRAEXT.TTF", 20);
     auto fpsObj = new FpsText();
-    fpsObj->text = new Text(textOcra, "", 685.0f, 575.0f, 1.f, Vec3(0, 0, 0));
+    fpsObj->text = new Text(textOcra, "", 0.85, 0.96, 1.0, Vec3(0, 0, 0));
     engine.AddObject<>(fpsObj);
+
+    Object* healthBar1 = new Object();
+    healthBar1->image = new Image("hp.png", 0.03, 0.15, 0.4);
+    engine.AddObject<>(healthBar1);
+
+    Object* healthBar2 = new Object();
+    healthBar2->image = new Image("hp_bar.png", 0.015, 0.01, 0.4);
+    engine.AddObject<>(healthBar2);
 
     // init light objects
     Object* pointLight1 = new Object();
