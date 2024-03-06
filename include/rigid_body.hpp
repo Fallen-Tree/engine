@@ -15,14 +15,17 @@ public:
  float massInverse;
  Mat3 ibodyInverse; // inverse matrix inertia tensor
  Vec3 defaultForce;
- Vec3 velocity;
- Vec3 lineraUnlock;
- Vec3 angularUnlock;
+ Vec3 velocity = Vec3(0);
+ Vec3 lineraUnlock = Vec3(1);
+ Vec3 angularUnlock = Vec3(1);
 
 
- RigidBody(float mass, Mat3 Ibody, Vec3 initalVelocity, 
-         float restitution, Vec3 defaultForce, Vec3 defaultTorque,
-         Vec3 lineraUnlock, Vec3 angularUnlock, float kineticFriction); 
+ RigidBody(float mass, Mat3 iBody, Vec3 initalVelocity, 
+         float restitution, Vec3 defaultForce, Vec3 lineraUnlock,
+         Vec3 angularUnlock, float kineticFriction); 
+
+ RigidBody(float mass, Mat3 iBody, float restitution, Vec3 defaultForce,
+         float kineticFriction); 
 
  void Update(Transform *tranform, float dt);
 
@@ -30,9 +33,11 @@ public:
         Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody, 
         float dt);
 
-void Mass(float mass);
+void SetMass(float mass);
 
-void IbodyInverse(Mat3 iBody);
+void SetIbodyInverse(Mat3 iBody);
+
+void ApplyTorque(Vec3 force, Vec3 r);
 
 private:
  void LinearCalculation(Transform *transform, float dt);
@@ -42,8 +47,6 @@ private:
  void ComputeForceTorque(Transform tranform, Transform otherTransform, 
         Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody, 
         float dt);
-
- void ComputeTorque(Vec3 force, Vec3 r);
 
  void ComputeFriction(Vec3 normalForce, float friction, Vec3 r);
 

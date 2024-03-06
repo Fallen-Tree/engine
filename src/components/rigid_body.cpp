@@ -10,11 +10,20 @@ Mat3 IBodySphere(float radius, float mass) {
     return Mat3(2.f/5 * mass * radius * radius);
 }
 
+RigidBody::RigidBody(float mass, Mat3 iBody, float restitution, Vec3 defaultForce,
+         float kineticFriction) {
+    SetMass(mass);
+    SetIbodyInverse(iBody);
+    this->restitution = restitution;
+    this->defaultForce = defaultForce;
+    this->kineticFriction = kineticFriction;
+}
+
 RigidBody::RigidBody(float mass, Mat3 iBody, Vec3 initalVelocity,
-        float restitution, Vec3 defaultForce, Vec3 defaultTorque,
-        Vec3 lineraUnlock, Vec3 angularUnlock, float kineticFriction) {
-    Mass(mass);
-    IbodyInverse(iBody);
+        float restitution, Vec3 defaultForce, Vec3 lineraUnlock,
+        Vec3 angularUnlock, float kineticFriction) {
+    SetMass(mass);
+    SetIbodyInverse(iBody);
     this->velocity = initalVelocity;
     this->restitution = restitution;
     this->defaultForce = defaultForce;
@@ -37,7 +46,7 @@ void RigidBody::ResolveCollisions(Transform tranform, Transform otherTransform,
             collider, otherCollider, otherRigidBody, dt);
 }
 
-void RigidBody::Mass(float mass) {
+void RigidBody::SetMass(float mass) {
     if (mass == 0) {
         massInverse = 0;
         return;
@@ -45,7 +54,7 @@ void RigidBody::Mass(float mass) {
     massInverse = 1 / mass;
 }
 
-void RigidBody::IbodyInverse(Mat3 iBody) {
+void RigidBody::SetIbodyInverse(Mat3 iBody) {
     if (iBody == Mat3(0)) {
         ibodyInverse = iBody;
         return;
@@ -69,7 +78,7 @@ void RigidBody::AngularCalculation(Transform *transform, float dt) {
     transform->RotateOmega(omega * angularUnlock * dt);
 }
 
-void RigidBody::ComputeTorque(Vec3 force, Vec3 r) {
+void RigidBody::ApplyTorque(Vec3 force, Vec3 r) {
     m_Torque += glm::cross(force, r) * static_cast<float>(TORQUE_RATIO);
 }
 
@@ -77,7 +86,7 @@ void RigidBody::ComputeFriction(Vec3 normalForce, float friction, Vec3 r) {
     Vec3 force = -Norm(velocity) * glm::length(friction * normalForce);
 
     m_ResForce += force;
-    ComputeTorque(force, r);
+    ApplyTorque(force, r);
 }
 
 Vec3 ImpulseForce(RigidBody *rigidBody, RigidBody *otherRigidBody,
@@ -132,10 +141,10 @@ void RigidBody::ComputeForceTorque(Transform tranform, Transform otherTransform,
 
     // Compute torque
     auto r1 = normal * tranform.GetScale() * 0.5f;
-    ComputeTorque(-impulseForce, r1);
+    ApplyTorque(-impulseForce, r1);
     auto r2 = otherTransform.GetTranslation()
         + normal * otherTransform.GetScale() * 0.5f;
-    otherRigidBody->ComputeTorque(impulseForce, r2);
+    otherRigidBody->ApplyTorque(impulseForce, r2);
 
     // Compute normal force
     m_ResForce += normalForce;

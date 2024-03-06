@@ -94,8 +94,7 @@ int main() {
     };
     obj->collider = new Collider{Collider::GetDefaultAABB(model)};
     obj->rigidbody = new RigidBody(100, Mat3(0), Vec3(0), 0, Vec3(0, -1000, 0),
-        Vec3(0), Vec3(1), Vec3(1), 0.1);
-    //engine.AddObject<>(obj);
+        Vec3(0), Vec3(1), 0.1);
 
     Material material = {
         4.f,
@@ -113,7 +112,7 @@ int main() {
         obj->transform = new Transform(transform);
         obj->collider = new Collider { primitive };
         obj->rigidbody = new RigidBody(0, Mat4(0), Vec3(0), 3, Vec3(0), Vec3(0),
-            Vec3(0), Vec3(0), 0.0001);
+            Vec3(0), 0.0001);
         engine.AddObject<>(obj);
         return obj;
     };
@@ -141,8 +140,7 @@ int main() {
             1,
         }};
         obj->rigidbody = new RigidBody(mass, IBodySphere(1, 20),
-                speed, 0, Vec3(0, -mass * 10, 0), Vec3(0), Vec3(1),
-                Vec3(1), 0.0001);
+                speed, 0, Vec3(0, -mass, 0), Vec3(1), Vec3(1), 0.0005);
         return obj;
     };
 
