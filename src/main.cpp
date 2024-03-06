@@ -139,6 +139,16 @@ int main() {
     obj->transform = new Transform(Vec3(0.f, -3.f, -8.f), Vec3(.1f, .1f, .1f), Mat4(1.0));
     obj->transform->Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
     engine.AddObject<>(obj);
+  
+    Logger::Info("%s", ToString(Mat4(
+        Vec4(1., 2., 3., 4.),
+        Vec4(2., 3., 4., 5.),
+        Vec4(3., 4., 5., 6.),
+        Vec4(1., 2., 3., 7.))));
+
+    Logger::Info("%s", ToString(Vec4(
+        Vec4(1., 2., 3., 4.))));
+
 
     Material material = {
         4.f,
@@ -229,8 +239,16 @@ int main() {
 
     auto textOcra = new Font("OCRAEXT.TTF", 20);
     auto fpsObj = new FpsText();
-    fpsObj->text = new Text(textOcra, "", 685.0f, 575.0f, 1.f, Vec3(0, 0, 0));
+    fpsObj->text = new Text(textOcra, "", 0.85, 0.96, 1.0, Vec3(0, 0, 0));
     engine.AddObject<>(fpsObj);
+
+    Object* healthBar1 = new Object();
+    healthBar1->image = new Image("hp.png", 0.03, 0.15, 0.4);
+    engine.AddObject<>(healthBar1);
+
+    Object* healthBar2 = new Object();
+    healthBar2->image = new Image("hp_bar.png", 0.015, 0.01, 0.4);
+    engine.AddObject<>(healthBar2);
 
     // init light objects
     Object* pointLight1 = new Object();

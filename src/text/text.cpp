@@ -12,42 +12,42 @@
 #include "engine_config.hpp"
 
 void Text::RenderText() {
-    this->font->RenderText(this->text, x, y, scale, color);
+    m_Font->RenderText(m_Text, m_RelX, m_RelY, m_Scale, m_Color);
 }
 
 Text::Text(Font* font, std::string text, float x, float y, float scale, Vec3 color) {
-    this->font = font;
-    this->text = text;
-    this->x = x;
-    this->y = y;
-    this->scale = scale;
-    this->color = color;
+    m_Font = font;
+    m_Text = text;
+    m_RelX = x;
+    m_RelY = y;
+    m_Scale = scale;
+    m_Color = color;
 }
 
 void Text::SetCoordinates(float x, float y) {
-    this->x = x;
-    this->y = y;
+    m_RelX = x;
+    m_RelY = y;
 }
 
 void Text::SetScale(float scale) {
-    this->scale = scale;
+    m_Scale = scale;
 }
 
 void Text::SetColor(Vec3 color) {
-    this->color = color;
+    m_Color = color;
 }
 
 void Text::SetRenderData(float x, float y, float scale, Vec3 color) {
-    this->x = x;
-    this->y = y;
-    this->scale = scale;
-    this->color = color;
+    m_RelX = x;
+    m_RelY = y;
+    m_Scale = scale;
+    m_Color = color;
 }
 
-void Text::SetContent(std::string s) {
-    this->text = s;
+void Text::SetContent(std::string text) {
+    m_Text = text;
 }
 
 void Text::SetFont(Font *font) {
-    this->font = font;
+    m_Font = font;
 }
