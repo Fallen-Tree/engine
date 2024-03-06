@@ -75,7 +75,8 @@ void RigidBody::AngularCalculation(Transform *transform, float dt) {
     Mat3 Iinverse = rotation * ibodyInverse * glm::transpose(rotation);
     Vec3 L = m_Torque * dt;
     Vec3 omega = Iinverse * L;
-    transform->RotateOmega(omega * angularUnlock * dt);
+    auto angle = omega * angularUnlock * dt;
+    transform->Rotate(angle.x, angle.y, angle.z);
 }
 
 void RigidBody::ApplyTorque(Vec3 force, Vec3 r) {

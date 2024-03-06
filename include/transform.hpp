@@ -34,8 +34,6 @@ class Transform {
     void RotateGlobal(float radiansDegree, Vec3 rotationAxis);
     void RotateGlobal(float radiansDegreeX, float radiansDegreeY, float radiansDegreeZ);
 
-    void RotateOmega(Vec3 omega);
-
     // Getters
     Vec3 GetTranslation();
     Vec3 GetScale();
