@@ -8,6 +8,6 @@ class Time {
  public:
     static int GetCurrentFps();
     static void SetCurrentFps(int);
-    static int GetDeltaTime();
+    static float GetDeltaTime();
     static void SetDeltaTime(float);
 };
