@@ -132,8 +132,8 @@ int main() {
     Model * model = Model::loadFromFile(catSource);
 
     auto obj = new Object();
+    model->shader = shaderProgram;
     obj->renderData = new RenderData(model,
-        shaderProgram,
         {4.f, Texture("/Cat_diffuse.png", "/Cat_specular.png")});
 
     obj->transform = new Transform(Vec3(0.f, -3.f, -8.f), Vec3(.1f, .1f, .1f), Mat4(1.0));
@@ -147,7 +147,8 @@ int main() {
 
     auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model) {
         auto obj = new Object();
-        obj->renderData = new RenderData(model, shaderProgram, material);
+        model->shader = shaderProgram;
+        obj->renderData = new RenderData(model, material);
 
         obj->transform = new Transform(transform);
         obj->collider = new Collider { primitive };
@@ -175,7 +176,8 @@ int main() {
 
     auto getSphereObj = [=](Transform transform, Object *target, Vec3 speed) {
         auto obj = new MovingSphere(target, speed);
-        obj->renderData = new RenderData(sphereModel, shaderProgram, material);
+        sphereModel->shader = shaderProgram;
+        obj->renderData = new RenderData(sphereModel, material);
 
         obj->transform = new Transform(transform);
 
@@ -210,8 +212,8 @@ int main() {
 
     observer->renderData = new RenderData(
         Model::loadFromFile("/kiy.obj"),
-        shaderProgram,
         {4.f, Texture("/kiy.png")});
+    observer->renderData->model->shader = shaderProgram;
     observer->transform = new Transform(Vec3(0), Vec3(1), 0, Vec3(1));
     engine.AddObject<>(observer);
 
