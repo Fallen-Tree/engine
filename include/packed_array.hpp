@@ -10,9 +10,12 @@ class PackedArray {
  public:
     using Index = int;
 
-    std::array<T, MAX_SIZE> entries;
+    std::vector<T> entries;
 
     PackedArray() : m_EntryCount(0) {
+        entries = std::vector<T>(MAX_SIZE);
+        m_EntryToIndex = std::vector<Index>(MAX_SIZE);
+        m_IndexToEntry = std::vector<Index>(MAX_SIZE);
         for (unsigned int i = 0; i < MAX_SIZE; i++) {
             m_EntryToIndex[i] = i;
             m_IndexToEntry[i] = i;
@@ -91,6 +94,23 @@ class PackedArray {
         return place;
     }
 
+    T *begin() {
+        return &entries[0];
+    }
+
+    T *end() {
+        return &entries[m_EntryCount];
+    }
+
+    const T *begin() const {
+        return &entries[0];
+    }
+
+    const T *end() const {
+        return &entries[m_EntryCount];
+    }
+
+
  private:
     // BEWARE: aEntry is a public index, while bIndex in a private one.
     void Swap(Index aEntry, Index bIndex) {
@@ -103,6 +123,6 @@ class PackedArray {
     }
 
     Index m_EntryCount;
-    std::array<Index, MAX_SIZE> m_EntryToIndex;
-    std::array<Index, MAX_SIZE> m_IndexToEntry;
+    std::vector<Index> m_EntryToIndex;
+    std::vector<Index> m_IndexToEntry;
 };

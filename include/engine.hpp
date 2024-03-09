@@ -20,7 +20,7 @@
 extern Input *s_Input;
 
 struct Object;
-struct Behaviour;
+class Behaviour;
 
 using ObjectHandle = int;
 
