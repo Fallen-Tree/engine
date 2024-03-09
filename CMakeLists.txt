@@ -31,6 +31,7 @@ add_library(ENGINE STATIC
             src/engine/time.cpp
             src/engine/path_resolver.cpp
             src/engine/math.cpp
+            src/images/images.cpp
 )
 
 add_subdirectory(thirdparty/glfw)

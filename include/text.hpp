@@ -2,19 +2,20 @@
 
 #include <ft2build.h>
 #include <freetype/freetype.h>
+#include <string>
 
-#include "shaders.hpp" 
+#include "shaders.hpp"
 #include "font.hpp"
 
 class Text {
  private:
-   Font* font;
+  Font* m_Font;
 
-   std::string text;
-   float x;
-   float y;
-   float scale;
-   Vec3 color;
+  std::string m_Text;
+  float m_RelX;
+  float m_RelY;
+  float m_Scale;
+  Vec3 m_Color;
 
  public:
     Text(Font* font, std::string, float, float, float, Vec3);

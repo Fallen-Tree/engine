@@ -137,7 +137,7 @@ void Engine::Run() {
     int fpsFrames = 0;
     const float frameTime = 1.f / FPS_LIMIT;
     float deltaTime = 0.0f;
-    float lastTime = 0.0f;
+    float lastTime = static_cast<float>(glfwGetTime());
 
 
     // render loop
@@ -330,6 +330,16 @@ void Engine::Render(int scr_width, int scr_height) {
         glBindVertexArray(data->VAO);
 
         glDrawElements(GL_TRIANGLES, model->getLenIndices(), GL_UNSIGNED_INT, 0);
+    }
+
+    //      Image rendering
+    for (uint64_t i = 0; i < m_Objects.size(); i++) {
+        auto object = m_Objects[i];
+        if (!object->image) {
+            continue;
+        }
+
+        object->image->Render();
     }
 
     // Text rendering
