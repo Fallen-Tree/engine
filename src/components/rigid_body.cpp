@@ -83,11 +83,15 @@ void RigidBody::ApplyTorque(Vec3 force, Vec3 r) {
     m_Torque += glm::cross(force, r) * static_cast<float>(TORQUE_RATIO);
 }
 
+void RigidBody::SetTorque(Vec3 force, Vec3 r) {
+    m_Torque = glm::cross(force, r) * static_cast<float>(TORQUE_RATIO);
+}
+
 void RigidBody::ComputeFriction(Vec3 normalForce, float friction, Vec3 r) {
     Vec3 force = -Norm(velocity) * glm::length(friction * normalForce);
 
     m_ResForce += force;
-    ApplyTorque(force, r);
+    SetTorque(force, r);
 }
 
 Vec3 ImpulseForce(RigidBody *rigidBody, RigidBody *otherRigidBody,
@@ -143,8 +147,7 @@ void RigidBody::ComputeForceTorque(Transform tranform, Transform otherTransform,
     // Compute torque
     auto r1 = normal * tranform.GetScale() * 0.5f;
     ApplyTorque(-impulseForce, r1);
-    auto r2 = otherTransform.GetTranslation()
-        + normal * otherTransform.GetScale() * 0.5f;
+    auto r2 = -normal * otherTransform.GetScale() * 0.5f;
     otherRigidBody->ApplyTorque(impulseForce, r2);
 
     // Compute normal force

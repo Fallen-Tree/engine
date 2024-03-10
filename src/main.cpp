@@ -87,15 +87,6 @@ int main() {
 
     bindRenderData(render_data);
 
-    Logger::Info("%s", ToString(Mat4(
-        Vec4(1., 2., 3., 4.),
-        Vec4(2., 3., 4., 5.),
-        Vec4(3., 4., 5., 6.),
-        Vec4(1., 2., 3., 7.))));
-
-    Logger::Info("%s", ToString(Vec4(
-        Vec4(1., 2., 3., 4.))));
-
     obj->renderData->material = {
         4.f,
         Texture("/Cat_diffuse.png",
@@ -127,7 +118,7 @@ int main() {
     };
 
     auto aabb = setUpObj(
-        Transform(Vec3(0, -53, 0), Vec3(100.0), 0, Vec3(1)),
+        Transform(Vec3(0, -31, 0), Vec3(50), 0, Vec3(1)),
         AABB {
             Vec3{-0.5, -0.5, -0.5},
             Vec3{0.5, 0.5, 0.5},
@@ -149,22 +140,22 @@ int main() {
             1,
         }};
         obj->rigidbody = new RigidBody(mass, IBodySphere(1, 20),
-                speed, 0, Vec3(0, -mass, 0), Vec3(1), Vec3(1), 0.0005);
+                speed, 0, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.0005);
         return obj;
     };
 
     Object *spheres[3] = {
         getSphereObj(
-            Transform(Vec3(-4, 5, 2.0), Vec3(1), 0, Vec3(1)),
+            Transform(Vec3(-2, 100, 2.0), Vec3(1), 0, Vec3(1)),
             Vec3(1, 0, 0),
-            20),
+            2),
         getSphereObj(
-            Transform(Vec3(0, 6, 2.0), Vec3(1), 0, Vec3(1)),
+            Transform(Vec3(0, 100, 2.0), Vec3(1), 0, Vec3(1)),
             Vec3(0, 0, 0),
             1),
         getSphereObj(
-            Transform(Vec3(4, 5, 2.0), Vec3(1.0), 0, Vec3(1)),
-            Vec3(0, 0, 0),
+            Transform(Vec3(4, 120, 2.0), Vec3(1.0), 0, Vec3(1)),
+            Vec3(0, -100, 0),
             3),
     };
     engine.AddObject<>(spheres[0]);

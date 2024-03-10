@@ -360,26 +360,9 @@ Vec3 CollisionNormal(AABB a, Sphere sph, Transform tr1, Transform tr2,
     auto transformed1 = a.Transformed(tr1).PrevState(velocity, dt);
     auto transformed2 = sph.Transformed(tr2);
 
-    auto closetPoint = transformed2.ClosestPoint(
-            (transformed1.min + transformed1.max) * 0.5f);
-
-    if (closetPoint.x + epsilon >= transformed1.max.x) {
-        return Vec3(-1, 0, 0);
-    } else if (closetPoint.x <= transformed1.min.x + epsilon) {
-        return Vec3(1, 0, 0);
-    } else if (closetPoint.y + epsilon >= transformed1.max.y) {
-        return Vec3(0, -1, 0);
-    } else if (closetPoint.y <= transformed1.min.y + epsilon) {
-        return Vec3(0, 1, 0);
-    } else if (closetPoint.z + epsilon >= transformed1.max.z) {
-        return Vec3(0, 0, -1);
-    } else if (closetPoint.z <= transformed1.min.z + epsilon) {
-        return Vec3(0, 0, 1);
-    }
-
-    // the case if one object is inside other
-    return Norm(transformed1.ClosestPoint(transformed2.center)
-            - transformed2.center) * static_cast<float>(EJECTION_RATIO);
+    return Norm(
+        transformed1.ClosestPoint(transformed2.center)
+        - transformed2.center);
 }
 
 Vec3 CollisionNormal(Sphere sph1, Sphere sph2,

@@ -35,4 +35,4 @@
 
 
 // rigid body
-#define TORQUE_RATIO                0.001
+#define TORQUE_RATIO                100000
