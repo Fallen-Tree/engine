@@ -137,3 +137,25 @@ Ray::Ray(Vec3 from, Vec3 to) {
     origin = from;
     direction = glm::normalize(to - from);
 }
+
+Vec3 OBB::ClosestPoint(Vec3 point) {
+    const Vec3 d = point - center;
+
+    Vec3 res = center;
+    // for each OBB axis
+    for (int i = 0; i < 3; i++) {
+        float dist = glm::dot(d, axes[i]);
+
+        const float halfwidth = halfWidth[i];
+        if (dist > halfwidth) dist = halfwidth;
+        if (dist < -halfwidth) dist = -halfwidth; 
+
+        res += dist * axes[i];
+    }
+
+    return res;
+}
+
+float OBB::Distance2(Vec3 point) {
+    return glm::dot(ClosestPoint(point) - point, ClosestPoint(point) - point); 
+}

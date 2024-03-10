@@ -8,9 +8,200 @@
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+
+bool CollidePrimitive(Triangle, OBB) {
+    return false;
+}
+
+bool CollidePrimitive(OBB, Triangle) {
+    return false;
+}
+
+Mat3 RotationMatrix(OBB a, OBB b) {
+    Mat3 res;
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            res[i][j] = glm::dot(a.axes[i], b.axes[j]);
+        }
+    }
+    return res;
+}
+
+Mat3 AbsRotationMatrix(Mat3 rotationMat, float epsilon) {
+    Mat3 res;
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            res[i][j] = std::abs(rotationMat[i][j]) + epsilon;
+        }
+    }
+    return res;
+}
+
+bool CollidePrimitive(OBB a, OBB b) {
+    const float EPSILON = 0;
+    Mat3 rotationMat = RotationMatrix(a, b);
+    Mat3 absRotationMat = AbsRotationMatrix(rotationMat, EPSILON);
+
+    Vec3 translation = b.center - a.center;
+    // Bring translation into a’s coordinate frame
+    translation = Vec3(
+            glm::dot(translation, a.axes[0]),
+            glm::dot(translation, a.axes[1]),
+            glm::dot(translation, a.axes[2]));
+    
+    float ra;
+    float rb;
+
+    // Test axes L = A0, L = A1, L = A2
+    for (int i = 0; i < 3; i++) {
+        ra = a.halfWidth[i];
+        rb = b.halfWidth[0] * absRotationMat[i][0]
+            + b.halfWidth[1] * absRotationMat[i][1]
+            + b.halfWidth[2] * absRotationMat[i][2];
+        if (std::abs(translation[i]) > ra + rb)
+            return false;
+    }
+
+    // Test axes L = B0, L = B1, L = B2
+    for (int i = 0; i < 3; i++) {
+        ra = a.halfWidth[0] * absRotationMat[0][i]
+            + a.halfWidth[1] * absRotationMat[1][i]
+            + a.halfWidth[2] * absRotationMat[2][i];
+        rb = b.halfWidth[i];
+        if (std::abs(
+                    translation[0] * rotationMat[0][i]
+                    + translation[1] * rotationMat[1][i]
+                    + translation[2] * rotationMat[2][i])
+                > ra + rb)
+            return false;
+    }
+
+    // Test axis L = A0 x B0
+    ra = a.halfWidth[1] * absRotationMat[2][0]
+        + a.halfWidth[2] * absRotationMat[1][0];
+    rb = b.halfWidth[1] * absRotationMat[0][2]
+        + b.halfWidth[2] * absRotationMat[0][1];
+    if (std::abs(
+                translation[2] * rotationMat[1][0]
+                - translation[1] * rotationMat[2][0])
+            > ra + rb) 
+        return false;
+
+    // Test axis L = A0 x B1
+    ra = a.halfWidth[1] * absRotationMat[2][1]
+        + a.halfWidth[2] * absRotationMat[1][1];
+    rb = b.halfWidth[0] * absRotationMat[0][2]
+        + b.halfWidth[2] * absRotationMat[0][0];
+    if (std::abs(
+                translation[2] * rotationMat[1][1]
+                - translation[1] * rotationMat[2][1])
+            > ra + rb)
+        return false;
+
+    // Test axis L = A0 x B2
+    ra = a.halfWidth[1] * absRotationMat[2][2]
+        + a.halfWidth[2] * absRotationMat[1][2];
+    rb = b.halfWidth[0] * absRotationMat[0][1]
+        + b.halfWidth[1] * absRotationMat[0][0];
+    if (std::abs(
+                translation[2] * rotationMat[1][2]
+                - translation[1] * rotationMat[2][2])
+            > ra + rb)
+        return 0;
+
+    // Test axis L = A1 x B0
+    ra = a.halfWidth[0] * absRotationMat[2][0]
+        + a.halfWidth[2] * absRotationMat[0][0];
+    rb = b.halfWidth[1] * absRotationMat[1][2]
+        + b.halfWidth[2] * absRotationMat[1][1];
+    if (std::abs(
+                translation[0] * rotationMat[2][0]
+                - translation[2] * rotationMat[0][0])
+            > ra + rb)
+        return false;
+
+    // Test axis L = A1 x B1
+    ra = a.halfWidth[0] * absRotationMat[2][1]
+        + a.halfWidth[2] * absRotationMat[0][1];
+    rb = b.halfWidth[0] * absRotationMat[1][2]
+        + b.halfWidth[2] * absRotationMat[1][0];
+    if (std::abs(
+                translation[0] * rotationMat[2][1]
+                - translation[2] * rotationMat[0][1])
+            > ra + rb)
+        return false;
+
+    // Test axis L = A1 x B2
+    ra = a.halfWidth[0] * absRotationMat[2][2]
+        + a.halfWidth[2] * absRotationMat[0][2];
+    rb = b.halfWidth[0] * absRotationMat[1][1]
+        + b.halfWidth[1] * absRotationMat[1][0];
+    if (std::abs(
+                translation[0] * rotationMat[2][2]
+                - translation[2] * rotationMat[0][2])
+            > ra + rb)
+        return false;
+
+    // Test axis L = A2 x B0
+    ra = a.halfWidth[0] * absRotationMat[1][0]
+        + a.halfWidth[1] * absRotationMat[0][0];
+    rb = b.halfWidth[1] * absRotationMat[2][2]
+        + b.halfWidth[2] * absRotationMat[2][1];
+    if (std::abs(translation[1] * rotationMat[0][0]
+                - translation[0] * rotationMat[1][0])
+            > ra + rb)
+        return false;
+
+    // Test axis L = A2 x B1
+    ra = a.halfWidth[0] * absRotationMat[1][1]
+        + a.halfWidth[1] * absRotationMat[0][1];
+    rb = b.halfWidth[0] * absRotationMat[2][2]
+        + b.halfWidth[2] * absRotationMat[2][0];
+    if (std::abs(
+                translation[1] * rotationMat[0][1]
+                - translation[0] * rotationMat[1][1])
+            > ra + rb)
+        return false;
+
+    // Test axis L = A2 x B2
+    ra = a.halfWidth[0] * absRotationMat[1][2]
+        + a.halfWidth[1] * absRotationMat[0][2];
+    rb = b.halfWidth[0] * absRotationMat[2][1]
+        + b.halfWidth[1] * absRotationMat[2][0];
+    if (std::abs(
+                translation[1] * rotationMat[0][2]
+                - translation[0] * rotationMat[1][2])
+            > ra + rb)
+        return false;
+
+    return true;
+}
+
+bool CollidePrimitive(Sphere a, OBB b) {
+    Vec3 p = b.ClosestPoint(a.center);
+    Vec3 v = p - a.center;
+    return glm::dot(v, v) <= a.radius * a.radius;
+}
+
+bool CollidePrimitive(OBB a, Sphere b) {
+    return CollidePrimitive(b, a);
+}
+
+bool CollidePrimitive(Plane a, OBB b) {
+    return CollidePrimitive(b, a);
+}
+
+bool CollidePrimitive(OBB a, Plane b) {
+    float r = a.halfWidth[0] + std::abs(glm::dot(b.normal, a.axes[0]))
+        + a.halfWidth[1] + std::abs(glm::dot(b.normal, a.axes[1]))
+        + a.halfWidth[2] + std::abs(glm::dot(b.normal, a.axes[2]));
+    return std::abs(glm::dot(b.normal, a.center)- b.d) <= r;
+}
+
 bool CollidePrimitive(Plane p, AABB a) {
     return CollidePrimitive(a, p);
 }
+
 bool CollidePrimitive(AABB aabb, Plane plane) {
     Vec3 center = (aabb.min + aabb.max) / 2.0f;
     Vec3 extents = (aabb.max - aabb.min) / 2.0f;
