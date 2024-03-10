@@ -6,6 +6,7 @@
 bool CollidePrimitive(AABB, AABB);
 bool CollidePrimitive(Sphere, Sphere);
 bool CollidePrimitive(Triangle, Triangle);
+bool CollidePrimitive(OBB, OBB);
 
 bool CollidePrimitive(AABB, Triangle);
 bool CollidePrimitive(Triangle, AABB);
@@ -18,6 +19,18 @@ bool CollidePrimitive(Sphere, AABB);
 
 bool CollidePrimitive(Triangle, Sphere);
 bool CollidePrimitive(Sphere, Triangle);
+
+bool CollidePrimitive(Plane, OBB);
+bool CollidePrimitive(OBB, Plane);
+
+bool CollidePrimitive(Sphere, OBB);
+bool CollidePrimitive(OBB, Sphere);
+
+bool CollidePrimitive(Triangle, OBB);
+bool CollidePrimitive(OBB, Triangle);
+
+bool CollidePrimitive(AABB, OBB);
+bool CollidePrimitive(OBB, AABB);
 
 template<typename T>
 bool CollideMeshAt(T t, Mesh *mesh, Transform transform);

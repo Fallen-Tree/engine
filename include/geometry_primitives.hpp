@@ -8,6 +8,17 @@ struct Sphere;
 struct Ray;
 struct AABB;
 
+struct OBB {
+    Vec3 center;
+    Mat3 axes; // Local x-, y-, and z-axes
+    Vec3 halfWidth; // Positive halfwidth extents of OBB along each axis
+
+    Vec3 ClosestPoint(Vec3);
+    float Distance2(Vec3);
+
+    OBB Transformed(Transform);
+};
+
 struct AABB {
     Vec3 min, max;
 
