@@ -1,13 +1,12 @@
-
 #include <conio.h>
 #include <irrKlang.h>
-
 
 #include <limits>
 
 #include "engine.hpp"
 #include "collisions.hpp"
 #include "logger.hpp"
+#include "sound.hpp"
 
 const char *cubeSource = "/cube2.obj";
 const char *catSource = "cat.obj";
@@ -77,12 +76,10 @@ class Pointer : public Object {
 
 Object* initModel();
 
+extern irrklang::ISoundEngine *SoundEngine;
 
 int main() {
     auto engine = Engine();
-
-    irrklang::ISoundEngine *SoundEngine = irrklang::createIrrKlangDevice();
-    SoundEngine->play2D("resources/audio/georgian_disco.mp3", true);
 
     std::vector<GLfloat> cubeVertices {
           // positions          // normals           // texture coords
@@ -262,6 +259,27 @@ int main() {
     auto fpsObj = new FpsText();
     fpsObj->text = new Text(textOcra, "", 685.0f, 575.0f, 1.f, Vec3(0, 0, 0));
     engine.AddObject<>(fpsObj);
+
+    // Sphere just for updating movement
+    auto musicObject1 = getSphereObj(
+            Transform(Vec3(6, 0, 2.0), Vec3(1.0), 0, Vec3(1)),
+            mesh,
+            Vec3(0, 0, -1));
+    musicObject1->sound = new Sound("georgian_disco.mp3");
+    musicObject1->sound->Start();
+
+    engine.AddObject<>(musicObject1);
+
+    // Sphere just for updating movement
+    auto musicObject2 = getSphereObj(
+            Transform(Vec3(-4, 0, 2.0), Vec3(1.0), 0, Vec3(1)),
+            mesh,
+            Vec3(0, 0, -1));
+    musicObject2->sound = new Sound("explosion.wav");
+    musicObject2->sound->Start();
+
+    engine.AddObject<>(musicObject2);
+
 
     // init light objects
     Object* pointLight1 = new Object();

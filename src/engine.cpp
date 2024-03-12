@@ -298,14 +298,16 @@ void Engine::Render(int scr_width, int scr_height) {
         glDrawElements(GL_TRIANGLES, model->getLenIndices(), GL_UNSIGNED_INT, 0);
     }
 
-    // Text rendering
+    // Text and Sounds rendering
     for (uint64_t i = 0; i < m_Objects.size(); i++) {
         auto object = m_Objects[i];
-        if (!object->text) {
-            continue;
+        if (object->text) {
+            object->text->RenderText();
         }
 
-        object->text->RenderText();
+        if (object->sound && object->transform) {
+            object->sound->SetPosition(object->transform->GetTranslation());
+        }
     }
 
     glfwSwapBuffers(m_Window);

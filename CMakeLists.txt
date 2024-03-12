@@ -27,6 +27,7 @@ add_library(ENGINE STATIC
             src/components/collider.cpp
             src/components/transform.cpp
             src/components/camera.cpp 
+            src/components/sound.cpp
             src/engine/time.cpp
             src/engine/path_resolver.cpp
             src/engine/math.cpp
