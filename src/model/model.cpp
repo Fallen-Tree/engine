@@ -114,5 +114,6 @@ Model *Model::GetSphere() {
         data.push_back(0.5);
         data.push_back(0.5);
     }
+
     return new Model(data, 8);
 }

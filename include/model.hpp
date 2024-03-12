@@ -2,7 +2,6 @@
 
 #include <string>
 #include <vector>
-// #include <fstream>
 #include "shaders.hpp"
 #include "transform.hpp"
 

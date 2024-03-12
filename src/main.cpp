@@ -1,4 +1,10 @@
+
+#include <conio.h>
+#include <irrKlang.h>
+
+
 #include <limits>
+
 #include "engine.hpp"
 #include "collisions.hpp"
 #include "logger.hpp"
@@ -72,18 +78,10 @@ class Pointer : public Object {
 Object* initModel();
 
 
-#include <irrKlang.h>
-
-#include <conio.h>
-#pragma comment(lib, "irrKlang.lib");
-
-using namespace irrklang;
-
-
 int main() {
     auto engine = Engine();
 
-    ISoundEngine *SoundEngine = createIrrKlangDevice();
+    irrklang::ISoundEngine *SoundEngine = irrklang::createIrrKlangDevice();
     SoundEngine->play2D("resources/audio/georgian_disco.mp3", true);
 
     std::vector<GLfloat> cubeVertices {
