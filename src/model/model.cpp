@@ -60,9 +60,9 @@ void Model::setIndices(int vectorSize) {
     }
 }
 
-Vec3 Model::ClosestPoint(Vec3 point, Transform *transform) {
-    int stride = 8;
-    Mat4 modelMat = transform->GetTransformMatrix();
+Vec3 Model::ClosestPoint(Vec3 point, Transform transform) {
+    const int stride = 8;
+    Mat4 modelMat = transform.GetTransformMatrix();
 
     auto loadPos = [=](int i) {
         int id = getIndices()[i];
@@ -74,6 +74,7 @@ Vec3 Model::ClosestPoint(Vec3 point, Transform *transform) {
         } * modelMat;
         return Vec3{ res.x / res.w, res.y / res.w, res.z / res.w };
     };
+
     Vec3 res = Vec3(std::numeric_limits<float>::max());
     for (int i = 0; i < getLenIndices(); i += 3) {
         Triangle tri = Triangle(loadPos(i), loadPos(i + 1), loadPos(i + 2));
@@ -82,6 +83,37 @@ Vec3 Model::ClosestPoint(Vec3 point, Transform *transform) {
             res = p;
     }
     return res;
+}
+
+Vec3 Model::CollisionNormal(Vec3 point, Transform transform) {
+    const int stride = 8;
+    Mat4 modelMat = transform.GetTransformMatrix();
+
+    auto loadPos = [=](int i) {
+        int id = getIndices()[i];
+        Vec4 res = Vec4 {
+            getPoints()[id * stride],
+            getPoints()[id * stride + 1],
+            getPoints()[id * stride + 2],
+            1.0
+        } * modelMat;
+        return Vec3{ res.x / res.w, res.y / res.w, res.z / res.w };
+    };
+
+    float min = std::numeric_limits<float>::max();
+
+    Triangle *res;
+    for (int i = 0; i < getLenIndices(); i += 3) {
+        Triangle tri = Triangle(loadPos(i), loadPos(i + 1), loadPos(i + 2));
+        float dist = tri.Distance2(point);
+        if (dist < min) {
+            min = dist;
+            *res = tri;
+        }
+    }
+
+    return -Norm((*res).normal);
+    // Is ok direction or i should make smthg with this ?
 }
 
 // get length of array.

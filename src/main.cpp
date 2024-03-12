@@ -2,6 +2,7 @@
 #include "engine.hpp"
 #include "collisions.hpp"
 #include "logger.hpp"
+#include <glm/gtx/string_cast.hpp>
 
 const char *cubeSource = "/cube2.obj";
 const char *catSource = "/cat.obj";
@@ -13,63 +14,8 @@ const char *fragmentShaderSource = "/standart.fshader";
 class MovingSphere : public Object {
  public:
     void Update(float dt) override {
-        if (!collider->Collide(*transform, m_Target->collider, *m_Target->transform)) {
-            transform->Translate(m_Speed * dt);
-        }
     }
-
-    MovingSphere(Object *target, Vec3 speed) {
-        m_Target = target;
-        m_Speed = speed;
-    }
- private:
-    Object *m_Target;
-    Vec3 m_Speed;
 };
-
-class Pointer : public Object {
- public:
-     Pointer(std::vector<Object *> objects, Camera *camera) {
-         m_Objects = objects;
-         m_Camera = camera;
-     }
-
-    void Update(float dt) override {
-        Ray ray = m_Camera->GetRayThroughScreenPoint({s_Input->MouseX(), s_Input->MouseY()});
-        Transform *target = nullptr;
-        float closest = std::numeric_limits<float>::max();
-        for (int i = 0; i < m_Objects.size(); i++) {
-            auto obj = m_Objects[i];
-            auto hit = obj->collider->RaycastHit(*obj->transform, ray);
-            if (hit && *hit < closest) {
-                target = obj->transform;
-                closest = *hit;
-            }
-        }
-        if (s_Input->IsKeyPressed(Key::MouseLeft))
-            m_CurrentTarget = target;
-
-        if (m_CurrentTarget != nullptr) {
-            Vec3 center = m_CurrentTarget->GetTranslation();
-            Vec3 closest = ray.origin + glm::dot(center - ray.origin, ray.direction) * ray.direction;
-            closest.y = center.y;
-            Vec3 onCircle = glm::normalize(closest - center) * m_CueDistance;
-            transform->SetTranslation(onCircle);
-
-            Vec3 toCenter = center - onCircle;
-            float angle = glm::acos(glm::dot(toCenter, ray.direction) / m_CueDistance);
-            transform->SetRotation(-glm::pi<float>()/2, glm::cross(Vec3{0.f, 1.f, 0.f}, toCenter));
-        }
-     }
-
- private:
-    float m_CueDistance = 1.f;
-    Transform *m_CurrentTarget = nullptr;
-    std::vector<Object *> m_Objects;
-    Camera *m_Camera;
-};
-
-Object* initModel();
 
 int main() {
     auto engine = Engine();
@@ -136,19 +82,9 @@ int main() {
     obj->renderData = new RenderData(model,
         {4.f, Texture("/Cat_diffuse.png", "/Cat_specular.png")});
 
-    obj->transform = new Transform(Vec3(0.f, -3.f, -8.f), Vec3(.1f, .1f, .1f), Mat4(1.0));
-    obj->transform->Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
-    engine.AddObject<>(obj);
-  
-    Logger::Info("%s", ToString(Mat4(
-        Vec4(1., 2., 3., 4.),
-        Vec4(2., 3., 4., 5.),
-        Vec4(3., 4., 5., 6.),
-        Vec4(1., 2., 3., 7.))));
-
-    Logger::Info("%s", ToString(Vec4(
-        Vec4(1., 2., 3., 4.))));
-
+    obj->collider = new Collider{Collider::GetDefaultAABB(model)};
+    obj->rigidbody = new RigidBody(100, Mat3(0), Vec3(0), 0, Vec3(0, -1000, 0),
+        Vec3(0), Vec3(1), 0.1);
 
     Material material = {
         4.f,
@@ -162,70 +98,56 @@ int main() {
 
         obj->transform = new Transform(transform);
         obj->collider = new Collider { primitive };
+        obj->rigidbody = new RigidBody(0, Mat4(0), Vec3(0), 3, Vec3(0), Vec3(0),
+            Vec3(0), 0.0001);
         engine.AddObject<>(obj);
         return obj;
     };
 
     auto aabb = setUpObj(
-        Transform(Vec3(-4, 0, -3), Vec3(1.0), 0, Vec3(1)),
+        Transform(Vec3(0, -31, 0), Vec3(50), 0, Vec3(1)),
         AABB {
             Vec3{-0.5, -0.5, -0.5},
             Vec3{0.5, 0.5, 0.5},
         },
         cubeModel);
 
-    auto sphere = setUpObj(
-        Transform(Vec3(0, 0, -3), Vec3(1.0), 0, Vec3(1)),
-        Sphere { Vec3(0.0), 1.0f },
-        sphereModel);
-
-    auto mesh = setUpObj(
-        Transform(Vec3(4.0, 0, -3), Vec3(1.0), 0, Vec3(1)),
-        sphereModel,
-        sphereModel);
-
-    auto getSphereObj = [=](Transform transform, Object *target, Vec3 speed) {
-        auto obj = new MovingSphere(target, speed);
-        sphereModel->shader = shaderProgram;
-        obj->renderData = new RenderData(sphereModel, material);
+    auto getSphereObj = [=](Transform transform, Vec3 speed, float mass) {
+        auto obj = new MovingSphere();
+        obj->renderData = new RenderData();
+        auto renderData = obj->renderData;
+        renderData->model = sphereModel;
+        renderData->material = material;
+        bindRenderData(renderData);
 
         obj->transform = new Transform(transform);
 
-        obj->collider = new Collider{AABB {
-            Vec3{-1, -1, -1},
-            Vec3{1, 1, 1},
+        obj->collider = new Collider{Sphere{
+            Vec3(0),
+            1,
         }};
+        obj->rigidbody = new RigidBody(mass, IBodySphere(1, 20),
+                speed, 0, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.0005);
         return obj;
     };
 
     Object *spheres[3] = {
         getSphereObj(
-            Transform(Vec3(-4, 0, 2.0), Vec3(1.0), 0, Vec3(1)),
-            aabb,
-            Vec3(0, 0, -1)),
+            Transform(Vec3(-2, 100, 2.0), Vec3(1), 0, Vec3(1)),
+            Vec3(1, 0, 0),
+            2),
         getSphereObj(
-            Transform(Vec3(0, 0, 2.0), Vec3(1.0), 0, Vec3(1)),
-            sphere,
-            Vec3(0, 0, -1)),
+            Transform(Vec3(0, 100, 2.0), Vec3(1), 0, Vec3(1)),
+            Vec3(0, 0, 0),
+            1),
         getSphereObj(
-            Transform(Vec3(4, 0, 2.0), Vec3(1.0), 0, Vec3(1)),
-            mesh,
-            Vec3(0, 0, -1)),
+            Transform(Vec3(4, 120, 2.0), Vec3(1.0), 0, Vec3(1)),
+            Vec3(0, -100, 0),
+            3),
     };
     engine.AddObject<>(spheres[0]);
     engine.AddObject<>(spheres[1]);
     engine.AddObject<>(spheres[2]);
-
-    auto observer = new Pointer(
-        {spheres[0], spheres[1], spheres[2], aabb, sphere},
-        engine.camera);
-
-    observer->renderData = new RenderData(
-        Model::loadFromFile("/kiy.obj"),
-        {4.f, Texture("/kiy.png")});
-    observer->renderData->model->shader = shaderProgram;
-    observer->transform = new Transform(Vec3(0), Vec3(1), 0, Vec3(1));
-    engine.AddObject<>(observer);
 
     class FpsText : public Object {
      public:
