@@ -44,5 +44,6 @@ class Model {
 
     int getLenArrPoints();
 
-    Vec3 ClosestPoint(Vec3 point, Transform *transform);
+    Vec3 ClosestPoint(Vec3 point, Transform transform);
+    Vec3 CollisionNormal(Vec3 point, Transform tranform);
 };
