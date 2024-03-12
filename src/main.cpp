@@ -114,11 +114,8 @@ int main() {
 
     auto getSphereObj = [=](Transform transform, Vec3 speed, float mass) {
         auto obj = new MovingSphere();
-        obj->renderData = new RenderData();
-        auto renderData = obj->renderData;
-        renderData->model = sphereModel;
-        renderData->material = material;
-        bindRenderData(renderData);
+        obj->renderData = new RenderData(sphereModel, material);
+        obj->renderData->model->shader = shaderProgram;
 
         obj->transform = new Transform(transform);
 
