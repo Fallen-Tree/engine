@@ -7,7 +7,7 @@
 
 #include "path_resolver.hpp"
 
-Model* Model::loadFromFile(const char* path) {
+Model* Model::loadFromFile(std::string path) {
     Model* newModel = new Model();
     std::string finalPath = GetResourcePath(Resource::MODEL, path);
     Assimp::Importer import;

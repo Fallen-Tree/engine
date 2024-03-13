@@ -19,7 +19,7 @@ RenderMesh::RenderMesh(std::vector<float> points, std::vector<unsigned int> indi
 */
 void bindRenderData(RenderMesh* render_data) {
     if (!render_data) {
-        Logger::Error("RENDER_DATA::BINDER::RENDER_DATA_OR_MODEL_ARE_NULL");
+        Logger::Error("RENDER_DATA::BINDER::RENDER_MESH_ARE_NULL");
     }
     glGenVertexArrays(1, &render_data->VAO);
     glGenBuffers(1, &render_data->VBO);

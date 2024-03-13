@@ -13,6 +13,7 @@ struct AABB {
 
     Vec3 ClosestPoint(Vec3);
     float Distance2(Vec3);
+    AABB PrevState(Vec3, float);
 
     AABB Transformed(Transform);
 };
@@ -23,6 +24,7 @@ struct Sphere {
 
     Vec3 ClosestPoint(Vec3);
 
+    Sphere PrevState(Vec3, float);
     Sphere Transformed(Transform);
 };
 

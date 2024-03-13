@@ -28,3 +28,13 @@ bool CollidePrimitive(Ray, AABB);
 
 std::optional<float> CollisionPrimitive(Ray, Sphere);
 std::optional<float> CollisionPrimitive(Ray, AABB);
+
+Vec3 CollisionNormal(AABB,AABB,Transform,Transform,Vec3,float);
+Vec3 CollisionNormal(Sphere,AABB,Transform,Transform,Vec3,float);
+Vec3 CollisionNormal(AABB,Sphere,Transform,Transform,Vec3,float);
+Vec3 CollisionNormal(AABB,Model*,Transform,Transform,Vec3,float);
+Vec3 CollisionNormal(Model*,AABB,Transform,Transform,Vec3,float);
+Vec3 CollisionNormal(Sphere,Sphere,Transform,Transform,Vec3,float);
+Vec3 CollisionNormal(Sphere,Model*,Transform,Transform,Vec3,float);
+Vec3 CollisionNormal(Model*,Sphere,Transform,Transform,Vec3,float);
+Vec3 CollisionNormal(Model*,Model*,Transform,Transform,Vec3,float);

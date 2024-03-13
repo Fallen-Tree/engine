@@ -19,6 +19,5 @@ class Model {
     std::vector<RenderMesh> meshes;
     ShaderProgram* shader = nullptr;
 
-    // constructor of class.
-    static Model* loadFromFile(const char* path);
+    static Model* loadFromFile(std::string);
 };

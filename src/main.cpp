@@ -2,6 +2,7 @@
 #include "engine.hpp"
 #include "collisions.hpp"
 #include "logger.hpp"
+#include <glm/gtx/string_cast.hpp>
 
 const char *cubeSource = "/cube2.obj";
 const char *catSource = "/cat.obj";
@@ -13,63 +14,8 @@ const char *fragmentShaderSource = "/standart.fshader";
 class MovingSphere : public Object {
  public:
     void Update(float dt) override {
-        if (!collider->Collide(*transform, m_Target->collider, *m_Target->transform)) {
-            transform->Translate(m_Speed * dt);
-        }
     }
-
-    MovingSphere(Object *target, Vec3 speed) {
-        m_Target = target;
-        m_Speed = speed;
-    }
- private:
-    Object *m_Target;
-    Vec3 m_Speed;
 };
-
-class Pointer : public Object {
- public:
-     Pointer(std::vector<Object *> objects, Camera *camera) {
-         m_Objects = objects;
-         m_Camera = camera;
-     }
-
-    void Update(float dt) override {
-        Ray ray = m_Camera->GetRayThroughScreenPoint({s_Input->MouseX(), s_Input->MouseY()});
-        Transform *target = nullptr;
-        float closest = std::numeric_limits<float>::max();
-        for (int i = 0; i < m_Objects.size(); i++) {
-            auto obj = m_Objects[i];
-            auto hit = obj->collider->RaycastHit(*obj->transform, ray);
-            if (hit && *hit < closest) {
-                target = obj->transform;
-                closest = *hit;
-            }
-        }
-        if (s_Input->IsKeyPressed(Key::MouseLeft))
-            m_CurrentTarget = target;
-
-        if (m_CurrentTarget != nullptr) {
-            Vec3 center = m_CurrentTarget->GetTranslation();
-            Vec3 closest = ray.origin + glm::dot(center - ray.origin, ray.direction) * ray.direction;
-            closest.y = center.y;
-            Vec3 onCircle = glm::normalize(closest - center) * m_CueDistance;
-            transform->SetTranslation(onCircle);
-
-            Vec3 toCenter = center - onCircle;
-            float angle = glm::acos(glm::dot(toCenter, ray.direction) / m_CueDistance);
-            transform->SetRotation(-glm::pi<float>()/2, glm::cross(Vec3{0.f, 1.f, 0.f}, toCenter));
-        }
-     }
-
- private:
-    float m_CueDistance = 1.f;
-    Transform *m_CurrentTarget = nullptr;
-    std::vector<Object *> m_Objects;
-    Camera *m_Camera;
-};
-
-Object* initModel();
 
 int main() {
     auto engine = Engine();
@@ -106,6 +52,14 @@ int main() {
     auto fpsObj = new FpsText();
     fpsObj->text = new Text(textOcra, "", 0.85, 0.96, 1.0, Vec3(0, 0, 0));
     engine.AddObject<>(fpsObj);
+
+    Object* healthBar1 = new Object();
+    healthBar1->image = new Image("hp.png", 0.03, 0.15, 0.4);
+    engine.AddObject<>(healthBar1);
+
+    Object* healthBar2 = new Object();
+    healthBar2->image = new Image("hp_bar.png", 0.015, 0.01, 0.4);
+    engine.AddObject<>(healthBar2);
 
     // init light objects
     Object* pointLight1 = new Object();
