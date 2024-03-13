@@ -307,6 +307,17 @@ void Engine::Render(int scr_width, int scr_height) {
 
         if (object->sound && object->transform) {
             object->sound->SetPosition(object->transform->GetTranslation());
+
+           // Logger::Info("%f", glm::distance(object->transform->GetTranslation(), camera->GetPosition()));
+
+            if (object->sound->GetType() == SOUND_FLAT) continue;
+
+            if (glm::distance(object->transform->GetTranslation(), camera->GetPosition())
+                > object->sound->GetRadius()) {
+                object->sound->Mute();
+            } else {
+                object->sound->Unmute();
+            }
         }
     }
 

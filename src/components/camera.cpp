@@ -1,6 +1,5 @@
 #include "camera.hpp"
 
-#include <conio.h>
 #include <irrKlang.h>
 
 #include "input.hpp"

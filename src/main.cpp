@@ -1,4 +1,3 @@
-#include <conio.h>
 #include <irrKlang.h>
 
 #include <limits>
@@ -260,14 +259,15 @@ int main() {
     fpsObj->text = new Text(textOcra, "", 685.0f, 575.0f, 1.f, Vec3(0, 0, 0));
     engine.AddObject<>(fpsObj);
 
+
     // Sphere just for updating movement
     auto musicObject1 = getSphereObj(
             Transform(Vec3(6, 0, 2.0), Vec3(1.0), 0, Vec3(1)),
             mesh,
             Vec3(0, 0, -1));
-    musicObject1->sound = new Sound("georgian_disco.mp3");
+    musicObject1->sound = new Sound(SOUND_FLAT, "georgian_disco.mp3");
+    musicObject1->sound->SetVolume(0.2f);
     musicObject1->sound->Start();
-
     engine.AddObject<>(musicObject1);
 
     // Sphere just for updating movement
@@ -275,7 +275,9 @@ int main() {
             Transform(Vec3(-4, 0, 2.0), Vec3(1.0), 0, Vec3(1)),
             mesh,
             Vec3(0, 0, -1));
-    musicObject2->sound = new Sound("explosion.wav");
+    musicObject2->sound = new Sound(SOUND_3D, "explosion.wav");
+    musicObject2->sound->SetRadius(20.f);
+    musicObject2->sound->Loop();
     musicObject2->sound->Start();
 
     engine.AddObject<>(musicObject2);
