@@ -45,14 +45,14 @@ target_include_directories(ENGINE PUBLIC thirdparty/irrKlang/include)
 if (UNIX)
     target_link_libraries(ENGINE PUBLIC glfw glad freetype ${CMAKE_SOURCE_DIR}/thirdparty/irrKlang/libIrrKlang.so 
     ${CMAKE_SOURCE_DIR}/thirdparty/irrKlang/ikpMP3.so OpenGL::GL)
+    
+    add_custom_target(RESOURCES ALL COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_DIR}/resources ${CMAKE_BINARY_DIR}/resources)
 else()
     target_link_libraries(ENGINE PUBLIC glfw glad freetype ${CMAKE_SOURCE_DIR}/thirdparty/irrKlang/irrKlang.lib OpenGL::GL)
 endif()
 
 add_executable(main src/main.cpp)
 target_link_libraries(main PUBLIC ENGINE)
-
-add_custom_target(RESOURCES ALL COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_DIR}/resources ${CMAKE_BINARY_DIR}/resources)
 
 add_custom_command(TARGET ENGINE PRE_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
