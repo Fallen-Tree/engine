@@ -10,6 +10,8 @@ class RenderMesh : public Mesh {
     Material material;
     unsigned int VAO, VBO, EBO;
 
+    void setMaterial(Material material);
+
     RenderMesh(std::vector<float> points, std::vector<unsigned int> indices, Material material);
 
     RenderMesh(Mesh *mesh, Material material);

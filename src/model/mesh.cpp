@@ -18,7 +18,6 @@ Mesh::Mesh(const std::vector<float>& Points, const std::vector<unsigned int>& In
     setIndices(Indices);
 }
 
-
 Mesh::Mesh(const std::vector<float>& Points, int vectorSize) {
     assert(vectorSize > 0);
     setPoints(Points);

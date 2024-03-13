@@ -19,6 +19,8 @@ class Model {
     std::vector<RenderMesh> meshes;
     ShaderProgram* shader = nullptr;
 
+    void setMaterial(Material material);
+
     static Model *loadFromFile(std::string);
     static Model *fromMesh(Mesh *mesh, Material material);
 };

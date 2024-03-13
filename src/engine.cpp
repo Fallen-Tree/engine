@@ -182,7 +182,6 @@ void Engine::updateObjects(float deltaTime) {
         if (!m_Objects[i]->rigidbody)
             continue;
         auto obj = m_Objects[i];
-        //Logger::Info("meshes count: %d", obj->model->meshes.size());
         if (!obj->collider || !obj->transform) {
             Logger::Error(
                     "ENGINE::UPDATE_OBJECTS::RIGID_BODY_SHOULD_HAVE_COLLIDER_TRANSFORM : %d"

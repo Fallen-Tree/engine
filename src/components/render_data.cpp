@@ -20,6 +20,11 @@ RenderMesh::RenderMesh(Mesh *mesh, Material material) {
     bindRenderData(this);
 }
 
+void RenderMesh::setMaterial(Material material) {
+    this->material = material;
+    bindRenderData(this);
+}
+
 /*
     Assuming that pattern of every point is: point, normal, texturecoord
 

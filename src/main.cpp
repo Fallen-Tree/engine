@@ -25,18 +25,22 @@ int main() {
 
     ShaderProgram *shaderProgram = new ShaderProgram(vShader, fShader);
 
-    // ShaderProgram shaderProgram = ShaderProgram(vShader, fShader2);
     // init a model
     Model * model = Model::loadFromFile(catSource);
     model->shader = shaderProgram;
     auto obj = new Object();
+    Material cat_material = {
+        4.f,
+        Texture("/cat_diffuse.png", "/cat_specular.png")
+    };
+    model->setMaterial(cat_material);
     obj->model = model;
     obj->transform = new Transform(Vec3(0.f, -3.f, -8.f), Vec3(.1f, .1f, .1f), Mat4(1.0));
     obj->transform->Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
-    /*obj->collider = new Collider{Collider::GetDefaultAABB(&model->meshes[0])};
+    obj->collider = new Collider{Collider::GetDefaultAABB(&model->meshes[0])};
     obj->rigidbody = new RigidBody(100, Mat3(0), Vec3(0), 0, Vec3(0, -1000, 0),
         Vec3(0), Vec3(1), 0.1);
-    */
+
     engine.AddObject<>(obj);
 
     Material material = {
