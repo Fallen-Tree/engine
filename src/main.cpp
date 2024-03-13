@@ -21,7 +21,6 @@ class MovingSphere : public Object {
     }
 };
 
-
 extern irrklang::ISoundEngine *SoundEngine;
 
 int main() {
@@ -168,7 +167,6 @@ int main() {
     fpsObj->text = new Text(textOcra, "", 0.85, 0.96, 1.0, Vec3(0, 0, 0));
     engine.AddObject<>(fpsObj);
 
-
     // Sphere just for updating movement
     auto musicObject1 = new Object();
     musicObject1->sound = new Sound(SOUND_FLAT, "georgian_disco.mp3");
@@ -187,7 +185,6 @@ int main() {
     musicObject2->sound->Start();
 
     engine.AddObject<>(musicObject2);
-
 
     Object* healthBar1 = new Object();
     healthBar1->image = new Image("hp.png", 0.03, 0.15, 0.4);

@@ -140,6 +140,7 @@ void Engine::Run() {
     float deltaTime = 0.0f;
     float lastTime = static_cast<float>(glfwGetTime());
 
+
     // render loop
     // -----------
     while (!glfwWindowShouldClose(m_Window)) {
@@ -340,6 +341,7 @@ void Engine::Render(int scr_width, int scr_height) {
 
         object->image->Render();
     }
+
 
     for (uint64_t i = 0; i < m_Objects.size(); i++) {
         auto object = m_Objects[i];

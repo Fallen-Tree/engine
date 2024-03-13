@@ -34,6 +34,7 @@ class Object {
      Animation *animation = nullptr;
      Text *text = nullptr;
      Sound *sound = nullptr;
+
      RigidBody *rigidbody = nullptr;
      Image *image = nullptr;
 
