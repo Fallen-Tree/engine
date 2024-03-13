@@ -78,20 +78,10 @@ int main() {
     Model * model = Model::loadFromFile(catSource);
 
     auto obj = new Object();
-    obj->renderData = new RenderData();
-    obj->renderData->model = model;
-    obj->renderData->model->shader = shaderProgram;
+    model->shader = shaderProgram;
+    obj->renderData = new RenderData(model,
+        {4.f, Texture("/Cat_diffuse.png", "/Cat_specular.png")});
 
-    obj->transform = new Transform(Vec3(0.f, 30.f, -1.f), Vec3(1.f), Mat4(1.0));
-    auto render_data = obj->renderData;
-
-    bindRenderData(render_data);
-
-    obj->renderData->material = {
-        4.f,
-        Texture("/Cat_diffuse.png",
-                "/Cat_specular.png")
-    };
     obj->collider = new Collider{Collider::GetDefaultAABB(model)};
     obj->rigidbody = new RigidBody(100, Mat3(0), Vec3(0), 0, Vec3(0, -1000, 0),
         Vec3(0), Vec3(1), 0.1);
@@ -103,11 +93,8 @@ int main() {
 
     auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model) {
         auto obj = new Object();
-        obj->renderData = new RenderData();
-        auto renderData = obj->renderData;
-        renderData->model = model;
-        renderData->material = material;
-        bindRenderData(renderData);
+        model->shader = shaderProgram;
+        obj->renderData = new RenderData(model, material);
 
         obj->transform = new Transform(transform);
         obj->collider = new Collider { primitive };
@@ -127,11 +114,8 @@ int main() {
 
     auto getSphereObj = [=](Transform transform, Vec3 speed, float mass) {
         auto obj = new MovingSphere();
-        obj->renderData = new RenderData();
-        auto renderData = obj->renderData;
-        renderData->model = sphereModel;
-        renderData->material = material;
-        bindRenderData(renderData);
+        obj->renderData = new RenderData(sphereModel, material);
+        obj->renderData->model->shader = shaderProgram;
 
         obj->transform = new Transform(transform);
 
