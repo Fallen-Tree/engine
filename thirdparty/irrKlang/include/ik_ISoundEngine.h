@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Nikolaus Gebhardt
+// Copyright (C) 2002-2014 Nikolaus Gebhardt
 // This file is part of the "irrKlang" library.
 // For conditions of distribution and use, see copyright notice in irrKlang.h
 
@@ -300,9 +300,6 @@ namespace irrklang
 
 		//! Returns if a sound with the specified source is currently playing.
 		virtual bool isCurrentlyPlaying(ISoundSource* source) = 0;
-
-		//! Stops all sounds of a specific sound source
-		virtual void stopAllSoundsOfSoundSource(ISoundSource* source) = 0;
 
 		//! Registers a new audio stream loader in the sound engine.
 		/** Use this to enhance the audio engine to support other or new file formats.

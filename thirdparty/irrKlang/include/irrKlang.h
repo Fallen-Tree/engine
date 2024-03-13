@@ -1,6 +1,6 @@
 /* irrKlang.h -- interface of the 'irrKlang' library
 
-  Copyright (C) 2002-2018 Nikolaus Gebhardt
+  Copyright (C) 2002-2014 Nikolaus Gebhardt
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -34,9 +34,9 @@
 #include "ik_ISoundMixedOutputReceiver.h"
 
 //! irrKlang Version
-#define IRR_KLANG_VERSION "1.6.0"
+#define IRR_KLANG_VERSION "1.5.0"
 
-/*! \mainpage irrKlang 1.6.0 API documentation
+/*! \mainpage irrKlang 1.5.0 API documentation
  *
  * <div align="center"><img src="logobig.png" ></div>
 
