@@ -74,6 +74,5 @@ RenderMesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
         // convert material from assimp to our material
     }
     RenderMesh newMesh = RenderMesh(points, indices, material);
-    bindRenderData(&newMesh);
     return newMesh;
 }
