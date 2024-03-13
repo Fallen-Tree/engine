@@ -374,31 +374,31 @@ Vec3 CollisionNormal(Sphere sph1, Sphere sph2,
 }
 
 // TODO(solloballon): make this operation with Model
-Vec3 CollisionNormal(AABB, Model*, Transform, Transform, Vec3, float) {
+Vec3 CollisionNormal(AABB, Mesh*, Transform, Transform, Vec3, float) {
     Logger::Warn(
             "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
     return Vec3(0);
 }
 
-Vec3 CollisionNormal(Model*, AABB, Transform, Transform, Vec3, float) {
+Vec3 CollisionNormal(Mesh*, AABB, Transform, Transform, Vec3, float) {
     Logger::Warn(
             "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
     return Vec3(0);
 }
 
-Vec3 CollisionNormal(Sphere, Model*, Transform, Transform, Vec3, float) {
+Vec3 CollisionNormal(Sphere, Mesh*, Transform, Transform, Vec3, float) {
     Logger::Warn(
             "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
     return Vec3(0);
 }
 
-Vec3 CollisionNormal(Model*, Sphere, Transform, Transform, Vec3, float) {
+Vec3 CollisionNormal(Mesh*, Sphere, Transform, Transform, Vec3, float) {
     Logger::Warn(
             "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
     return Vec3(0);
 }
 
-Vec3 CollisionNormal(Model*, Model*, Transform, Transform, Vec3, float) {
+Vec3 CollisionNormal(Mesh*, Mesh*, Transform, Transform, Vec3, float) {
     Logger::Warn(
             "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
     return Vec3(0);

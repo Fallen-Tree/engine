@@ -36,9 +36,10 @@ class Mesh {
 
     int getLenArrPoints();
 
-    Vec3 ClosestPoint(Vec3 point, Transform *transform);
+    Mesh *GetSphere();
 
-    Mesh* Transformed(Transform transform);
+    Mesh Transformed(Transform tranform);
 
-    Mesh* GetSphere();
+    Vec3 ClosestPoint(Vec3 point, Transform transform);
+    Vec3 CollisionNormal(Vec3 point, Transform tranform);
 };
