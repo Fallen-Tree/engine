@@ -12,6 +12,14 @@ RenderMesh::RenderMesh(std::vector<float> points, std::vector<unsigned int> indi
     bindRenderData(this);
 }
 
+RenderMesh::RenderMesh(Mesh *mesh, Material material) {
+    this->setPoints(mesh->getVecPoints());
+    this->setIndices(mesh->getVecIndices());
+    this->material = material;
+
+    bindRenderData(this);
+}
+
 /*
     Assuming that pattern of every point is: point, normal, texturecoord
 

@@ -67,6 +67,7 @@ RenderMesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
             indices.push_back(face.mIndices[j]);
     }
     // process material
+    // load default material for now
     Material material = Material{1.0, Texture("Cat_diffuse.png")};
     // does not work now
     if (mesh->mMaterialIndex >= 0) {
@@ -75,4 +76,12 @@ RenderMesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
     }
     RenderMesh newMesh = RenderMesh(points, indices, material);
     return newMesh;
+}
+
+Model *Model::fromMesh(Mesh *mesh, Material material) {
+    Model *newModel = new Model();
+    std::vector<RenderMesh> meshes;
+    meshes.push_back(*(new RenderMesh(mesh, material)));
+    newModel->meshes = meshes;
+    return newModel;
 }

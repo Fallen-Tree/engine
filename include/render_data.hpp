@@ -11,6 +11,8 @@ class RenderMesh : public Mesh {
     unsigned int VAO, VBO, EBO;
 
     RenderMesh(std::vector<float> points, std::vector<unsigned int> indices, Material material);
+
+    RenderMesh(Mesh *mesh, Material material);
 };
 
 void bindRenderData(RenderMesh*);

@@ -22,22 +22,85 @@ int main() {
 
     Shader vShader = Shader(VertexShader, vertexShaderSource);
     Shader fShader = Shader(FragmentShader, fragmentShaderSource);
-    
+
     ShaderProgram *shaderProgram = new ShaderProgram(vShader, fShader);
 
     // ShaderProgram shaderProgram = ShaderProgram(vShader, fShader2);
     // init a model
     Model * model = Model::loadFromFile(catSource);
     model->shader = shaderProgram;
-
     auto obj = new Object();
     obj->model = model;
-
     obj->transform = new Transform(Vec3(0.f, -3.f, -8.f), Vec3(.1f, .1f, .1f), Mat4(1.0));
     obj->transform->Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
-
+    /*obj->collider = new Collider{Collider::GetDefaultAABB(&model->meshes[0])};
+    obj->rigidbody = new RigidBody(100, Mat3(0), Vec3(0), 0, Vec3(0, -1000, 0),
+        Vec3(0), Vec3(1), 0.1);
+    */
     engine.AddObject<>(obj);
 
+    Material material = {
+        4.f,
+        Texture("/wall.png", "/wallspecular.png")
+    };
+    Model *sphereModel = Model::fromMesh(Mesh::GetSphere(), material);
+    Model *cubeModel = Model::fromMesh(Mesh::GetCube(), material);
+    sphereModel->shader = shaderProgram;
+    cubeModel->shader = shaderProgram;
+
+    auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model) {
+        auto obj = new Object();
+        obj->model = model;
+        model->shader = shaderProgram;
+
+        obj->transform = new Transform(transform);
+        obj->collider = new Collider { primitive };
+        obj->rigidbody = new RigidBody(0, Mat4(0), Vec3(0), 3, Vec3(0), Vec3(0),
+            Vec3(0), 0.0001);
+        engine.AddObject<>(obj);
+        return obj;
+    };
+
+
+    auto aabb = setUpObj(
+        Transform(Vec3(0, -31, 0), Vec3(50), 0, Vec3(1)),
+        AABB {
+            Vec3{-0.5, -0.5, -0.5},
+            Vec3{0.5, 0.5, 0.5},
+        },
+        cubeModel);
+
+    auto getSphereObj = [=](Transform transform, Vec3 speed, float mass) {
+        auto obj = new MovingSphere();
+        obj->transform = new Transform(transform);
+
+        obj->model = sphereModel;
+        obj->collider = new Collider{Sphere{
+            Vec3(0),
+            1,
+        }};
+        obj->rigidbody = new RigidBody(mass, IBodySphere(1, 20),
+                speed, 0, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.0005);
+        return obj;
+    };
+
+    Object *spheres[3] = {
+        getSphereObj(
+            Transform(Vec3(-2, 100, 2.0), Vec3(1), 0, Vec3(1)),
+            Vec3(1, 0, 0),
+            2),
+        getSphereObj(
+            Transform(Vec3(0, 100, 2.0), Vec3(1), 0, Vec3(1)),
+            Vec3(0, 0, 0),
+            1),
+        getSphereObj(
+            Transform(Vec3(4, 120, 2.0), Vec3(1.0), 0, Vec3(1)),
+            Vec3(0, -100, 0),
+            3),
+    };
+    engine.AddObject<>(spheres[0]);
+    engine.AddObject<>(spheres[1]);
+    engine.AddObject<>(spheres[2]);
     class FpsText : public Object {
      public:
         void Update(float dt) override {

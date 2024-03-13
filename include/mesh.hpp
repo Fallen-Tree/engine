@@ -36,7 +36,8 @@ class Mesh {
 
     int getLenArrPoints();
 
-    Mesh *GetSphere();
+    static Mesh *GetSphere();
+    static Mesh *GetCube();
 
     Mesh Transformed(Transform tranform);
 
