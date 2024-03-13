@@ -16,6 +16,9 @@
 #include "light.hpp"
 #include "path_resolver.hpp"
 #include "sound.hpp"
+#include "rigid_body.hpp"
+#include "pretty_print.hpp"
+#include "images.hpp"
 
 extern Input *s_Input;
 
@@ -31,6 +34,8 @@ class Object {
      Animation *animation = nullptr;
      Text *text = nullptr;
      Sound *sound = nullptr;
+     RigidBody *rigidbody = nullptr;
+     Image *image = nullptr;
 
      // monostate is canonical c++ empty state in variant
      std::variant<DirLight*, PointLight*, SpotLight*, std::monostate> light

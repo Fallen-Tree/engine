@@ -23,6 +23,7 @@ add_library(ENGINE STATIC
             src/animation/animation.cpp
             src/physics/geometry_primitives.cpp
             src/physics/collisions.cpp
+            src/components/rigid_body.cpp
             src/components/render_data.cpp
             src/components/collider.cpp
             src/components/transform.cpp
@@ -31,6 +32,7 @@ add_library(ENGINE STATIC
             src/engine/time.cpp
             src/engine/path_resolver.cpp
             src/engine/math.cpp
+            src/images/images.cpp
 )
 
 add_subdirectory(thirdparty/glfw)

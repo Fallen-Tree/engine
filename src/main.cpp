@@ -6,6 +6,7 @@
 #include "collisions.hpp"
 #include "logger.hpp"
 #include "sound.hpp"
+#include <glm/gtx/string_cast.hpp>
 
 const char *cubeSource = "/cube2.obj";
 const char *catSource = "cat.obj";
@@ -17,63 +18,9 @@ const char *fragmentShaderSource = "standart.fshader";
 class MovingSphere : public Object {
  public:
     void Update(float dt) override {
-        if (!collider->Collide(*transform, m_Target->collider, *m_Target->transform)) {
-            transform->Translate(m_Speed * dt);
-        }
     }
-
-    MovingSphere(Object *target, Vec3 speed) {
-        m_Target = target;
-        m_Speed = speed;
-    }
- private:
-    Object *m_Target;
-    Vec3 m_Speed;
 };
 
-class Pointer : public Object {
- public:
-     Pointer(std::vector<Object *> objects, Camera *camera) {
-         m_Objects = objects;
-         m_Camera = camera;
-     }
-
-    void Update(float dt) override {
-        Ray ray = m_Camera->GetRayThroughScreenPoint({s_Input->MouseX(), s_Input->MouseY()});
-        Transform *target = nullptr;
-        float closest = std::numeric_limits<float>::max();
-        for (int i = 0; i < m_Objects.size(); i++) {
-            auto obj = m_Objects[i];
-            auto hit = obj->collider->RaycastHit(*obj->transform, ray);
-            if (hit && *hit < closest) {
-                target = obj->transform;
-                closest = *hit;
-            }
-        }
-        if (s_Input->IsKeyPressed(Key::MouseLeft))
-            m_CurrentTarget = target;
-
-        if (m_CurrentTarget != nullptr) {
-            Vec3 center = m_CurrentTarget->GetTranslation();
-            Vec3 closest = ray.origin + glm::dot(center - ray.origin, ray.direction) * ray.direction;
-            closest.y = center.y;
-            Vec3 onCircle = glm::normalize(closest - center) * m_CueDistance;
-            transform->SetTranslation(onCircle);
-
-            Vec3 toCenter = center - onCircle;
-            float angle = glm::acos(glm::dot(toCenter, ray.direction) / m_CueDistance);
-            transform->SetRotation(-glm::pi<float>()/2, glm::cross(Vec3{0.f, 1.f, 0.f}, toCenter));
-        }
-     }
-
- private:
-    float m_CueDistance = 1.f;
-    Transform *m_CurrentTarget = nullptr;
-    std::vector<Object *> m_Objects;
-    Camera *m_Camera;
-};
-
-Object* initModel();
 
 extern irrklang::ISoundEngine *SoundEngine;
 
@@ -138,22 +85,13 @@ int main() {
     Model * model = Model::loadFromFile(catSource);
 
     auto obj = new Object();
-    obj->renderData = new RenderData();
-    obj->renderData->model = model;
-    obj->renderData->model->shader = shaderProgram;
+    model->shader = shaderProgram;
+    obj->renderData = new RenderData(model,
+        {4.f, Texture("/Cat_diffuse.png", "/Cat_specular.png")});
 
-    obj->transform = new Transform(Vec3(0.f, -3.f, -8.f), Vec3(.1f, .1f, .1f), Mat4(1.0));
-    obj->transform->Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
-    auto render_data = obj->renderData;
-
-    bindRenderData(render_data);
-
-    obj->renderData->material = {
-        4.f,
-        Texture("/Cat_diffuse.png",
-                "/Cat_specular.png")
-    };
-    engine.AddObject<>(obj);
+    obj->collider = new Collider{Collider::GetDefaultAABB(model)};
+    obj->rigidbody = new RigidBody(100, Mat3(0), Vec3(0), 0, Vec3(0, -1000, 0),
+        Vec3(0), Vec3(1), 0.1);
 
     Material material = {
         4.f,
@@ -162,87 +100,58 @@ int main() {
 
     auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model) {
         auto obj = new Object();
-        obj->renderData = new RenderData();
-        auto renderData = obj->renderData;
-        renderData->model = model;
-        renderData->material = material;
-        bindRenderData(renderData);
+        model->shader = shaderProgram;
+        obj->renderData = new RenderData(model, material);
 
         obj->transform = new Transform(transform);
         obj->collider = new Collider { primitive };
+        obj->rigidbody = new RigidBody(0, Mat4(0), Vec3(0), 3, Vec3(0), Vec3(0),
+            Vec3(0), 0.0001);
         engine.AddObject<>(obj);
         return obj;
     };
 
     auto aabb = setUpObj(
-        Transform(Vec3(-4, 0, -3), Vec3(1.0), 0, Vec3(1)),
+        Transform(Vec3(0, -31, 0), Vec3(50), 0, Vec3(1)),
         AABB {
             Vec3{-0.5, -0.5, -0.5},
             Vec3{0.5, 0.5, 0.5},
         },
         cubeModel);
 
-    auto sphere = setUpObj(
-        Transform(Vec3(0, 0, -3), Vec3(1.0), 0, Vec3(1)),
-        Sphere { Vec3(0.0), 1.0f },
-        sphereModel);
-
-    auto mesh = setUpObj(
-        Transform(Vec3(4.0, 0, -3), Vec3(1.0), 0, Vec3(1)),
-        sphereModel,
-        sphereModel);
-
-    auto getSphereObj = [=](Transform transform, Object *target, Vec3 speed) {
-        auto obj = new MovingSphere(target, speed);
-        obj->renderData = new RenderData();
-        auto renderData = obj->renderData;
-        renderData->model = sphereModel;
-        renderData->material = material;
-        bindRenderData(renderData);
+    auto getSphereObj = [=](Transform transform, Vec3 speed, float mass) {
+        auto obj = new MovingSphere();
+        obj->renderData = new RenderData(sphereModel, material);
+        obj->renderData->model->shader = shaderProgram;
 
         obj->transform = new Transform(transform);
 
-        obj->collider = new Collider{AABB {
-            Vec3{-1, -1, -1},
-            Vec3{1, 1, 1},
+        obj->collider = new Collider{Sphere{
+            Vec3(0),
+            1,
         }};
+        obj->rigidbody = new RigidBody(mass, IBodySphere(1, 20),
+                speed, 0, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.0005);
         return obj;
     };
 
     Object *spheres[3] = {
         getSphereObj(
-            Transform(Vec3(-4, 0, 2.0), Vec3(1.0), 0, Vec3(1)),
-            aabb,
-            Vec3(0, 0, -1)),
+            Transform(Vec3(-2, 100, 2.0), Vec3(1), 0, Vec3(1)),
+            Vec3(1, 0, 0),
+            2),
         getSphereObj(
-            Transform(Vec3(0, 0, 2.0), Vec3(1.0), 0, Vec3(1)),
-            sphere,
-            Vec3(0, 0, -1)),
+            Transform(Vec3(0, 100, 2.0), Vec3(1), 0, Vec3(1)),
+            Vec3(0, 0, 0),
+            1),
         getSphereObj(
-            Transform(Vec3(4, 0, 2.0), Vec3(1.0), 0, Vec3(1)),
-            mesh,
-            Vec3(0, 0, -1)),
+            Transform(Vec3(4, 120, 2.0), Vec3(1.0), 0, Vec3(1)),
+            Vec3(0, -100, 0),
+            3),
     };
     engine.AddObject<>(spheres[0]);
     engine.AddObject<>(spheres[1]);
     engine.AddObject<>(spheres[2]);
-
-    auto observer = new Pointer(
-        {spheres[0], spheres[1], spheres[2], aabb, sphere},
-        engine.camera);
-
-    observer->renderData = new RenderData();
-    auto renderData = observer->renderData;
-    renderData->model = Model::loadFromFile("/kiy.obj");
-    renderData->model->shader = shaderProgram;
-    bindRenderData(renderData);
-
-    observer->transform = new Transform(Vec3(0), Vec3(1), 0, Vec3(1));
-    observer->renderData->material = {
-        4.f,
-        Texture("/kiy.png")
-    };
-    engine.AddObject<>(observer);
 
     class FpsText : public Object {
      public:
@@ -256,25 +165,22 @@ int main() {
 
     auto textOcra = new Font("OCRAEXT.TTF", 20);
     auto fpsObj = new FpsText();
-    fpsObj->text = new Text(textOcra, "", 685.0f, 575.0f, 1.f, Vec3(0, 0, 0));
+    fpsObj->text = new Text(textOcra, "", 0.85, 0.96, 1.0, Vec3(0, 0, 0));
     engine.AddObject<>(fpsObj);
 
 
     // Sphere just for updating movement
-    auto musicObject1 = getSphereObj(
-            Transform(Vec3(6, 0, 2.0), Vec3(1.0), 0, Vec3(1)),
-            mesh,
-            Vec3(0, 0, -1));
+    auto musicObject1 = new Object();
     musicObject1->sound = new Sound(SOUND_FLAT, "georgian_disco.mp3");
     musicObject1->sound->SetVolume(0.2f);
     musicObject1->sound->Start();
     engine.AddObject<>(musicObject1);
 
     // Sphere just for updating movement
-    auto musicObject2 = getSphereObj(
-            Transform(Vec3(-4, 0, 2.0), Vec3(1.0), 0, Vec3(1)),
-            mesh,
-            Vec3(0, 0, -1));
+    Object* musicObject2 = getSphereObj(
+            Transform(Vec3(-4, 100, 2.0), Vec3(1.0), 0, Vec3(1)),
+            Vec3(0, -100, 0),
+            3);
     musicObject2->sound = new Sound(SOUND_3D, "explosion.wav");
     musicObject2->sound->SetRadius(20.f);
     musicObject2->sound->Loop();
@@ -282,6 +188,14 @@ int main() {
 
     engine.AddObject<>(musicObject2);
 
+
+    Object* healthBar1 = new Object();
+    healthBar1->image = new Image("hp.png", 0.03, 0.15, 0.4);
+    engine.AddObject<>(healthBar1);
+
+    Object* healthBar2 = new Object();
+    healthBar2->image = new Image("hp_bar.png", 0.015, 0.01, 0.4);
+    engine.AddObject<>(healthBar2);
 
     // init light objects
     Object* pointLight1 = new Object();

@@ -1,12 +1,13 @@
 #include "render_data.hpp"
 #include "logger.hpp"
 
+
 /*
     Assuming that pattern of every point is: point, normal, texturecoord
 
     IF YOU WANT TO CHANGE PATTERN, CHANGE IT IN COLLIDER TOO!!!
 */
-void bindRenderData(RenderData* render_data) {
+void RenderData::bindRenderData(RenderData* render_data) {
     if (!render_data || !render_data->model) {
         Logger::Error("RENDER_DATA::BINDER::RENDER_DATA_OR_MODEL_ARE_NULL");
     }

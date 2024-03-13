@@ -18,6 +18,7 @@
 #include "logger.hpp"
 #include "collisions.hpp"
 #include "animation.hpp"
+#include "rigid_body.hpp"
 #include <glm/gtx/string_cast.hpp>
 
 
@@ -173,13 +174,46 @@ void Engine::Run() {
     return;
 }
 
-
 void Engine::updateObjects(float deltaTime) {
+    // system which detect all collisions of physics object
+    auto size = m_Objects.size();
+    for (int i = 0; i < size - 1; i++) {
+        if (!m_Objects[i]->rigidbody)
+            continue;
+        auto obj = m_Objects[i];
+        if (!obj->collider || !obj->transform) {
+            Logger::Error(
+                    "ENGINE::UPDATE_OBJECTS::RIGID_BODY_SHOULD_HAVE_COLLIDER_TRANSFORM : %d"
+                    , i);
+            continue;
+        }
+        for (int j = i + 1; j < size; j++) {
+            if (!m_Objects[j]->rigidbody)
+                continue;
+            auto other = m_Objects[j];
+            if (!other->collider || !other->transform) {
+                Logger::Error(
+                    "ENGINE::UPDATE_OBJECTS::RIGID_BODY_SHOULD_HAVE_COLLIDER_TRANSFORM : %d"
+                    , j);
+                continue;
+            }
+            if (obj->collider->Collide(*obj->transform, other->collider, *other->transform)) {
+                obj->rigidbody->ResolveCollisions(
+                        *obj->transform, *other->transform,
+                        obj->collider, other->collider,
+                        other->rigidbody, deltaTime);
+            }
+        }
+    }
+
     for (int i = 0; i < m_Objects.size(); i++) {
         auto object = m_Objects[i];
         object->Update(deltaTime);
         if (object->animation) {
             object->animation->applyAnimations(object->transform, deltaTime);
+        }
+        if (object->rigidbody) {
+            object->rigidbody->Update(object->transform, deltaTime);
         }
     }
 }
@@ -298,7 +332,15 @@ void Engine::Render(int scr_width, int scr_height) {
         glDrawElements(GL_TRIANGLES, model->getLenIndices(), GL_UNSIGNED_INT, 0);
     }
 
-    // Text and Sounds rendering
+    for (uint64_t i = 0; i < m_Objects.size(); i++) {
+        auto object = m_Objects[i];
+        if (!object->image) {
+            continue;
+        }
+
+        object->image->Render();
+    }
+
     for (uint64_t i = 0; i < m_Objects.size(); i++) {
         auto object = m_Objects[i];
         if (object->text) {

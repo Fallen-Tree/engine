@@ -21,6 +21,9 @@ std::string GetResourcePath(Resource resource, std::string filename) {
         case Resource::SOUND:
             prefix = "/audio/";
             break;
+        case Resource::IMAGE:
+            prefix = "/images/";
+            break;
         default:
             Logger::Error("LOADER::Can't find such resource type");
             return "";

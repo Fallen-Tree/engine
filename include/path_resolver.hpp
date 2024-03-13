@@ -10,7 +10,8 @@ enum class Resource {
     FSHADER,
     VSHADER,
     TEXTURE,
-    SOUND
+    SOUND,
+    IMAGE
 };
 
 std::string GetResourcePath(Resource resource, std::string filename);
