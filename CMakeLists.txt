@@ -49,7 +49,12 @@ if (UNIX)
         ${CMAKE_SOURCE_DIR}/thirdparty/irrKlang/ikpMP3.so 
         OpenGL::GL)
 
-    add_custom_target(IRRKLANG ALL COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/thirdparty/irrKlang/ ${CMAKE_BINARY_DIR}/)
+    add_custom_command (
+        TARGET ENGINE
+        POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+        "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/irrKlang/ikpMP3.so" 
+        "$<TARGET_FILE_DIR:ENGINE>/ikpMP3.so"
+    )
 
 else()
     target_link_libraries(ENGINE PUBLIC glfw glad freetype ${CMAKE_SOURCE_DIR}/thirdparty/irrKlang/irrKlang.lib OpenGL::GL)
