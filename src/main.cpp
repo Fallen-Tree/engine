@@ -26,81 +26,42 @@ extern irrklang::ISoundEngine *SoundEngine;
 int main() {
     auto engine = Engine();
 
-    std::vector<GLfloat> cubeVertices {
-          // positions          // normals           // texture coords
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
-    };
-
     Shader vShader = Shader(VertexShader, vertexShaderSource);
     Shader fShader = Shader(FragmentShader, fragmentShaderSource);
+
     ShaderProgram *shaderProgram = new ShaderProgram(vShader, fShader);
 
-    // ShaderProgram shaderProgram = ShaderProgram(vShader, fShader2);
     // init a model
-    Model *cubeModel = new Model(cubeVertices, 8);
-    cubeModel->shader = shaderProgram;
-    Model *sphereModel = Model::GetSphere();
-    sphereModel->shader = shaderProgram;
     Model * model = Model::loadFromFile(catSource);
-
-    auto obj = new Object();
     model->shader = shaderProgram;
-    obj->renderData = new RenderData(model,
-        {4.f, Texture("/Cat_diffuse.png", "/Cat_specular.png")});
-
-    obj->collider = new Collider{Collider::GetDefaultAABB(model)};
+    auto obj = new Object();
+    Material cat_material = {
+        4.f,
+        Texture("/Cat_diffuse.png", "/Cat_specular.png")
+    };
+    model->setMaterial(cat_material);
+    obj->model = model;
+    obj->transform = new Transform(Vec3(0.f, -3.f, -8.f), Vec3(.1f, .1f, .1f), Mat4(1.0));
+    obj->transform->Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
+    obj->collider = new Collider{Collider::GetDefaultAABB(&model->meshes[0])};
     obj->rigidbody = new RigidBody(100, Mat3(0), Vec3(0), 0, Vec3(0, -1000, 0),
         Vec3(0), Vec3(1), 0.1);
+
+    engine.AddObject<>(obj);
 
     Material material = {
         4.f,
         Texture("/wall.png", "/wallspecular.png")
     };
+    Model *sphereModel = Model::fromMesh(Mesh::GetSphere(), material);
+    Model *cubeModel = Model::fromMesh(Mesh::GetCube(), material);
+    sphereModel->shader = shaderProgram;
+    cubeModel->shader = shaderProgram;
 
     auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model) {
         auto obj = new Object();
+        obj->model = model;
         model->shader = shaderProgram;
-        obj->renderData = new RenderData(model, material);
 
         obj->transform = new Transform(transform);
         obj->collider = new Collider { primitive };
@@ -109,6 +70,7 @@ int main() {
         engine.AddObject<>(obj);
         return obj;
     };
+
 
     auto aabb = setUpObj(
         Transform(Vec3(0, -31, 0), Vec3(50), 0, Vec3(1)),
@@ -120,11 +82,9 @@ int main() {
 
     auto getSphereObj = [=](Transform transform, Vec3 speed, float mass) {
         auto obj = new MovingSphere();
-        obj->renderData = new RenderData(sphereModel, material);
-        obj->renderData->model->shader = shaderProgram;
-
         obj->transform = new Transform(transform);
 
+        obj->model = sphereModel;
         obj->collider = new Collider{Sphere{
             Vec3(0),
             1,
@@ -151,7 +111,6 @@ int main() {
     engine.AddObject<>(spheres[0]);
     engine.AddObject<>(spheres[1]);
     engine.AddObject<>(spheres[2]);
-
     class FpsText : public Object {
      public:
         void Update(float dt) override {

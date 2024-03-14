@@ -12,8 +12,8 @@ add_library(ENGINE STATIC
             src/engine.cpp
             src/animation/animation.cpp
             src/shaders/shaders.cpp
+            src/model/mesh.cpp
             src/model/model.cpp
-            src/model/modelLoader.cpp
             src/input/input.cpp
             src/texture/stb_image.cpp
             src/texture/texture.cpp
@@ -38,8 +38,17 @@ add_library(ENGINE STATIC
 add_subdirectory(thirdparty/glfw)
 add_subdirectory(thirdparty/glad)
 add_subdirectory(thirdparty/freetype/freetype)
+SET(BUILD_SHARED_LIBS OFF)
+SET(ASSIMP_NO_EXPORT ON)
+SET(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF)
+SET(ASSIMP_BUILD_OBJ_IMPORTER ON)
+SET(ASSIMP_WARNINGS_AS_ERRORS OFF)
+SET(ASSIMP_BUILD_SAMPLES OFF)
+SET(ASSIMP_BUILD_TESTS OFF)
+add_subdirectory(thirdparty/assimp/assimp)
 
 target_include_directories(ENGINE PUBLIC thirdparty PUBLIC include)
+
 target_include_directories(ENGINE PUBLIC thirdparty/irrKlang/include)
 
 if (UNIX)
@@ -81,6 +90,8 @@ else()
         "$<TARGET_FILE_DIR:ENGINE>/ikpMP3.dll"
     )
 endif()
+
+target_link_libraries(ENGINE PUBLIC glfw glad freetype assimp OpenGL::GL)
 
 add_executable(main src/main.cpp)
 target_link_libraries(main PUBLIC ENGINE)

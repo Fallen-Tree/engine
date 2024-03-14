@@ -198,21 +198,21 @@ bool CollidePrimitive(Triangle t1, Triangle t2) {
 
 // There should be an overload CollidePrimitive(T, Triangle);
 template<typename T>
-bool CollideModelAt(T t, Model *model, Transform transform) {
+bool CollideMeshAt(T t, Mesh *mesh, Transform transform) {
     // WARNING: This makes assumptions about data layout
-    Mat4 modelMat = glm::transpose(transform.GetTransformMatrix());
+    Mat4 meshMat = glm::transpose(transform.GetTransformMatrix());
     int stride = 8;
     auto loadPos = [=](int i) {
-        int id = model->getIndices()[i];
+        int id = mesh->getIndices()[i];
         Vec4 res = Vec4 {
-            model->getPoints()[id * stride],
-            model->getPoints()[id * stride + 1],
-            model->getPoints()[id * stride + 2],
+            mesh->getPoints()[id * stride],
+            mesh->getPoints()[id * stride + 1],
+            mesh->getPoints()[id * stride + 2],
             1.0
-        } * modelMat;
+        } * meshMat;
         return Vec3{ res.x / res.w, res.y / res.w, res.z / res.w };
     };
-    for (int i = 0; i < model->getLenIndices(); i+=3) {
+    for (int i = 0; i < mesh->getLenIndices(); i+=3) {
         Triangle tri = Triangle(loadPos(i), loadPos(i + 1), loadPos(i + 2));
         if (CollidePrimitive(t, tri)) {
             return true;
@@ -220,27 +220,27 @@ bool CollideModelAt(T t, Model *model, Transform transform) {
     }
     return false;
 }
-template bool CollideModelAt<AABB>(AABB, Model *, Transform);
-template bool CollideModelAt<Sphere>(Sphere, Model *, Transform);
-template bool CollideModelAt<Triangle>(Triangle, Model *, Transform);
+template bool CollideMeshAt<AABB>(AABB, Mesh *, Transform);
+template bool CollideMeshAt<Sphere>(Sphere, Mesh *, Transform);
+template bool CollideMeshAt<Triangle>(Triangle, Mesh *, Transform);
 
-bool CollideModels(Model *model, Transform transform, Model *model2, Transform transform2) {
+bool CollideMeshes(Mesh *mesh, Transform transform, Mesh *mesh2, Transform transform2) {
     // WARNING: This makes assumptions about data layout
-    Mat4 modelMat = glm::transpose(transform.GetTransformMatrix());
+    Mat4 meshMat = glm::transpose(transform.GetTransformMatrix());
     int stride = 8;
     auto loadPos = [=](int i) {
-        int id = model->getIndices()[i];
+        int id = mesh->getIndices()[i];
         Vec4 res = Vec4 {
-            model->getPoints()[id * stride],
-            model->getPoints()[id * stride + 1],
-            model->getPoints()[id * stride + 2],
+            mesh->getPoints()[id * stride],
+            mesh->getPoints()[id * stride + 1],
+            mesh->getPoints()[id * stride + 2],
             1.0
-        } * modelMat;
+        } * meshMat;
         return Vec3{ res.x / res.w, res.y / res.w, res.z / res.w };
     };
-    for (int i = 0; i < model->getLenIndices(); i+=3) {
+    for (int i = 0; i < mesh->getLenIndices(); i+=3) {
         Triangle tri = Triangle(loadPos(i), loadPos(i + 1), loadPos(i + 2));
-        if (CollideModelAt(tri, model2, transform2)) {
+        if (CollideMeshAt(tri, mesh2, transform2)) {
             return true;
         }
     }
@@ -374,31 +374,31 @@ Vec3 CollisionNormal(Sphere sph1, Sphere sph2,
 }
 
 // TODO(solloballon): make this operation with Model
-Vec3 CollisionNormal(AABB, Model*, Transform, Transform, Vec3, float) {
+Vec3 CollisionNormal(AABB, Mesh*, Transform, Transform, Vec3, float) {
     Logger::Warn(
             "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
     return Vec3(0);
 }
 
-Vec3 CollisionNormal(Model*, AABB, Transform, Transform, Vec3, float) {
+Vec3 CollisionNormal(Mesh*, AABB, Transform, Transform, Vec3, float) {
     Logger::Warn(
             "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
     return Vec3(0);
 }
 
-Vec3 CollisionNormal(Sphere, Model*, Transform, Transform, Vec3, float) {
+Vec3 CollisionNormal(Sphere, Mesh*, Transform, Transform, Vec3, float) {
     Logger::Warn(
             "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
     return Vec3(0);
 }
 
-Vec3 CollisionNormal(Model*, Sphere, Transform, Transform, Vec3, float) {
+Vec3 CollisionNormal(Mesh*, Sphere, Transform, Transform, Vec3, float) {
     Logger::Warn(
             "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
     return Vec3(0);
 }
 
-Vec3 CollisionNormal(Model*, Model*, Transform, Transform, Vec3, float) {
+Vec3 CollisionNormal(Mesh*, Mesh*, Transform, Transform, Vec3, float) {
     Logger::Warn(
             "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
     return Vec3(0);
