@@ -31,7 +31,7 @@ int main() {
     auto obj = new Object();
     Material cat_material = {
         4.f,
-        Texture("/cat_diffuse.png", "/cat_specular.png")
+        Texture("/Cat_diffuse.png", "/Cat_specular.png")
     };
     model->setMaterial(cat_material);
     obj->model = model;
