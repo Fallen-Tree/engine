@@ -52,7 +52,7 @@ if (UNIX)
     add_custom_command (
         TARGET ENGINE
         POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different 
-        "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/irrKlang/ikpMP3.so" 
+        "${CMAKE_SOURCE_DIR}/thirdparty/irrKlang/ikpMP3.so" 
         "$<TARGET_FILE_DIR:ENGINE>/ikpMP3.so"
     )
 
