@@ -14,6 +14,7 @@
 #include "logger.hpp"
 #include "time.hpp"
 #include "light.hpp"
+#include "model.hpp"
 #include "path_resolver.hpp"
 #include "rigid_body.hpp"
 #include "pretty_print.hpp"
@@ -28,7 +29,7 @@ class Object {
      virtual void Update(float) {}
 
      Transform *transform = nullptr;
-     RenderData *renderData = nullptr;
+     Model *model = nullptr;
      Collider *collider = nullptr;
      Animation *animation = nullptr;
      Text *text = nullptr;

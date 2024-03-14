@@ -4,3 +4,6 @@
 [submodule "thirdparty/freetype/freetype"]
 	path = thirdparty/freetype/freetype
 	url = git@github.com:freetype/freetype.git
+[submodule "assimp"]
+	path = thirdparty/assimp/assimp
+	url = https://github.com/assimp/assimp.git

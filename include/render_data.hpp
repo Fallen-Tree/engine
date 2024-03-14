@@ -1,26 +1,20 @@
 #pragma once
 
-#include "model.hpp"
-#include "material.hpp"
+#include<vector>
 
-struct RenderData {
-    // TODO(theblek): Replace w/ proper resource-management system w/ handles
-    Model *model;
+#include "material.hpp"
+#include "mesh.hpp"
+
+class RenderMesh : public Mesh {
+ public:
     Material material;
     unsigned int VAO, VBO, EBO;
 
-    explicit RenderData(Model* model) {
-        this->model = model;
-        bindRenderData(this);
-    }
+    void setMaterial(Material material);
 
-    RenderData(Model* model, Material material) {
-        this->model = model;
-        this->material = material;
-        bindRenderData(this);
-    }
+    RenderMesh(std::vector<float> points, std::vector<unsigned int> indices, Material material);
 
-    void bindRenderData(RenderData*);
+    RenderMesh(Mesh *mesh, Material material);
 };
 
-
+void bindRenderData(RenderMesh*);

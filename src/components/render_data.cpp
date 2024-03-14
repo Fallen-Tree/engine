@@ -1,15 +1,38 @@
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
 #include "render_data.hpp"
 #include "logger.hpp"
 
+RenderMesh::RenderMesh(std::vector<float> points, std::vector<unsigned int> indices, Material material) {
+    this->setPoints(points);
+    this->setIndices(indices);
+    this->material = material;
+
+    bindRenderData(this);
+}
+
+RenderMesh::RenderMesh(Mesh *mesh, Material material) {
+    this->setPoints(mesh->getVecPoints());
+    this->setIndices(mesh->getVecIndices());
+    this->material = material;
+
+    bindRenderData(this);
+}
+
+void RenderMesh::setMaterial(Material material) {
+    this->material = material;
+    bindRenderData(this);
+}
 
 /*
     Assuming that pattern of every point is: point, normal, texturecoord
 
     IF YOU WANT TO CHANGE PATTERN, CHANGE IT IN COLLIDER TOO!!!
 */
-void RenderData::bindRenderData(RenderData* render_data) {
-    if (!render_data || !render_data->model) {
-        Logger::Error("RENDER_DATA::BINDER::RENDER_DATA_OR_MODEL_ARE_NULL");
+void bindRenderData(RenderMesh* render_data) {
+    if (!render_data) {
+        Logger::Error("RENDER_DATA::BINDER::RENDER_MESH_ARE_NULL");
     }
     glGenVertexArrays(1, &render_data->VAO);
     glGenBuffers(1, &render_data->VBO);
@@ -23,15 +46,15 @@ void RenderData::bindRenderData(RenderData* render_data) {
     glBindBuffer(GL_ARRAY_BUFFER, render_data->VBO);
     glBufferData(
         GL_ARRAY_BUFFER,
-        render_data->model->getLenArrPoints() * sizeof(float),
-        render_data->model->getPoints(),
+        render_data->getLenArrPoints() * sizeof(float),
+        render_data->getPoints(),
         GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_data->EBO);
     glBufferData(
         GL_ELEMENT_ARRAY_BUFFER,
-        render_data->model->getLenIndices() * sizeof(unsigned int),
-        render_data->model->getIndices(),
+        render_data->getLenIndices() * sizeof(unsigned int),
+        render_data->getIndices(),
         GL_STATIC_DRAW);
 
 
