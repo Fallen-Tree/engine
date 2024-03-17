@@ -39,7 +39,7 @@ void SetIbodyInverse(Mat3 iBody);
 
 void ApplyTorque(Vec3 force, Vec3 r);
 
-void SetTorque(Vec3 force, Vec3 r);
+void LimitTorque(Vec3 force, Vec3 r);
 
 private:
  void LinearCalculation(Transform *transform, float dt);

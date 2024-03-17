@@ -35,4 +35,6 @@
 
 
 // rigid body
-#define TORQUE_RATIO                100000
+#define TORQUE_RATIO                1000
+#define TORQUE_SMOTHNESS            0.9f 
+// in [0,1]; the more higher the smoother 

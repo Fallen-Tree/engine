@@ -90,16 +90,16 @@ int main() {
 
     Object *spheres[3] = {
         getSphereObj(
-            Transform(Vec3(-2, 100, 2.0), Vec3(1), 0, Vec3(1)),
+            Transform(Vec3(-2, 0, 2.0), Vec3(1), 0, Vec3(1)),
             Vec3(1, 0, 0),
-            2),
+            1),
         getSphereObj(
-            Transform(Vec3(0, 100, 2.0), Vec3(1), 0, Vec3(1)),
+            Transform(Vec3(0, 0, 2.0), Vec3(1), 0, Vec3(1)),
             Vec3(0, 0, 0),
             1),
         getSphereObj(
-            Transform(Vec3(4, 120, 2.0), Vec3(1.0), 0, Vec3(1)),
-            Vec3(0, -100, 0),
+            Transform(Vec3(4, -3, 2.0), Vec3(1.0), 0, Vec3(1)),
+            Vec3(0, 0, 0),
             3),
     };
     engine.AddObject<>(spheres[0]);

@@ -1,10 +1,13 @@
 #include "rigid_body.hpp"
 #include "logger.hpp"
+#include "time.hpp"
 #include "math.h"
+#include "pretty_print.hpp"
 #include "engine_config.hpp"
 #include "user_config.hpp"
 #include "collider.hpp"
 #include <glm/gtx/string_cast.hpp>
+#include <GLFW/glfw3.h>
 
 Mat3 IBodySphere(float radius, float mass) {
     return Mat3(2.f/5 * mass * radius * radius);
@@ -75,7 +78,7 @@ void RigidBody::AngularCalculation(Transform *transform, float dt) {
     Mat3 Iinverse = rotation * ibodyInverse * glm::transpose(rotation);
     Vec3 L = m_Torque * dt;
     Vec3 omega = Iinverse * L;
-    auto angle = omega * angularUnlock * dt;
+    auto angle = omega * angularUnlock;
     transform->Rotate(angle.x, angle.y, angle.z);
 }
 
@@ -83,15 +86,16 @@ void RigidBody::ApplyTorque(Vec3 force, Vec3 r) {
     m_Torque += glm::cross(force, r) * static_cast<float>(TORQUE_RATIO);
 }
 
-void RigidBody::SetTorque(Vec3 force, Vec3 r) {
-    m_Torque = glm::cross(force, r) * static_cast<float>(TORQUE_RATIO);
+void RigidBody::LimitTorque(Vec3 force, Vec3 r) {
+    Vec3 torque = glm::cross(force, r) * static_cast<float>(TORQUE_RATIO);
+    m_Torque = TORQUE_SMOTHNESS * m_Torque + (1 - TORQUE_SMOTHNESS) * torque;
 }
 
 void RigidBody::ComputeFriction(Vec3 normalForce, float friction, Vec3 r) {
     Vec3 force = -Norm(velocity) * glm::length(friction * normalForce);
 
     m_ResForce += force;
-    SetTorque(force, r);
+    LimitTorque(force, r);
 }
 
 Vec3 ImpulseForce(RigidBody *rigidBody, RigidBody *otherRigidBody,
@@ -155,7 +159,7 @@ void RigidBody::ComputeForceTorque(Transform tranform, Transform otherTransform,
     otherRigidBody->m_ResForce += otherNormalForce;
 
     // Compute friction
-    if (velAlongNormal == 0) {
+    if ((int)velAlongNormal == 0) {
         auto friction = std::max(kineticFriction,
                 otherRigidBody->kineticFriction);
         ComputeFriction(normalForce, friction, r1);
