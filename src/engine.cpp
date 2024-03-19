@@ -334,7 +334,7 @@ void Engine::updateObjects(float deltaTime) {
         }
         m_RigidBodies.GetData(handle).Update(&m_Transforms.GetData(handle), deltaTime);
     }
-    
+
     for (auto behaviour : m_Behaviours) {
         behaviour->Update(deltaTime);
     }

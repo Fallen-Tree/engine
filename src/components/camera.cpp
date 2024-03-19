@@ -45,7 +45,6 @@ Mat4 Camera::GetProjectionMatrix() {
 }
 
 Ray Camera::GetRayThroughScreenPoint(Vec2 pos) {
-    pos = m_ScreenSize / 2.0f;
     pos.y = m_ScreenSize.y - pos.y;
     pos -= m_ScreenSize / 2.0f;
     float halfTan = glm::tan(glm::radians(m_Zoom)/2);
