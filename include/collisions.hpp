@@ -1,7 +1,7 @@
 #pragma once
 #include <optional>
 #include "geometry_primitives.hpp"
-#include "model.hpp"
+#include "mesh.hpp"
 
 bool CollidePrimitive(AABB, AABB);
 bool CollidePrimitive(Sphere, Sphere);
@@ -20,11 +20,21 @@ bool CollidePrimitive(Triangle, Sphere);
 bool CollidePrimitive(Sphere, Triangle);
 
 template<typename T>
-bool CollideModelAt(T t, Model *model, Transform transform);
-bool CollideModels(Model *model, Transform transform, Model *model2, Transform transform2);
+bool CollideMeshAt(T t, Mesh *mesh, Transform transform);
+bool CollideMeshes(Mesh *mesh, Transform transform, Mesh *mesh2, Transform transform2);
 
 bool CollidePrimitive(Ray, Sphere);
 bool CollidePrimitive(Ray, AABB);
 
 std::optional<float> CollisionPrimitive(Ray, Sphere);
 std::optional<float> CollisionPrimitive(Ray, AABB);
+
+Vec3 CollisionNormal(AABB, AABB,     Transform, Transform, Vec3, float);
+Vec3 CollisionNormal(Sphere, AABB,   Transform, Transform, Vec3, float);
+Vec3 CollisionNormal(AABB, Sphere,   Transform, Transform, Vec3, float);
+Vec3 CollisionNormal(AABB, Mesh*,    Transform, Transform, Vec3, float);
+Vec3 CollisionNormal(Mesh*, AABB,    Transform, Transform, Vec3, float);
+Vec3 CollisionNormal(Sphere, Sphere, Transform, Transform, Vec3, float);
+Vec3 CollisionNormal(Sphere, Mesh*,  Transform, Transform, Vec3, float);
+Vec3 CollisionNormal(Mesh*, Sphere,  Transform, Transform, Vec3, float);
+Vec3 CollisionNormal(Mesh*, Mesh*,  Transform, Transform, Vec3, float);

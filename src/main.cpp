@@ -4,7 +4,7 @@
 #include "behaviour.hpp"
 #include "collisions.hpp"
 #include "logger.hpp"
-#include "render_data.hpp"
+#include <glm/gtx/string_cast.hpp>
 
 const char *cubeSource = "/cube2.obj";
 const char *catSource = "/cat.obj";
@@ -16,20 +16,7 @@ const char *fragmentShaderSource = "/standart.fshader";
 class MovingSphere : public Behaviour {
  public:
     void Update(float dt) override {
-        if (!m_Target.IsValid()) return;
-        if (!self.GetCollider()->Collide(*self.GetTransform(), m_Target.GetCollider(), *m_Target.GetTransform())) {
-            self.GetTransform()->Translate(m_Speed * dt);
-        } else {
-            m_Target.Remove();
-        }
     }
-
-    MovingSphere(Object target, Vec3 speed) : m_Target(target) {
-        m_Speed = speed;
-    }
- private:
-    Object m_Target;
-    Vec3 m_Speed;
 };
 
 class Pointer : public Behaviour {
@@ -79,155 +66,80 @@ class Pointer : public Behaviour {
 int main() {
     auto engine = Engine();
 
-    std::vector<GLfloat> cubeVertices {
-          // positions          // normals           // texture coords
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
-    };
-
     Shader vShader = Shader(VertexShader, vertexShaderSource);
     Shader fShader = Shader(FragmentShader, fragmentShaderSource);
+
     ShaderProgram *shaderProgram = new ShaderProgram(vShader, fShader);
 
     // init a model
-    Model *cubeModel = new Model(cubeVertices, 8);
-    cubeModel->shader = shaderProgram;
-    Model *sphereModel = Model::GetSphere();
-    sphereModel->shader = shaderProgram;
-    Model *model = Model::loadFromFile(catSource);
+    Model * model = Model::loadFromFile(catSource);
     model->shader = shaderProgram;
+    Material cat_material = {
+        4.f,
+        Texture("/Cat_diffuse.png", "/Cat_specular.png")
+    };
+    model->setMaterial(cat_material);
+    auto obj = engine.NewObject();
+    obj.AddModel(*model);
+    auto &t = obj.AddTransform(Vec3(0.f, -3.f, -8.f), Vec3(.1f, .1f, .1f), Mat4(1.0));
+    t.Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
+    obj.AddCollider(Collider::GetDefaultAABB(&model->meshes[0]));
+    obj.AddRigidBody(100, Mat3(0), Vec3(0), 0, Vec3(0, -1000, 0),
+        Vec3(0), Vec3(1), 0.1);
 
     Material material = {
         4.f,
         Texture("/wall.png", "/wallspecular.png")
     };
+    Model *sphereModel = Model::fromMesh(Mesh::GetSphere(), material);
+    Model *cubeModel = Model::fromMesh(Mesh::GetCube(), material);
+    sphereModel->shader = shaderProgram;
+    cubeModel->shader = shaderProgram;
 
-    {
+    auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model) {
         auto obj = engine.NewObject();
-        RenderData &renderData = obj.AddRenderData();
-        renderData.model = model;
+        obj.AddModel(*model);
 
-        auto &transform = obj.AddTransform(Vec3(0.f, -3.f, -8.f), Vec3(.1f, .1f, .1f), Mat4(1.0));
-        transform.Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
-        bindRenderData(&renderData);
+        obj.AddTransform(transform);
+        obj.AddCollider(primitive);
+        obj.AddRigidBody(0, Mat4(0), Vec3(0), 3, Vec3(0), Vec3(0), Vec3(0), 0.0001);
+        return obj;
+    };
 
-        renderData.material = {
-            4.f,
-            Texture("/Cat_diffuse.png",
-                    "/Cat_specular.png")
-        };
-    }
 
-    auto aabb = engine.NewObject();
-    aabb.AddTransform(Vec3(-4, 0, -3), Vec3(1), 0.0f, Vec3(1));
-    aabb.AddCollider(AABB { Vec3{-0.5, -0.5, -0.5}, Vec3{0.5, 0.5, 0.5} });
-    {
-        auto &renderData = aabb.AddRenderData();
-        renderData.model = cubeModel;
-        renderData.material = material;
-        bindRenderData(&renderData);
-    }
+    auto aabb = setUpObj(
+        Transform(Vec3(0, -31, 0), Vec3(50), 0, Vec3(1)),
+        AABB {
+            Vec3{-0.5, -0.5, -0.5},
+            Vec3{0.5, 0.5, 0.5},
+        },
+        cubeModel);
 
-    auto sphereCollider = engine.NewObject();
-    sphereCollider.AddTransform(Vec3(0, 0, -3), Vec3(1), 0.0f, Vec3(1));
-    sphereCollider.AddCollider(Sphere { Vec3(0.0), 1.0f });
-    {
-        auto &renderData = sphereCollider.AddRenderData();
-        renderData.model = sphereModel;
-        renderData.material = material;
-        bindRenderData(&renderData);
-    }
+    auto getSphereObj = [=, &engine](Transform transform, Vec3 speed, float mass) {
+        auto obj = engine.NewObject();
+        obj.AddTransform(transform);
+        obj.AddModel(*sphereModel);
+        obj.AddCollider(Sphere{ Vec3(0), 1 });
+        obj.AddRigidBody(mass, IBodySphere(1, 20),
+                speed, 0, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.0005);
+        obj.AddBehaviour<MovingSphere>();
+        return obj;
+    };
 
-        auto mesh = engine.NewObject();
-        mesh.AddTransform(Vec3(4, 0, -3), Vec3(1), 0.0f, Vec3(1));
-        mesh.AddCollider(sphereModel);
-    {
-        auto &renderData = mesh.AddRenderData();
-        renderData.model = sphereModel;
-        renderData.material = material;
-        bindRenderData(&renderData);
-    }
-
-    Vec3 sphereSpeed = Vec3(0, 0, -1);
-    auto sphere0 = engine.NewObject();
-    {
-        sphere0.AddTransform(Vec3(-4, 0, 2.0), Vec3(1.0), 0.f, Vec3(1));
-        sphere0.AddCollider(AABB { Vec3{-1, -1, -1}, Vec3{1, 1, 1} });
-        auto &renderData = sphere0.AddRenderData();
-        renderData.model = sphereModel;
-        renderData.material = material;
-        bindRenderData(&renderData);
-        sphere0.AddBehaviour<MovingSphere>(aabb, sphereSpeed);
-    }
-    auto sphere1 = engine.NewObject();
-    {
-        sphere1.AddTransform(Vec3(0, 0, 2.0), Vec3(1.0), 0.f, Vec3(1));
-        sphere1.AddCollider(AABB { Vec3{-1, -1, -1}, Vec3{1, 1, 1} });
-        auto &renderData = sphere1.AddRenderData();
-        renderData.model = sphereModel;
-        renderData.material = material;
-        bindRenderData(&renderData);
-        sphere1.AddBehaviour<MovingSphere>(sphereCollider, sphereSpeed);
-    }
-    auto sphere2 = engine.NewObject();
-    {
-        sphere2.AddTransform(Vec3(4, 0, 2.0), Vec3(1.0), 0.f, Vec3(1));
-        sphere2.AddCollider(AABB { Vec3{-1, -1, -1}, Vec3{1, 1, 1} });
-        auto &renderData = sphere2.AddRenderData();
-        renderData.model = sphereModel;
-        renderData.material = material;
-        bindRenderData(&renderData);
-        sphere2.AddBehaviour<MovingSphere>(mesh, sphereSpeed);
-    }
-
-    auto pointer = engine.NewObject();
-    pointer.AddTransform(Vec3(0), Vec3(1), 0.f, Vec3(1));
-    auto &renderData = pointer.AddRenderData();
-    renderData.model = Model::loadFromFile("/kiy.obj");
-    renderData.model->shader = shaderProgram;
-    bindRenderData(&renderData);
-    renderData.material = { 4.f, Texture("/kiy.png") };
-    pointer.AddBehaviour<Pointer>(std::vector<Object>{sphere0, sphere1, sphere2}, engine.camera);
-
+    Object spheres[3] = {
+        getSphereObj(
+            Transform(Vec3(-2, 100, 2.0), Vec3(1), 0, Vec3(1)),
+            Vec3(1, 0, 0),
+            2),
+        getSphereObj(
+            Transform(Vec3(0, 100, 2.0), Vec3(1), 0, Vec3(1)),
+            Vec3(0, 0, 0),
+            1),
+        getSphereObj(
+            Transform(Vec3(4, 120, 2.0), Vec3(1.0), 0, Vec3(1)),
+            Vec3(0, -100, 0),
+            3),
+    };
     class FpsText : public Behaviour {
      public:
         void Update(float dt) override {
@@ -253,45 +165,33 @@ int main() {
          */
     }
 
-    {
-        auto pointLight = engine.NewObject();
-        pointLight.AddPointLight(
-            Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
-            Vec3(1.0f, 1.0f, 1.0f), Vec3(-0.2, -0.5, -1.2),
-            1.0f, 0.09f, 0.032f);
-    }
+    engine.NewObject().AddImage("hp.png", 0.03, 0.15, 0.4);
+    engine.NewObject().AddImage("hp_bar.png", 0.015, 0.01, 0.4);
 
-    {
-        auto pointLight = engine.NewObject();
-        pointLight.AddPointLight(
-            Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
-            Vec3(1.0f, 1.0f, 1.0f), Vec3(2.3f, -3.3f, -4.0f),
-            1.f, 0.09f, 0.032f);
-    }
+    engine.NewObject().AddPointLight(
+        Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
+        Vec3(1.0f, 1.0f, 1.0f), Vec3(-0.2, -0.5, -1.2),
+        1, 0.09f, 0.032f);
 
-    {
-        auto pointLight = engine.NewObject();
-        pointLight.AddPointLight(
-            Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
-            Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0f,  0.0f, -3.0f),
-            1.f, 0.09f, 0.032f);
-    }
+    engine.NewObject().AddPointLight(
+        Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
+        Vec3(1.0f, 1.0f, 1.0f), Vec3(2.3f, -3.3f, -4.0f),
+        1.f, 0.09f, 0.032f);
 
-    {
-        auto dirLight = engine.NewObject();
-        dirLight.AddDirLight(
-            Vec3(0.05f, 0.05f, 0.05f), Vec3(0.4f, 0.4f, 0.4f),
-            Vec3(0.5f, 0.5f, 0.5f),  Vec3(-0.2f, -1.0f, -0.3f));
-    }
+    engine.NewObject().AddPointLight(
+        Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
+        Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0f,  0.0f, -3.0f),
+        1.f, 0.09f, 0.032f);
 
-    {
-        auto spotLight = engine.NewObject();
-        spotLight.AddSpotLight(Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
-            Vec3(1.0f, 1.0f, 1.0f), Vec3(1.0f, 1.0f, 1.0f),
-            1.0f, 0.09f, 0.032f, Vec3(0),
-            glm::cos(glm::radians(12.5f)),
-            glm::cos(glm::radians(15.0f)));
-    }
+    engine.NewObject().AddDirLight(
+        Vec3(0.05f, 0.05f, 0.05f), Vec3(0.4f, 0.4f, 0.4f),
+        Vec3(0.5f, 0.5f, 0.5f),  Vec3(-0.2f, -1.0f, -0.3f));
+
+    engine.NewObject().AddSpotLight(Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
+        Vec3(1.0f, 1.0f, 1.0f), Vec3(1.0f, 1.0f, 1.0f),
+        1.0f, 0.09f, 0.032f, Vec3(0),
+        glm::cos(glm::radians(12.5f)),
+        glm::cos(glm::radians(15.0f)));
 
     engine.Run();
 }

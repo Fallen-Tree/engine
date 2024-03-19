@@ -19,7 +19,7 @@ class Object {
     void SetEngine(Engine *);
 
     Transform *GetTransform();
-    RenderData *GetRenderData();
+    Model *GetModel();
     Collider *GetCollider();
     Animation *GetAnimation();
     Text *GetText();
@@ -34,8 +34,8 @@ class Object {
     }
 
     template<typename ...Ts>
-    RenderData &AddRenderData(Ts... ts) {
-        return m_Engine->AddRenderData(m_Handle, RenderData{ts...});
+    Model &AddModel(Ts... ts) {
+        return m_Engine->AddModel(m_Handle, Model{ts...});
     }
 
     template<typename ...Ts>
@@ -44,8 +44,18 @@ class Object {
     }
 
     template<typename ...Ts>
+    RigidBody &AddRigidBody(Ts... ts) {
+        return m_Engine->AddRigidBody(m_Handle, RigidBody{ts...});
+    }
+
+    template<typename ...Ts>
     Text &AddText(Ts... ts) {
         return m_Engine->AddText(m_Handle, Text{ts...});
+    }
+
+    template<typename ...Ts>
+    Image &AddImage(Ts... ts) {
+        return m_Engine->AddImage(m_Handle, Image{ts...});
     }
 
     template<typename ...Ts>

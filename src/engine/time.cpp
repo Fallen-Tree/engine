@@ -10,7 +10,7 @@ int Time::GetCurrentFps() {
 void Time::SetCurrentFps(int fps) {
     m_fps = fps;
 }
-int Time::GetDeltaTime() {
+float Time::GetDeltaTime() {
     return m_deltaTime;
 }
 void Time::SetDeltaTime(float deltaTime) {

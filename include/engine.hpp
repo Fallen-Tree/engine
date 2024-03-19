@@ -14,8 +14,12 @@
 #include "logger.hpp"
 #include "time.hpp"
 #include "light.hpp"
+#include "model.hpp"
 #include "path_resolver.hpp"
 #include "packed_array.hpp"
+#include "rigid_body.hpp"
+#include "pretty_print.hpp"
+#include "images.hpp"
 
 extern Input *s_Input;
 
@@ -30,20 +34,24 @@ class Engine {
     ~Engine();
 
     Transform *GetTransform(ObjectHandle);
-    RenderData *GetRenderData(ObjectHandle);
+    Model *GetModel(ObjectHandle);
     Collider *GetCollider(ObjectHandle);
+    RigidBody *GetRigidBody(ObjectHandle);
     Animation *GetAnimation(ObjectHandle);
     Text *GetText(ObjectHandle);
+    Image *GetImage(ObjectHandle);
     PointLight *GetPointLight(ObjectHandle);
     SpotLight *GetSpotLight(ObjectHandle);
     DirLight *GetDirLight(ObjectHandle);
     Behaviour *GetBehaviour(ObjectHandle);
 
     Transform &AddTransform(ObjectHandle, Transform);
-    RenderData &AddRenderData(ObjectHandle, RenderData);
+    Model &AddModel(ObjectHandle, Model);
     Collider &AddCollider(ObjectHandle, Collider);
+    RigidBody &AddRigidBody(ObjectHandle, RigidBody);
     Animation &AddAnimation(ObjectHandle, Animation);
     Text &AddText(ObjectHandle, Text);
+    Image &AddImage(ObjectHandle, Image);
     PointLight &AddPointLight(ObjectHandle, PointLight);
     SpotLight &AddSpotLight(ObjectHandle, SpotLight);
     DirLight &AddDirLight(ObjectHandle, DirLight);
@@ -72,9 +80,11 @@ class Engine {
     using ComponentArray = PackedArray<T, MAX_OBJECT_COUNT>;
 
     ComponentArray<Transform> m_Transforms;
-    ComponentArray<RenderData> m_RenderDatas;
+    ComponentArray<Model> m_Models;
     ComponentArray<Collider> m_Colliders;
+    ComponentArray<RigidBody> m_RigidBodies;
     ComponentArray<Animation> m_Animations;
+    ComponentArray<Image> m_Images;
     ComponentArray<Text> m_Texts;
 
     ComponentArray<PointLight> m_PointLights;

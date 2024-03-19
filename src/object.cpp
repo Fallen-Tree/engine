@@ -31,8 +31,8 @@ Transform *Object::GetTransform() {
     return m_Engine->GetTransform(m_Handle);
 }
 
-RenderData *Object::GetRenderData() {
-    return m_Engine->GetRenderData(m_Handle);
+Model *Object::GetModel() {
+    return m_Engine->GetModel(m_Handle);
 }
 
 Collider *Object::GetCollider() {

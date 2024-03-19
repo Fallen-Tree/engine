@@ -11,6 +11,7 @@
 bool CollidePrimitive(Plane p, AABB a) {
     return CollidePrimitive(a, p);
 }
+
 bool CollidePrimitive(AABB aabb, Plane plane) {
     Vec3 center = (aabb.min + aabb.max) / 2.0f;
     Vec3 extents = (aabb.max - aabb.min) / 2.0f;
@@ -197,21 +198,21 @@ bool CollidePrimitive(Triangle t1, Triangle t2) {
 
 // There should be an overload CollidePrimitive(T, Triangle);
 template<typename T>
-bool CollideModelAt(T t, Model *model, Transform transform) {
+bool CollideMeshAt(T t, Mesh *mesh, Transform transform) {
     // WARNING: This makes assumptions about data layout
-    Mat4 modelMat = glm::transpose(transform.GetTransformMatrix());
+    Mat4 meshMat = glm::transpose(transform.GetTransformMatrix());
     int stride = 8;
     auto loadPos = [=](int i) {
-        int id = model->getIndices()[i];
+        int id = mesh->getIndices()[i];
         Vec4 res = Vec4 {
-            model->getPoints()[id * stride],
-            model->getPoints()[id * stride + 1],
-            model->getPoints()[id * stride + 2],
+            mesh->getPoints()[id * stride],
+            mesh->getPoints()[id * stride + 1],
+            mesh->getPoints()[id * stride + 2],
             1.0
-        } * modelMat;
+        } * meshMat;
         return Vec3{ res.x / res.w, res.y / res.w, res.z / res.w };
     };
-    for (int i = 0; i < model->getLenIndices(); i+=3) {
+    for (int i = 0; i < mesh->getLenIndices(); i+=3) {
         Triangle tri = Triangle(loadPos(i), loadPos(i + 1), loadPos(i + 2));
         if (CollidePrimitive(t, tri)) {
             return true;
@@ -219,27 +220,27 @@ bool CollideModelAt(T t, Model *model, Transform transform) {
     }
     return false;
 }
-template bool CollideModelAt<AABB>(AABB, Model *, Transform);
-template bool CollideModelAt<Sphere>(Sphere, Model *, Transform);
-template bool CollideModelAt<Triangle>(Triangle, Model *, Transform);
+template bool CollideMeshAt<AABB>(AABB, Mesh *, Transform);
+template bool CollideMeshAt<Sphere>(Sphere, Mesh *, Transform);
+template bool CollideMeshAt<Triangle>(Triangle, Mesh *, Transform);
 
-bool CollideModels(Model *model, Transform transform, Model *model2, Transform transform2) {
+bool CollideMeshes(Mesh *mesh, Transform transform, Mesh *mesh2, Transform transform2) {
     // WARNING: This makes assumptions about data layout
-    Mat4 modelMat = glm::transpose(transform.GetTransformMatrix());
+    Mat4 meshMat = glm::transpose(transform.GetTransformMatrix());
     int stride = 8;
     auto loadPos = [=](int i) {
-        int id = model->getIndices()[i];
+        int id = mesh->getIndices()[i];
         Vec4 res = Vec4 {
-            model->getPoints()[id * stride],
-            model->getPoints()[id * stride + 1],
-            model->getPoints()[id * stride + 2],
+            mesh->getPoints()[id * stride],
+            mesh->getPoints()[id * stride + 1],
+            mesh->getPoints()[id * stride + 2],
             1.0
-        } * modelMat;
+        } * meshMat;
         return Vec3{ res.x / res.w, res.y / res.w, res.z / res.w };
     };
-    for (int i = 0; i < model->getLenIndices(); i+=3) {
+    for (int i = 0; i < mesh->getLenIndices(); i+=3) {
         Triangle tri = Triangle(loadPos(i), loadPos(i + 1), loadPos(i + 2));
-        if (CollideModelAt(tri, model2, transform2)) {
+        if (CollideMeshAt(tri, mesh2, transform2)) {
             return true;
         }
     }
@@ -322,4 +323,83 @@ std::optional<float> CollisionPrimitive(Ray r, Sphere s) {
         x = 0;
 
     return x;
+}
+
+Vec3 CollisionNormal(AABB a1, AABB a2, Transform tr1, Transform tr2, Vec3 velocity, float dt) {
+    const float epsilon = 0.1;
+    auto transformed1 = a1.Transformed(tr1).PrevState(velocity, dt);
+    auto transformed2 = a2.Transformed(tr2);
+
+    if (transformed1.min.x + epsilon >= transformed2.max.x) {
+        return Vec3(1, 0, 0);
+    } else if (transformed1.max.x <= transformed2.min.x + epsilon) {
+        return Vec3(-1, 0, 0);
+    } else if (transformed1.min.y + epsilon >= transformed2.max.y) {
+        return Vec3(0, 1, 0);
+    } else if (transformed1.max.y <= transformed2.min.y + epsilon) {
+        return Vec3(0, -1, 0);
+    } else if (transformed1.min.z + epsilon >= transformed2.max.z) {
+        return Vec3(0, 0, 1);
+    } else if (transformed1.max.z <= transformed2.min.z + epsilon) {
+        return Vec3(0, 0, -1);
+    }
+
+    // the case if one object is inside other
+    return Norm(tr1.GetTranslation() - tr2.GetTranslation())
+        * static_cast<float>(EJECTION_RATIO);
+}
+
+Vec3 CollisionNormal(Sphere sph, AABB a, Transform tr1, Transform tr2,
+        Vec3 velocity, float dt) {
+    return -CollisionNormal(a, sph, tr2, tr1, velocity, dt);
+}
+
+Vec3 CollisionNormal(AABB a, Sphere sph, Transform tr1, Transform tr2,
+        Vec3 velocity, float dt) {
+    const float epsilon = 0.1;
+    auto transformed1 = a.Transformed(tr1).PrevState(velocity, dt);
+    auto transformed2 = sph.Transformed(tr2);
+
+    return Norm(
+        transformed1.ClosestPoint(transformed2.center)
+        - transformed2.center);
+}
+
+Vec3 CollisionNormal(Sphere sph1, Sphere sph2,
+        Transform tr1, Transform tr2, Vec3 vel, float dt) {
+    auto tranformed1 = sph1.Transformed(tr1).PrevState(vel, dt);
+    auto tranformed2 = sph2.Transformed(tr2);
+
+    return Norm(tranformed1.center - tranformed2.center);
+}
+
+// TODO(solloballon): make this operation with Model
+Vec3 CollisionNormal(AABB, Mesh*, Transform, Transform, Vec3, float) {
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
+    return Vec3(0);
+}
+
+Vec3 CollisionNormal(Mesh*, AABB, Transform, Transform, Vec3, float) {
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
+    return Vec3(0);
+}
+
+Vec3 CollisionNormal(Sphere, Mesh*, Transform, Transform, Vec3, float) {
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
+    return Vec3(0);
+}
+
+Vec3 CollisionNormal(Mesh*, Sphere, Transform, Transform, Vec3, float) {
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
+    return Vec3(0);
+}
+
+Vec3 CollisionNormal(Mesh*, Mesh*, Transform, Transform, Vec3, float) {
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
+    return Vec3(0);
 }
