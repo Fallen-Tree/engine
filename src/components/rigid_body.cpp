@@ -1,7 +1,7 @@
 #include "rigid_body.hpp"
 #include "logger.hpp"
 #include "time.hpp"
-#include "math.h"
+#include <cmath>
 #include "pretty_print.hpp"
 #include "engine_config.hpp"
 #include "user_config.hpp"
@@ -36,6 +36,7 @@ RigidBody::RigidBody(float mass, Mat3 iBody, Vec3 initalVelocity,
 }
 
 void RigidBody::Update(Transform *tranform, float dt) {
+    Logger::Info("Force res %s", ToString(m_ResForce));
     LinearCalculation(tranform, dt);
     AngularCalculation(tranform, dt);
 
@@ -66,12 +67,15 @@ void RigidBody::SetIbodyInverse(Mat3 iBody) {
 }
 
 void RigidBody::LinearCalculation(Transform *transform, float dt) {
+    //Logger::Info("Force res in calc %s", ToString(m_ResForce));
     Vec3 acceleration = m_ResForce * massInverse;
     velocity += acceleration * dt;
+    //Logger::Info("translate %s", ToString(velocity * lineraUnlock * dt));
     transform->Translate(velocity * lineraUnlock * dt);
 }
 
 void RigidBody::AngularCalculation(Transform *transform, float dt) {
+    //Logger::Info("torque %s", ToString(m_Torque));
     if (m_Torque == Vec3(0))
         return;
     Mat3 rotation = transform->GetRotation();
@@ -130,39 +134,53 @@ void RigidBody::ComputeForceTorque(Transform tranform, Transform otherTransform,
         return;
     }
     Vec3 rv = velocity - otherRigidBody->velocity;
+    Logger::Info("m1 %0.20f\nm2 %0.20f", massInverse, otherRigidBody->massInverse); 
 
     Vec3 normal = CollisionNormal(collider, otherCollider,
         tranform, otherTransform, rv, dt);
+    Logger::Info("normal %s", ToString(normal));
 
     float velAlongNormal = glm::dot(rv, normal);
+    Logger::Info("veloctity %s", ToString(rv));
+    Logger::Info("vel %f", velAlongNormal);
 
-    if (velAlongNormal > 0)
-        return;
+    //if (velAlongNormal > 0)
+    //    return;
 
-    Vec3 impulseForce = ImpulseForce(this, otherRigidBody, normal,
-            velAlongNormal, dt);
     Vec3 normalForce = -m_ResForce * normal;
     Vec3 otherNormalForce = otherRigidBody->m_ResForce * normal;
+    Vec3 impulseForce = ImpulseForce(this, otherRigidBody, normal,
+            velAlongNormal, dt);
 
-    // Compute impulse
-    m_ResForce += impulseForce;
-    otherRigidBody->m_ResForce -= impulseForce;
-
-    // Compute torque
-    auto r1 = normal * tranform.GetScale() * 0.5f;
-    ApplyTorque(-impulseForce, r1);
-    auto r2 = -normal * otherTransform.GetScale() * 0.5f;
-    otherRigidBody->ApplyTorque(impulseForce, r2);
-
-    // Compute normal force
     m_ResForce += normalForce;
     otherRigidBody->m_ResForce += otherNormalForce;
+    Logger::Info("force after normal %s", ToString(m_ResForce));
+    Logger::Info("force after normal %s", ToString(otherRigidBody->m_ResForce));
+
+    auto r1 = normal * tranform.GetScale() * 0.5f;
+    auto r2 = -normal * otherTransform.GetScale() * 0.5f;
+    Logger::Info("impulse force %s", ToString(impulseForce));
+    // Compute impulse
+    if (velAlongNormal < 0) {
+        m_ResForce += impulseForce;
+        otherRigidBody->m_ResForce -= impulseForce;
+
+        // Compute torque
+        ApplyTorque(-impulseForce, r1);
+        otherRigidBody->ApplyTorque(impulseForce, r2);
+    }
+    Logger::Info("res force after imulse %s", ToString(m_ResForce));
+    Logger::Info("res force after imulse %s", ToString(otherRigidBody->m_ResForce));
 
     // Compute friction
-    if ((int)velAlongNormal == 0) {
+    const float epsilon = std::numeric_limits<float>::max();
+    if (std::abs(velAlongNormal) <= epsilon) {
+        Logger::Info("here");
         auto friction = std::max(kineticFriction,
                 otherRigidBody->kineticFriction);
         ComputeFriction(normalForce, friction, r1);
         otherRigidBody->ComputeFriction(otherNormalForce, friction, r2);
     }
+    Logger::Info("force at finish %s", ToString(m_ResForce));
+    Logger::Info("force at finish %s", ToString(otherRigidBody->m_ResForce));
 }
