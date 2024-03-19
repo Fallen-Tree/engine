@@ -20,9 +20,9 @@
 #define MAX_COUNT_TEXTURE           16
 
 // engine
-#define EPS                     0.001f
-#define FPS_SHOWING_INTERVAL    0.5f
-#define MAX_OBJECT_COUNT        1000
+#define EPS                         0.001f
+#define FPS_SHOWING_INTERVAL        0.5f
+#define MAX_OBJECT_COUNT            1000
 
 // input
 #define MAX_VALID_KEY               350

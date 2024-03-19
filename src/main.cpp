@@ -19,50 +19,6 @@ class MovingSphere : public Behaviour {
     }
 };
 
-class Pointer : public Behaviour {
- public:
-    Pointer(std::vector<Object> objects, Camera *camera) {
-        m_Camera = camera;
-        m_Objects = objects;
-    }
-
-    void Update(float dt) override {
-        Ray ray = m_Camera->GetRayThroughScreenPoint(m_Camera->GetScreenSize() / 2.0f);
-        Transform *target = nullptr;
-        float closest = std::numeric_limits<float>::max();
-        for (int i = 0; i < m_Objects.size(); i++) {
-            auto obj = m_Objects[i];
-            if (!obj.IsValid()) continue;
-            auto hit = obj.GetCollider()->RaycastHit(*obj.GetTransform(), ray);
-            if (hit && *hit < closest) {
-                target = obj.GetTransform();
-                closest = *hit;
-            }
-        }
-        if (s_Input->IsKeyPressed(Key::MouseLeft)) {
-            m_CurrentTarget = target;
-        }
-
-        if (m_CurrentTarget != nullptr) {
-            Vec3 center = m_CurrentTarget->GetTranslation();
-            Vec3 closest = ray.origin + glm::dot(center - ray.origin, ray.direction) * ray.direction;
-            closest.y = center.y;
-            Vec3 onCircle = glm::normalize(closest - center) * m_CueDistance;
-            self.GetTransform()->SetTranslation(onCircle);
-
-            Vec3 toCenter = center - onCircle;
-            float angle = glm::acos(glm::dot(toCenter, ray.direction) / m_CueDistance);
-            self.GetTransform()->SetRotation(-glm::pi<float>()/2, glm::cross(Vec3{0.f, 1.f, 0.f}, toCenter));
-        }
-     }
-
- private:
-    float m_CueDistance = 1.f;
-    Transform *m_CurrentTarget = nullptr;
-    std::vector<Object> m_Objects;
-    Camera *m_Camera;
-};
-
 int main() {
     auto engine = Engine();
 

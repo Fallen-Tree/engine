@@ -1,9 +1,7 @@
 #pragma once
-#include <array>
+#include <vector>
 #include "logger.hpp"
 
-// TODO(theblek): Implement begin and end funcs for slick syntax:
-// for (auto t : array) { }
 // TODO(theblek): Overload [] operator to get data for even slicker syntax
 template<typename T, int MAX_SIZE>
 class PackedArray {
