@@ -40,8 +40,8 @@ int main() {
     auto &t = obj.AddTransform(Vec3(0.f, -3.f, -8.f), Vec3(.1f, .1f, .1f), Mat4(1.0));
     t.Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
     obj.AddCollider(Collider::GetDefaultAABB(&model->meshes[0]));
-    obj.AddRigidBody(100, Mat3(0), Vec3(0), 0, Vec3(0, -1000, 0),
-        Vec3(0), Vec3(1), 0.1);
+    obj.AddRigidBody(100.f, Mat3(0), Vec3(0), 0.f, Vec3(0, -1000, 0),
+        Vec3(0), Vec3(1), 0.1f);
 
     Material material = {
         4.f,
@@ -58,13 +58,13 @@ int main() {
 
         obj.AddTransform(transform);
         obj.AddCollider(primitive);
-        obj.AddRigidBody(0, Mat4(0), Vec3(0), 3, Vec3(0), Vec3(0), Vec3(0), 0.0001);
+        obj.AddRigidBody(0.0f, Mat4(0), Vec3(0), 3.0f, Vec3(0), Vec3(0), Vec3(0), 0.0001f);
         return obj;
     };
 
 
     auto aabb = setUpObj(
-        Transform(Vec3(0, -31, 0), Vec3(50), 0, Vec3(1)),
+        Transform(Vec3(0, -31, 0), Vec3(50), 0.0f, Vec3(1)),
         AABB {
             Vec3{-0.5, -0.5, -0.5},
             Vec3{0.5, 0.5, 0.5},
@@ -75,26 +75,26 @@ int main() {
         auto obj = engine.NewObject();
         obj.AddTransform(transform);
         obj.AddModel(*sphereModel);
-        obj.AddCollider(Sphere{ Vec3(0), 1 });
+        obj.AddCollider(Sphere{ Vec3(0), 1.f });
         obj.AddRigidBody(mass, IBodySphere(1, 20),
-                speed, 0, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.0005);
+                speed, 0.f, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.0005f);
         obj.AddBehaviour<MovingSphere>();
         return obj;
     };
 
     Object spheres[3] = {
         getSphereObj(
-            Transform(Vec3(-2, 100, 2.0), Vec3(1), 0, Vec3(1)),
+            Transform(Vec3(-2, 100, 2.0), Vec3(1), 0.f, Vec3(1)),
             Vec3(1, 0, 0),
-            2),
+            2.f),
         getSphereObj(
-            Transform(Vec3(0, 100, 2.0), Vec3(1), 0, Vec3(1)),
+            Transform(Vec3(0, 100, 2.0), Vec3(1), 0.f, Vec3(1)),
             Vec3(0, 0, 0),
-            1),
+            1.f),
         getSphereObj(
-            Transform(Vec3(4, 120, 2.0), Vec3(1.0), 0, Vec3(1)),
+            Transform(Vec3(4, 120, 2.0), Vec3(1.0), 0.f, Vec3(1)),
             Vec3(0, -100, 0),
-            3),
+            3.f),
     };
     class FpsText : public Behaviour {
      public:
@@ -121,13 +121,13 @@ int main() {
          */
     }
 
-    engine.NewObject().AddImage("hp.png", 0.03, 0.15, 0.4);
-    engine.NewObject().AddImage("hp_bar.png", 0.015, 0.01, 0.4);
+    engine.NewObject().AddImage("hp.png", 0.03f, 0.15f, 0.4f);
+    engine.NewObject().AddImage("hp_bar.png", 0.015f, 0.01f, 0.4f);
 
     engine.NewObject().AddPointLight(
         Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
         Vec3(1.0f, 1.0f, 1.0f), Vec3(-0.2, -0.5, -1.2),
-        1, 0.09f, 0.032f);
+        1.f, 0.09f, 0.032f);
 
     engine.NewObject().AddPointLight(
         Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
