@@ -50,7 +50,7 @@ private:
         Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody, 
         float dt);
 
- void ComputeFriction(Vec3 normalForce, float friction, Vec3 r);
+ void ComputeFriction(Vec3 normalForce, float friction, Vec3 r, float dt);
 
  Vec3 m_ResForce = Vec3(0); // resultant force 
  Vec3 m_Torque = Vec3(0);

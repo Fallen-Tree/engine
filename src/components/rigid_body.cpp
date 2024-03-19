@@ -36,7 +36,6 @@ RigidBody::RigidBody(float mass, Mat3 iBody, Vec3 initalVelocity,
 }
 
 void RigidBody::Update(Transform *tranform, float dt) {
-    Logger::Info("Force res %s", ToString(m_ResForce));
     LinearCalculation(tranform, dt);
     AngularCalculation(tranform, dt);
 
@@ -67,15 +66,12 @@ void RigidBody::SetIbodyInverse(Mat3 iBody) {
 }
 
 void RigidBody::LinearCalculation(Transform *transform, float dt) {
-    //Logger::Info("Force res in calc %s", ToString(m_ResForce));
     Vec3 acceleration = m_ResForce * massInverse;
     velocity += acceleration * dt;
-    //Logger::Info("translate %s", ToString(velocity * lineraUnlock * dt));
     transform->Translate(velocity * lineraUnlock * dt);
 }
 
 void RigidBody::AngularCalculation(Transform *transform, float dt) {
-    //Logger::Info("torque %s", ToString(m_Torque));
     if (m_Torque == Vec3(0))
         return;
     Mat3 rotation = transform->GetRotation();
@@ -95,9 +91,22 @@ void RigidBody::LimitTorque(Vec3 force, Vec3 r) {
     m_Torque = TORQUE_SMOTHNESS * m_Torque + (1 - TORQUE_SMOTHNESS) * torque;
 }
 
-void RigidBody::ComputeFriction(Vec3 normalForce, float friction, Vec3 r) {
+void RigidBody::ComputeFriction(Vec3 normalForce, float friction,
+        Vec3 r, float dt) {
+    // Full friction force
     Vec3 force = -Norm(velocity) * glm::length(friction * normalForce);
 
+    // if result force in direction of veloctiy is less than full friction 
+    // force, than rigid bodu will stop.
+    if (glm::length(m_ResForce * Norm(velocity) + (velocity * dt) / massInverse)
+            < glm::length(force)) {
+        m_ResForce *= Vec3(1) - Norm(velocity);  
+        velocity = Vec3(0);
+        LimitTorque(Vec3(0), r);
+        return;
+    }
+
+    // otherwise apply full friction force
     m_ResForce += force;
     LimitTorque(force, r);
 }
@@ -134,53 +143,38 @@ void RigidBody::ComputeForceTorque(Transform tranform, Transform otherTransform,
         return;
     }
     Vec3 rv = velocity - otherRigidBody->velocity;
-    Logger::Info("m1 %0.20f\nm2 %0.20f", massInverse, otherRigidBody->massInverse); 
 
     Vec3 normal = CollisionNormal(collider, otherCollider,
         tranform, otherTransform, rv, dt);
-    Logger::Info("normal %s", ToString(normal));
 
     float velAlongNormal = glm::dot(rv, normal);
-    Logger::Info("veloctity %s", ToString(rv));
-    Logger::Info("vel %f", velAlongNormal);
 
-    //if (velAlongNormal > 0)
-    //    return;
-
-    Vec3 normalForce = -m_ResForce * normal;
-    Vec3 otherNormalForce = otherRigidBody->m_ResForce * normal;
     Vec3 impulseForce = ImpulseForce(this, otherRigidBody, normal,
             velAlongNormal, dt);
 
+    // Compute normal force
+    Vec3 normalForce = -m_ResForce * normal;
+    Vec3 otherNormalForce = otherRigidBody->m_ResForce * normal;
     m_ResForce += normalForce;
     otherRigidBody->m_ResForce += otherNormalForce;
-    Logger::Info("force after normal %s", ToString(m_ResForce));
-    Logger::Info("force after normal %s", ToString(otherRigidBody->m_ResForce));
 
+    // Compute lever of force 
     auto r1 = normal * tranform.GetScale() * 0.5f;
     auto r2 = -normal * otherTransform.GetScale() * 0.5f;
-    Logger::Info("impulse force %s", ToString(impulseForce));
+
     // Compute impulse
     if (velAlongNormal < 0) {
         m_ResForce += impulseForce;
         otherRigidBody->m_ResForce -= impulseForce;
 
-        // Compute torque
+        // Compute torque for impulse force
         ApplyTorque(-impulseForce, r1);
         otherRigidBody->ApplyTorque(impulseForce, r2);
     }
-    Logger::Info("res force after imulse %s", ToString(m_ResForce));
-    Logger::Info("res force after imulse %s", ToString(otherRigidBody->m_ResForce));
 
     // Compute friction
-    const float epsilon = std::numeric_limits<float>::max();
-    if (std::abs(velAlongNormal) <= epsilon) {
-        Logger::Info("here");
-        auto friction = std::max(kineticFriction,
-                otherRigidBody->kineticFriction);
-        ComputeFriction(normalForce, friction, r1);
-        otherRigidBody->ComputeFriction(otherNormalForce, friction, r2);
-    }
-    Logger::Info("force at finish %s", ToString(m_ResForce));
-    Logger::Info("force at finish %s", ToString(otherRigidBody->m_ResForce));
+    auto friction = std::max(kineticFriction,
+        otherRigidBody->kineticFriction);
+    ComputeFriction(normalForce, friction, r1, dt);
+    otherRigidBody->ComputeFriction(otherNormalForce, friction, r2, dt);
 }

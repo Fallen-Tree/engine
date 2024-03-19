@@ -84,27 +84,27 @@ int main() {
             1,
         }};
         obj->rigidbody = new RigidBody(mass, IBodySphere(1, 1),
-                speed, 0.0000001, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.0005);
+                speed, 0, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.01);
         return obj;
     };
 
     Object *spheres[3] = {
         getSphereObj(
-            Transform(Vec3(-2, 200, 2.0), Vec3(1), 0, Vec3(1)),
-            Vec3(1, 0, 0),
-            1),
+            Transform(Vec3(-10, -3, 2.0), Vec3(1), 0, Vec3(1)),
+            Vec3(10, 0, 0),
+            50),
         getSphereObj(
-            Transform(Vec3(0, 200, 2.0), Vec3(1), 0, Vec3(1)),
+            Transform(Vec3(5, -3, 2.0), Vec3(1), 0, Vec3(1)),
             Vec3(0, 0, 0),
             1),
         getSphereObj(
-            Transform(Vec3(4, 120, 2.0), Vec3(1.0), 0, Vec3(1)),
-            Vec3(0, -120, 0),
-            3),
+            Transform(Vec3(10, -3, 2.0), Vec3(1.0), 0, Vec3(1)),
+            Vec3(0, 0, 0),
+            100),
     };
     engine.AddObject<>(spheres[0]);
-    engine.AddObject<>(spheres[1]);
-    engine.AddObject<>(spheres[2]);
+    //engine.AddObject<>(spheres[1]);
+    //engine.AddObject<>(spheres[2]);
     class FpsText : public Object {
      public:
         void Update(float dt) override {
