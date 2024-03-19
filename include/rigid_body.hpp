@@ -20,6 +20,7 @@ public:
  Vec3 angularUnlock = Vec3(1);
 
 
+ RigidBody() = default;
  RigidBody(float mass, Mat3 iBody, Vec3 initalVelocity, 
          float restitution, Vec3 defaultForce, Vec3 lineraUnlock,
          Vec3 angularUnlock, float kineticFriction); 

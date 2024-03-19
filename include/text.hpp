@@ -18,6 +18,7 @@ class Text {
   Vec3 m_Color;
 
  public:
+    Text() = default;
     Text(Font* font, std::string, float, float, float, Vec3);
     void SetCoordinates(float, float);
     void SetScale(float);

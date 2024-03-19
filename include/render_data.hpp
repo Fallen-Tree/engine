@@ -1,6 +1,6 @@
 #pragma once
 
-#include<vector>
+#include <vector>
 
 #include "material.hpp"
 #include "mesh.hpp"

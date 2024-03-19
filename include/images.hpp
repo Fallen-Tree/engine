@@ -19,6 +19,7 @@ class Image {
     // relX, relY - relative coordinates of left bottom corner in range [0; 1]
     // coordinates of screen also starts from left bottom corner
     // Scale
+    Image() = default;
     Image(std::string, float, float, float);
     // Render image
     void Render();
