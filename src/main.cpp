@@ -96,9 +96,6 @@ int main() {
             Vec3(0, 0, 0),
             100),
     };
-    engine.AddObject<>(spheres[0]);
-    //engine.AddObject<>(spheres[1]);
-    //engine.AddObject<>(spheres[2]);
     class FpsText : public Behaviour {
      public:
         void Update(float dt) override {

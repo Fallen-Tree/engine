@@ -1,7 +1,6 @@
 #include "rigid_body.hpp"
 #include "logger.hpp"
 #include "time.hpp"
-#include <cmath>
 #include "pretty_print.hpp"
 #include "engine_config.hpp"
 #include "user_config.hpp"
@@ -96,11 +95,11 @@ void RigidBody::ComputeFriction(Vec3 normalForce, float friction,
     // Full friction force
     Vec3 force = -Norm(velocity) * glm::length(friction * normalForce);
 
-    // if result force in direction of veloctiy is less than full friction 
+    // if result force in direction of veloctiy is less than full friction
     // force, than rigid bodu will stop.
     if (glm::length(m_ResForce * Norm(velocity) + (velocity * dt) / massInverse)
             < glm::length(force)) {
-        m_ResForce *= Vec3(1) - Norm(velocity);  
+        m_ResForce *= Vec3(1) - Norm(velocity);
         velocity = Vec3(0);
         LimitTorque(Vec3(0), r);
         return;
@@ -158,7 +157,7 @@ void RigidBody::ComputeForceTorque(Transform tranform, Transform otherTransform,
     m_ResForce += normalForce;
     otherRigidBody->m_ResForce += otherNormalForce;
 
-    // Compute lever of force 
+    // Compute lever of force
     auto r1 = normal * tranform.GetScale() * 0.5f;
     auto r2 = -normal * otherTransform.GetScale() * 0.5f;
 
