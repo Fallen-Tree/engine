@@ -5,8 +5,6 @@
 #include "engine_config.hpp"
 #include "user_config.hpp"
 #include "collider.hpp"
-#include <glm/gtx/string_cast.hpp>
-#include <GLFW/glfw3.h>
 
 Mat3 IBodySphere(float radius, float mass) {
     return Mat3(2.f/5 * mass * radius * radius);
