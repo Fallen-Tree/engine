@@ -6,17 +6,22 @@
 #include "collisions.hpp"
 
 //TODO:: make much more IBody getter
-Mat3 IBodySphere(float, float);
+Mat3 IBodySphere(float radius, float mass);
 
 class RigidBody {
 public:
+// 
  float restitution;
  float kineticFriction; 
  float massInverse;
  Mat3 ibodyInverse; // inverse matrix inertia tensor
  Vec3 defaultForce;
  Vec3 velocity = Vec3(0);
- Vec3 lineraUnlock = Vec3(1);
+ // linearUnlock is unlock for x, y, z linear axis
+ // should have value = {0, 1}
+ Vec3 linearUnlock = Vec3(1);
+ // angilarUnlock is unlock for every angulat axis
+ // should have value = {0, 1}
  Vec3 angularUnlock = Vec3(1);
 
 
