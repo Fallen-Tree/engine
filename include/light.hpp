@@ -1,5 +1,6 @@
 #pragma once
 
+#include <variant>
 #include "math_types.hpp"
 
 struct Light {
@@ -14,7 +15,7 @@ struct PointLight : Light {
     float linearDistCoeff;
     float quadraticDistCoeff;
 
-    // PointLight() {}
+    PointLight() = default;
     PointLight(Vec3 ambient, Vec3 diffuse, Vec3 specular,
             Vec3 position, float constDistCoeff, float linearDistCoeff,
             float quadraticDistCoeff) {
@@ -31,6 +32,7 @@ struct PointLight : Light {
 struct DirLight : Light {
     Vec3 direction;
 
+    DirLight() = default;
     DirLight(Vec3 ambient, Vec3 diffuse,
             Vec3 specular, Vec3 direction) {
         this->ambient = ambient;
@@ -49,6 +51,7 @@ struct SpotLight : Light {
     float cutOff;
     float outerCutOff;
 
+    SpotLight() = default;
     SpotLight(Vec3 ambient, Vec3 diffuse, Vec3 specular,
             Vec3 position, float constDistCoeff, float linearDistCoeff,
             float quadraticDistCoeff, Vec3 direction, float cutOff,
@@ -65,3 +68,5 @@ struct SpotLight : Light {
         this->outerCutOff = outerCutOff;
     }
 };
+
+typedef std::variant<PointLight *, SpotLight *, DirLight *> LightSource;

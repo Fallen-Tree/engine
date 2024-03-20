@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR})
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 find_package(OpenGL REQUIRED)
 
@@ -32,6 +33,7 @@ add_library(ENGINE STATIC
             src/engine/time.cpp
             src/engine/path_resolver.cpp
             src/engine/math.cpp
+            src/object.cpp
             src/images/images.cpp
 )
 
