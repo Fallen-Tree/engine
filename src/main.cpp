@@ -41,7 +41,7 @@ int main() {
     t.Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
     obj.AddCollider(Collider::GetDefaultAABB(&model->meshes[0]));
     obj.AddRigidBody(100.f, Mat3(0), Vec3(0), 0.f, Vec3(0, -1000, 0),
-        Vec3(0), Vec3(1), 0.1f);
+        Vec3(0), Vec3(1), 0.001f);
 
     Material material = {
         4.f,
@@ -58,7 +58,7 @@ int main() {
 
         obj.AddTransform(transform);
         obj.AddCollider(primitive);
-        obj.AddRigidBody(0.0f, Mat4(0), Vec3(0), 3.0f, Vec3(0), Vec3(0), Vec3(0), 0.0001f);
+        obj.AddRigidBody(0.0f, Mat4(0), Vec3(0), 3.0f, Vec3(0), Vec3(0), Vec3(0), 0.01f);
         return obj;
     };
 
@@ -76,19 +76,19 @@ int main() {
         obj.AddTransform(transform);
         obj.AddModel(*sphereModel);
         obj.AddCollider(Sphere{ Vec3(0), 1.f });
-        obj.AddRigidBody(mass, IBodySphere(1, 20),
-                speed, 0.f, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.01f);
+        obj.AddRigidBody(mass, IBodySphere(mass, transform.GetScale().x),
+                speed, 1.f, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.01f);
         obj.AddBehaviour<MovingSphere>();
         return obj;
     };
 
     Object spheres[3] = {
         getSphereObj(
-            Transform(Vec3(-2, 100, 2.0), Vec3(1), 0.f, Vec3(1)),
-            Vec3(1, 0, 0),
-            2.f),
+            Transform(Vec3(-10, -4, 2.0), Vec3(1), 0.f, Vec3(1)),
+            Vec3(10, 0, 0),
+            10.f),
         getSphereObj(
-            Transform(Vec3(0, 100, 2.0), Vec3(1), 0.f, Vec3(1)),
+            Transform(Vec3(0, -3, 2.0), Vec3(1), 0.f, Vec3(1)),
             Vec3(0, 0, 0),
             1.f),
         getSphereObj(

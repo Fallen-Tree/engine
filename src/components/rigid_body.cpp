@@ -97,7 +97,7 @@ void RigidBody::ComputeFriction(Vec3 normalForce, float friction,
 
     // if result force in direction of veloctiy is less than full friction
     // force, than rigid bodu will stop.
-    if (glm::length(m_ResForce * Norm(velocity) + (velocity * dt) / massInverse)
+    if (glm::length(m_ResForce * Norm(velocity) + ((velocity * dt) / massInverse))
             < glm::length(force)) {
         m_ResForce *= Vec3(1) - Norm(velocity);
         velocity = Vec3(0);
@@ -172,8 +172,7 @@ void RigidBody::ComputeForceTorque(Transform tranform, Transform otherTransform,
     }
 
     // Compute friction
-    auto friction = std::max(kineticFriction,
-        otherRigidBody->kineticFriction);
+    auto friction = (kineticFriction + otherRigidBody->kineticFriction) / 2;
     ComputeFriction(normalForce, friction, r1, dt);
     otherRigidBody->ComputeFriction(otherNormalForce, friction, r2, dt);
 }
