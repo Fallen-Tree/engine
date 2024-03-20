@@ -27,7 +27,7 @@ RigidBody::RigidBody(float mass, Mat3 iBody, Vec3 initalVelocity,
     this->velocity = initalVelocity;
     this->restitution = restitution;
     this->defaultForce = defaultForce;
-    this->lineraUnlock = lineraUnlock;
+    this->linearUnlock = lineraUnlock;
     this->angularUnlock = angularUnlock;
     this->kineticFriction = kineticFriction;
 }
@@ -65,7 +65,7 @@ void RigidBody::SetIbodyInverse(Mat3 iBody) {
 void RigidBody::LinearCalculation(Transform *transform, float dt) {
     Vec3 acceleration = m_ResForce * massInverse;
     velocity += acceleration * dt;
-    transform->Translate(velocity * lineraUnlock * dt);
+    transform->Translate(velocity * linearUnlock * dt);
 }
 
 void RigidBody::AngularCalculation(Transform *transform, float dt) {

@@ -31,11 +31,14 @@
 #define DOWN                        Vec3(0, -1, 0)
 
 
-// COllisions
+// Collisions
 #define EJECTION_RATIO              3
 
 
 // rigid body
+
 #define TORQUE_RATIO                100
+// value in [0,1]
+// the more higher the smoother 
+// used in LimitTorque
 #define TORQUE_SMOTHNESS            0.9f 
-// in [0,1]; the more higher the smoother 
