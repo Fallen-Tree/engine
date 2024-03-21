@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <vector>
 #include <iostream>
+#include <algorithm>
 
 #include "engine_config.hpp"
 #include "math_types.hpp"
@@ -131,8 +132,12 @@ void Engine::RemoveObject(ObjectHandle handle) {
     if (m_Behaviours.HasData(handle))
         m_Behaviours.RemoveData(handle);
 
-    if (m_Parents.HasData(handle))
+    if (m_Parents.HasData(handle)) {
+        auto parent = m_Parents.GetData(handle);
+        auto &children = m_Children.GetData(parent);
+        children.erase(std::find(children.begin(), children.end(), parent));
         m_Parents.RemoveData(handle);
+    }
     if (m_Children.HasData(handle)) {
         for (auto child : m_Children.GetData(handle))
             RemoveObject(child);
