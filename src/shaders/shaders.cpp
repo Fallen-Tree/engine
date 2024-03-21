@@ -24,8 +24,10 @@ int Shader::CheckSuccess() {
 
 void Shader::LoadSourceFromFile(std::string path) {
     std::ifstream shaderFile(path);
-    if (!shaderFile.good())
+    if (!shaderFile.good()) {
         Logger::Error("SHADER::FILE_NOT_SUCCESSFULLY_READ: %s", path.c_str());
+        return;
+    }
     std::stringstream shaderStream;
     shaderStream << shaderFile.rdbuf();
     shaderFile.close();
