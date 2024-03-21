@@ -6,12 +6,12 @@
 #include "logger.hpp"
 #include <glm/gtx/string_cast.hpp>
 
-const char *cubeSource = "/cube2.obj";
-const char *catSource = "/cat.obj";
-const char *benchSource = "/bench.obj";
+const char *cubeSource = "cube2.obj";
+const char *catSource = "cat.obj";
+const char *benchSource = "bench.obj";
 
-const char *vertexShaderSource = "/standart.vshader";
-const char *fragmentShaderSource = "/standart.fshader";
+const char *vertexShaderSource = "standart.vshader";
+const char *fragmentShaderSource = "standart.fshader";
 
 class MovingSphere : public Behaviour {
  public:
