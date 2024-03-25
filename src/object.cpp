@@ -1,9 +1,7 @@
 #include "object.hpp"
 #include "engine.hpp"
 
-Object::Object(Engine *engine, ObjectHandle id) : m_Engine(engine), m_Handle(id) {
-    Logger::Info("Created object %d", id);
-}
+Object::Object(Engine *engine, ObjectHandle id) : m_Engine(engine), m_Handle(id) {}
 Object::Object() : m_Engine(nullptr), m_Handle(-1) {}
 
 void Object::Remove() {
@@ -13,6 +11,14 @@ void Object::Remove() {
 
 bool Object::IsValid() {
     return m_Engine && m_Handle != -1;
+}
+
+void Object::AddChild(Object child) {
+    m_Engine->AddChild(m_Handle, child.m_Handle);
+}
+
+Object Object::GetParent() {
+    return m_Engine->GetParent(m_Handle);
 }
 
 Object &Object::operator=(const Object &rhs) {
