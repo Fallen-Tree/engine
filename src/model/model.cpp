@@ -66,7 +66,8 @@ RenderMesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
         for (unsigned int j = 0; j < face.mNumIndices; j++)
             indices.push_back(face.mIndices[j]);
     }
-    Texture t;
+    Texture t = Texture("default.png");
+    float shininess = 1.0f;
     if (mesh->mMaterialIndex >= 0) {
         aiMaterial *mat = scene->mMaterials[mesh->mMaterialIndex];
         Logger::Info("Diffuse texture count: %d", mat->GetTextureCount(aiTextureType_DIFFUSE));
@@ -74,16 +75,15 @@ RenderMesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
         if (mat->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
             aiString s;
             mat->GetTexture(aiTextureType_DIFFUSE, 0, &s);
-            t.loadImage(std::string(s.C_Str()));
+            t = Texture(std::string(s.C_Str()));
 
             if (mat->GetTextureCount(aiTextureType_SPECULAR) > 0) {
                 aiString s;
                 mat->GetTexture(aiTextureType_SPECULAR, 0, &s);
                 t.loadImage(std::string(s.C_Str()));
             }
-        } else {
-            t.loadImage("default.png");
         }
+        mat->Get(AI_MATKEY_SHININESS, shininess);
     }
     RenderMesh newMesh = RenderMesh(points, indices, Material{1.0, t});
     return newMesh;

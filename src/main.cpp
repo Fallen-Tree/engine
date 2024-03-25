@@ -7,7 +7,7 @@
 #include <glm/gtx/string_cast.hpp>
 
 const char *cubeSource = "cube2.obj";
-const char *catSource = "cat.obj";
+const char *catSource = "fish.obj";
 const char *benchSource = "bench.obj";
 
 const char *vertexShaderSource = "standart.vshader";
