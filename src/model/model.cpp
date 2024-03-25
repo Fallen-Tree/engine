@@ -66,15 +66,26 @@ RenderMesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
         for (unsigned int j = 0; j < face.mNumIndices; j++)
             indices.push_back(face.mIndices[j]);
     }
-    // process material
-    // load default material for now
-    Material material = Material{1.0, Texture("default.png")};
-    // does not work now
+    Texture t;
     if (mesh->mMaterialIndex >= 0) {
         aiMaterial *mat = scene->mMaterials[mesh->mMaterialIndex];
-        // convert material from assimp to our material
+        Logger::Info("Diffuse texture count: %d", mat->GetTextureCount(aiTextureType_DIFFUSE));
+        Logger::Info("Specular texture count: %d", mat->GetTextureCount(aiTextureType_SPECULAR));
+        if (mat->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
+            aiString s;
+            mat->GetTexture(aiTextureType_DIFFUSE, 0, &s);
+            t.loadImage(std::string(s.C_Str()));
+
+            if (mat->GetTextureCount(aiTextureType_SPECULAR) > 0) {
+                aiString s;
+                mat->GetTexture(aiTextureType_SPECULAR, 0, &s);
+                t.loadImage(std::string(s.C_Str()));
+            }
+        } else {
+            t.loadImage("default.png");
+        }
     }
-    RenderMesh newMesh = RenderMesh(points, indices, material);
+    RenderMesh newMesh = RenderMesh(points, indices, Material{1.0, t});
     return newMesh;
 }
 
