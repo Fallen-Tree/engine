@@ -1,5 +1,4 @@
 #pragma once
-#include <irrKlang.h>
 #include <string>
 #include "math_types.hpp"
 
@@ -50,8 +49,8 @@ class Sound {
 
  private:
     SoundType m_Type;
-    irrklang::ISound* m_Sound;
-    irrklang::vec3df m_Position;
+   // irrklang::ISound* m_Sound;
+   // irrklang::vec3df m_Position;
     float m_Volume;
     float m_Radius;
 

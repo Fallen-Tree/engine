@@ -1,4 +1,3 @@
-#include <irrKlang.h>
 
 #include <limits>
 
@@ -20,8 +19,6 @@ class MovingSphere : public Object {
     void Update(float dt) override {
     }
 };
-
-extern irrklang::ISoundEngine *SoundEngine;
 
 int main() {
     auto engine = Engine();
@@ -127,18 +124,18 @@ int main() {
     engine.AddObject<>(fpsObj);
 
     // Sphere just for updating movement
-    auto musicObject1 = new Object();
-    musicObject1->sound = new Sound(SOUND_FLAT, "georgian_disco.mp3");
-    musicObject1->sound->SetVolume(0.2f);
-    musicObject1->sound->Start();
-    engine.AddObject<>(musicObject1);
+    // auto musicObject1 = new Object();
+    // musicObject1->sound = new Sound(SOUND_FLAT, "georgian_disco.mp3");
+    // musicObject1->sound->SetVolume(0.2f);
+    // musicObject1->sound->Start();
+    // engine.AddObject<>(musicObject1);
 
     // Sphere just for updating movement
     Object* musicObject2 = getSphereObj(
             Transform(Vec3(-4, 100, 2.0), Vec3(1.0), 0, Vec3(1)),
             Vec3(0, -100, 0),
             3);
-    musicObject2->sound = new Sound(SOUND_3D, "explosion.wav");
+    musicObject2->sound = new Sound(SOUND_3D, "georgian_disco.wav");
     musicObject2->sound->SetRadius(20.f);
     musicObject2->sound->Loop();
     musicObject2->sound->Start();

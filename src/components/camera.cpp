@@ -1,7 +1,5 @@
 #include "camera.hpp"
 
-#include <irrKlang.h>
-
 #include "input.hpp"
 #include "math_types.hpp"
 #include "math.h"
@@ -142,7 +140,7 @@ void Camera::UpdateCameraVectors() {
 }
 
 
-extern irrklang::ISoundEngine *SoundEngine;
+// extern irrklang::ISoundEngine *SoundEngine;
 
 void Camera::Update(Input * input, float deltaTime) {
     float xOffset = input->OffsetX();
@@ -165,11 +163,11 @@ void Camera::Update(Input * input, float deltaTime) {
         ProcessKeyboard(RIGHT, deltaTime);
 
     // Sounds
-    Vec3 pos = m_Transform.GetTranslation();
-    irrklang::vec3df position(pos.x, pos.y, pos.z);
-    irrklang::vec3df lookDirection(m_Front.x, m_Front.y, m_Front.z);
-    irrklang::vec3df up(m_WorldUp.x, m_WorldUp.y, m_WorldUp.z);
+    // Vec3 pos = m_Transform.GetTranslation();
+    // irrklang::vec3df position(pos.x, pos.y, pos.z);
+    // irrklang::vec3df lookDirection(m_Front.x, m_Front.y, m_Front.z);
+    // irrklang::vec3df up(m_WorldUp.x, m_WorldUp.y, m_WorldUp.z);
 
-    // don't know why "-" before lookDirection
-    SoundEngine->setListenerPosition(position, -lookDirection, irrklang::vec3df(0, 0, 0), up);
+    // // don't know why "-" before lookDirection
+    // SoundEngine->setListenerPosition(position, -lookDirection, irrklang::vec3df(0, 0, 0), up);
 }

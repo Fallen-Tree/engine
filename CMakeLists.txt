@@ -48,8 +48,9 @@ SET(ASSIMP_BUILD_TESTS OFF)
 add_subdirectory(thirdparty/assimp/assimp)
 
 target_include_directories(ENGINE PUBLIC thirdparty PUBLIC include)
-
 target_include_directories(ENGINE PUBLIC thirdparty/irrKlang/include)
+target_include_directories(ENGINE PUBLIC thirdparty/bass/c)
+
 
 if (UNIX)
     target_link_libraries(ENGINE PUBLIC 
@@ -65,8 +66,24 @@ if (UNIX)
         "$<TARGET_FILE_DIR:ENGINE>/libikpMP3.so"
     )
 
+    add_custom_command (
+        TARGET ENGINE
+        POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+        "${CMAKE_SOURCE_DIR}/thirdparty/bass/libbass.so" 
+        "$<TARGET_FILE_DIR:ENGINE>/libbass.so"
+    )
+
 else()
-    target_link_libraries(ENGINE PUBLIC glfw glad freetype ${CMAKE_SOURCE_DIR}/thirdparty/irrKlang/irrKlang.lib OpenGL::GL)
+    target_link_libraries(ENGINE PUBLIC glfw glad freetype ${CMAKE_SOURCE_DIR}/thirdparty/irrKlang/irrKlang.lib
+    ${CMAKE_SOURCE_DIR}/thirdparty/bass/c/bass.lib
+     OpenGL::GL)
+
+    add_custom_command (
+        TARGET ENGINE
+        POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+        "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/bass/bass.dll" 
+        "$<TARGET_FILE_DIR:ENGINE>/bass.dll"
+    )
 
     add_custom_command(TARGET ENGINE PRE_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
