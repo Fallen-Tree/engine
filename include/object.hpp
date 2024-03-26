@@ -89,6 +89,7 @@ class Object {
     bool IsValid();
     void AddChild(Object child);
     Object GetParent();
+    bool Collide(Object other);
 
  private:
     Engine *m_Engine;

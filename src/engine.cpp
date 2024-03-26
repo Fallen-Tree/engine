@@ -66,6 +66,10 @@ Engine::Engine() {
     m_SpotLights = ComponentArray<SpotLight>();
     m_ObjectCount = 0;
 
+    m_CollideCache = std::vector<std::vector<bool>>(MAX_OBJECT_COUNT);
+    for (auto i = 0; i < MAX_OBJECT_COUNT; i++)
+        m_CollideCache[i] = std::vector<bool>(MAX_OBJECT_COUNT);
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -278,6 +282,14 @@ DirLight &Engine::AddDirLight(ObjectHandle id, DirLight v) {
     return m_DirLights.GetData(id);
 }
 
+bool Engine::Collide(ObjectHandle a, ObjectHandle b) {
+    if (!m_Colliders.HasData(a) || !m_Colliders.HasData(b)) {
+        Logger::Warn("Trying to get collision data on objects with no colliders");
+        return false;
+    }
+    return m_CollideCache[a][b];
+}
+
 void Engine::Run() {
     scrWidth = SCR_WIDTH;
     scrHeight = SCR_HEIGHT;
@@ -336,6 +348,20 @@ void Engine::Run() {
 }
 
 void Engine::updateObjects(float deltaTime) {
+    // Check collisions
+    for (int i = 0; i < m_Colliders.GetSize(); i++) {
+        auto handle = m_Colliders.GetFromInternal(i);
+        for (int j = i + 1; j < m_Colliders.GetSize(); j++) {
+            auto handle2 = m_Colliders.GetFromInternal(j);
+            auto c1 = m_Colliders.GetData(handle);
+            auto c2 = m_Colliders.GetData(handle2);
+            auto t1 = GetGlobalTransform(handle);
+            auto t2 = GetGlobalTransform(handle2);
+            m_CollideCache[handle][handle2] = c1.Collide(t1, &c2, t2);
+            m_CollideCache[handle2][handle] = m_CollideCache[handle][handle2];
+        }
+    }
+
     // Find collisions on rigidbodies and handle them
     for (int i = 0; i < m_RigidBodies.GetSize(); i++) {
         auto handle = m_RigidBodies.GetFromInternal(i);
@@ -354,11 +380,11 @@ void Engine::updateObjects(float deltaTime) {
                 continue;
             }
 
-            auto c1 = m_Colliders.GetData(handle);
-            auto c2 = m_Colliders.GetData(handle2);
-            auto t1 = GetGlobalTransform(handle);
-            auto t2 = GetGlobalTransform(handle2);
-            if (c1.Collide(t1, &c2, t2)) {
+            if (Collide(handle, handle2)) {
+                auto c1 = m_Colliders.GetData(handle);
+                auto c2 = m_Colliders.GetData(handle2);
+                auto t1 = GetGlobalTransform(handle);
+                auto t2 = GetGlobalTransform(handle2);
                 m_RigidBodies.GetData(handle).ResolveCollisions(
                         t1, t2, &c1, &c2,
                         &m_RigidBodies.GetData(handle2), deltaTime);
