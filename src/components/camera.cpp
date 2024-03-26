@@ -5,6 +5,7 @@
 #include "math.h"
 #include "user_config.hpp"
 #include "logger.hpp"
+#include "sound.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/string_cast.hpp>
 
@@ -162,12 +163,15 @@ void Camera::Update(Input * input, float deltaTime) {
     if (input->IsKeyDown(Key::D))
         ProcessKeyboard(RIGHT, deltaTime);
 
-    // Sounds
-    // Vec3 pos = m_Transform.GetTranslation();
-    // irrklang::vec3df position(pos.x, pos.y, pos.z);
-    // irrklang::vec3df lookDirection(m_Front.x, m_Front.y, m_Front.z);
-    // irrklang::vec3df up(m_WorldUp.x, m_WorldUp.y, m_WorldUp.z);
+    // Set Sounds Listener position
 
+    Vec3 pos = m_Transform.GetTranslation();
+    BASS_3DVECTOR bpos = {pos.x, pos.y, pos.z};
+    BASS_3DVECTOR bup = {m_WorldUp.x, m_WorldUp.y, m_WorldUp.z};
+    BASS_3DVECTOR bfront = {-m_Front.x, -m_Front.y, -m_Front.z};
     // // don't know why "-" before lookDirection
     // SoundEngine->setListenerPosition(position, -lookDirection, irrklang::vec3df(0, 0, 0), up);
+
+    BASS_Set3DPosition(&bpos, NULL, &bfront, &bup);
+    BASS_Apply3D();
 }

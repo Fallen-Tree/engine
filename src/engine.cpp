@@ -18,6 +18,7 @@
 #include "collisions.hpp"
 #include "animation.hpp"
 #include "rigid_body.hpp"
+#include "sound.hpp"
 #include <glm/gtx/string_cast.hpp>
 
 int viewportWidth, viewportHeight;
@@ -50,6 +51,8 @@ Engine::Engine() {
     m_Objects = std::vector<Object *>();
     camera = new Camera(Vec3(0.0f, 0.0f, 3.0f));
     s_Engine = this;
+
+    BASS_Init(-1, 44100, 0, NULL, NULL);
 
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -94,6 +97,7 @@ Engine::~Engine() {
             glDeleteBuffers(1, &mesh.EBO);
         }
     }
+    BASS_Free();
     std::cout << "Goodbye";
 }
 
@@ -335,7 +339,7 @@ void Engine::Render(int scr_width, int scr_height) {
         }
     }
 
-    for (uint64_t i = 0; i < m_Objects.size(); i++) {
+    for (unsigned int i = 0; i < m_Objects.size(); i++) {
         auto object = m_Objects[i];
         if (!object->image) {
             continue;
@@ -345,7 +349,7 @@ void Engine::Render(int scr_width, int scr_height) {
     }
 
 
-    for (uint64_t i = 0; i < m_Objects.size(); i++) {
+    for (unsigned int i = 0; i < m_Objects.size(); i++) {
         auto object = m_Objects[i];
         if (object->text) {
             object->text->RenderText();
@@ -353,17 +357,6 @@ void Engine::Render(int scr_width, int scr_height) {
 
         if (object->sound && object->transform) {
             object->sound->SetPosition(object->transform->GetTranslation());
-
-           // Logger::Info("%f", glm::distance(object->transform->GetTranslation(), camera->GetPosition()));
-
-            if (object->sound->GetType() == SOUND_FLAT) continue;
-
-            if (glm::distance(object->transform->GetTranslation(), camera->GetPosition())
-                > object->sound->GetRadius()) {
-                object->sound->Mute();
-            } else {
-                object->sound->Unmute();
-            }
         }
     }
 

@@ -2,62 +2,40 @@
 #include "path_resolver.hpp"
 #include "bass.h"
 
-// irrklang::ISoundEngine *SoundEngine = irrklang::createIrrKlangDevice();
-
-void Sound::play(SoundType type, std::string path) {
+Sound::Sound(SoundType type, std::string path, bool looped) {
     path = GetResourcePath(Resource::SOUND, path);
+    DWORD loop = looped ? BASS_SAMPLE_LOOP : 0;
+    HSAMPLE sample;
 
-    BASS_Init(-1, 44100, 0, NULL, NULL);
-    auto h = BASS_SampleLoad(false, path.c_str(), 0, 0, 55, 0);
-    auto ch = BASS_SampleGetChannel(h, 0);
-    BASS_ChannelPlay(ch, 0);
+    if (type == SOUND_FLAT) {
+        sample = BASS_SampleLoad(false, path.c_str(), 0, 0, 10, 0);
+    } else {
+        sample = BASS_SampleLoad(false, path.c_str(), 0, 0, 10,
+            BASS_SAMPLE_3D | BASS_SAMPLE_MUTEMAX | loop);
+    }
 
-    // irrklang::vec3df position(0, 0, 0);
-    // m_Type = type;
-    // m_Position = position;
-    // m_Volume = 1.f;
-    // m_Radius = 100000000.f;
-
-    // if (type == SOUND_FLAT) {
-    //     m_Sound = SoundEngine->play2D(path.c_str(), false, true, true);
-    // } else {
-    //     m_Sound = SoundEngine->play3D(path.c_str(), position, false, true, true);
-    // }
-}
-
-// void Sound::PlaySound(SoundType type, std::string path) {
-//     StopForever();
-//     play(type, path);
-// }
-
-Sound::Sound() {
-}
-
-Sound::Sound(SoundType type, std::string path) {
-    play(type, path);
+    m_Type = type;
+    m_Volume = 1.f;
+    m_Channel = BASS_SampleGetChannel(sample, 0);
 }
 
 void Sound::SetVolume(float v) {
-   // m_Sound->setVolume(v);
+    m_Volume = v;
+    BASS_ChannelSetAttribute(m_Channel, BASS_ATTRIB_VOL, m_Volume);
 }
 float Sound::GetVolume() {
     return m_Volume;
 }
 
 void Sound::SetPosition(Vec3 v) {
-   // irrklang::vec3df pos(v.x, v.y, v.z);
-   // m_Sound->setPosition(pos);
-}
-Vec3 Sound::GetPosition() {
-    return Vec3(0);
-    //return Vec3(m_Position.X, m_Position.Y, m_Position.Z);
+    BASS_3DVECTOR pos = {v.x, v.y, v.z};
+    if (m_Type == SOUND_3D) {
+        BASS_ChannelSet3DPosition(m_Channel, &pos, NULL, NULL);
+    }
 }
 
 void Sound::SetRadius(float r) {
-    m_Radius = r;
-}
-float Sound::GetRadius() {
-    return m_Radius;
+    BASS_ChannelSet3DAttributes(m_Channel, -1, -1, r, -1, -1, -1);
 }
 
 SoundType Sound::GetType() {
@@ -65,32 +43,25 @@ SoundType Sound::GetType() {
 }
 
 void Sound::Pause() {
-    //m_Sound->setIsPaused(true);
+    BASS_ChannelPause(m_Channel);
 }
 void Sound::Start() {
-    //m_Sound->setIsPaused(false);
+    BASS_ChannelStart(m_Channel);
 }
 
 void Sound::Mute() {
-    //m_Sound->setVolume(0);
-}
-void Sound::Unmute() {
-    //m_Sound->setVolume(m_Volume);
+    BASS_ChannelSetAttribute(m_Channel, BASS_ATTRIB_VOL, 0);
 }
 
-void Sound::Loop() {
-    //m_Sound->setIsLooped(true);
-}
-void Sound::Unloop() {
-   //  m_Sound->setIsLooped(false);
+void Sound::Unmute() {
+    BASS_ChannelSetAttribute(m_Channel, BASS_ATTRIB_VOL, m_Volume);
 }
 
 bool Sound::isPlaying() {
-    return true;
-    //return m_Sound->isFinished();
+    return BASS_ChannelIsActive(m_Channel) == BASS_ACTIVE_PLAYING;
 }
 
 void Sound::StopForever() {
-   // m_Sound->stop();
-   // m_Sound->drop();
+    BASS_ChannelStop(m_Channel);
+    BASS_ChannelFree(m_Channel);
 }

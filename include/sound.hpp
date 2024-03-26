@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include "math_types.hpp"
+#include "bass.h"
 
 enum SoundType {
     SOUND_FLAT,
@@ -9,25 +10,20 @@ enum SoundType {
 
 class Sound {
  public:
-    Sound();
-    explicit Sound(SoundType type, std::string path);
-
-    // Will set default params
-    void PlaySound(SoundType type, std::string path);
+    explicit Sound(SoundType type, std::string path, bool looped = false);
 
     // Set volume of sound from [0, 1], 1 by default
+    // BASS docs saying that it can be more than 1
     void SetVolume(float v);
     float GetVolume();
 
     // Set position of soundSorce
     // Positions of 3D sounds Objects with Transform component changing BY ENGINE every frame!
     void SetPosition(Vec3);
-    Vec3 GetPosition();
 
     // Radius in which sound can be heared (plays role only for 3D)
     // Very big by deafault
     void SetRadius(float r);
-    float GetRadius();
 
     SoundType GetType();
 
@@ -38,21 +34,13 @@ class Sound {
     void Mute();
     void Unmute();
 
-    // Repeat audio after ending, noloop by default
-    void Loop();
-    void Unloop();
-
     bool isPlaying();
 
-    // This will free memory until new PlaySound
+    // This will free memory
     void StopForever();
 
  private:
     SoundType m_Type;
-   // irrklang::ISound* m_Sound;
-   // irrklang::vec3df m_Position;
+    DWORD m_Channel;
     float m_Volume;
-    float m_Radius;
-
-    void play(SoundType type, std::string path);
 };
