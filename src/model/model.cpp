@@ -85,7 +85,7 @@ RenderMesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
         }
         mat->Get(AI_MATKEY_SHININESS, shininess);
     }
-    RenderMesh newMesh = RenderMesh(points, indices, Material{1.0, t});
+    RenderMesh newMesh = RenderMesh(points, indices, Material{shininess, t});
     return newMesh;
 }
 
