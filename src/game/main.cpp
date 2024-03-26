@@ -35,13 +35,23 @@ template<typename T, typename ...Ts>
 Object newStaticBody(Transform *transform, Model *model, Collider *collider) {
     Object obj = newModel<T>(transform, model);
     obj.AddCollider(*collider);
+    obj.AddRigidBody(0.0f, Mat4(0), Vec3(0), 3.0f, Vec3(0), Vec3(0), Vec3(0), 0.0001f);
+    return obj;
+}
+
+Object newStaticBody(Transform *transform, Collider *collider) {
+    Object obj = engine->NewObject();
+    obj.AddTransform(*transform);
+    obj.AddCollider(*collider);
+    obj.AddRigidBody(0.0f, Mat4(0), Vec3(0), 3.0f, Vec3(0), Vec3(0), Vec3(0), 0.0001f);
     return obj;
 }
 
 template<typename T, typename ...Ts>
 Object newDynamicBody(Transform *transform, Model *model,
         Collider *collider, RigidBody *rigidBody) {
-    Object obj = newStaticBody<T>(transform, model, collider);
+    Object obj = newModel<T>(transform, model);
+    obj.AddCollider(*collider);
     obj.AddRigidBody(*rigidBody);
     return obj;
 }
@@ -73,14 +83,15 @@ class MovingBall : public Behaviour {
  public:
     static Object New(Vec3 position, float radius,
      std::string diffuseSource, float mass = 1.0) {
-        Transform *transform = new Transform(position, Vec3(radius), Mat4(0));
+        Transform *transform = new Transform(position, Vec3(radius), Mat4(1.0));
 
         Material sphereMaterial = {4.f, Texture(diffuseSource)};
-        Model *model = Model::fromMesh(Mesh::GetSphere(), sphereMaterial);
+        Model *model = Model::loadFromFile("shar_1200.obj");
+        model->setMaterial(sphereMaterial);
 
-        Collider *collider = new Collider{Sphere{Vec3(0.0), radius}};
+        Collider *collider = new Collider{Sphere{Vec3(0.0), 1.0}};
         RigidBody *rb = new RigidBody(mass, IBodySphere(1, 20),
-                Vec3(0), 0.f, Vec3(0), Vec3(1), Vec3(1), 0.0005f);
+                Vec3(0), 0.5f, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.0005f);
         return newDynamicBody<MovingBall>(transform, model, collider, rb);
     }
 
@@ -143,7 +154,7 @@ class GameManager : public Behaviour {
 class Table : public Behaviour {
  public:
     static Object New(Vec3 position, Vec3 scale) {
-        Transform *transform = new Transform(position, scale, Mat4(0));
+        Transform *transform = new Transform(position, scale, Mat4(1.0));
 
         Model *model = Model::loadFromFile("/stol_1.obj");
         Material material = {
@@ -153,9 +164,30 @@ class Table : public Behaviour {
         model->setMaterial(material);
 
         // get full mesh of the table or make multiple objects for walls of the table.
-        Collider *col = new Collider {&model->meshes[0]};
+        // Collider *col = new Collider {&model->meshes[0]};
+        float h = 0.9;
 
-        Object obj = newModel<Table>(transform, model);
+        float width = 0.7;
+        float length = 0.4;
+
+        Collider *col = new Collider {AABB {
+            Vec3{-width, -0.5, -length},
+            Vec3{width, h, length},
+        }};
+        Object obj = newStaticBody<Table>(transform, model, col);
+
+        float wall_height = 0.5;
+        AABB walls[] = {
+            AABB {Vec3(width, h + 0.01, -length), Vec3(width + 1, h + wall_height, length)},
+            AABB {Vec3(-width - 1, h + 0.01, -length), Vec3(-width, h + wall_height, length)},
+            AABB {Vec3(-width, h + 0.01, length), Vec3(width, h + wall_height, length + 1)},
+            AABB {Vec3(-width, h + 0.01, -length - 1), Vec3(width, h + wall_height, -length)}
+        };
+        for (int i = 0; i < 4; ++i) {
+            Collider col = Collider{walls[i]};
+            newStaticBody(transform, &col);
+        }
+
         return obj;
     }
 
@@ -213,27 +245,29 @@ void createLights() {
 void addCat() {
     Model * model = Model::loadFromFile("cat.obj");
     model->shader = defaultSP;
-    auto obj = engine->NewObject();
-    obj.AddModel(*model);
     Material cat_material = {
         4.f,
         Texture("/Cat_diffuse.png", "/Cat_specular.png")
     };
     model->setMaterial(cat_material);
+    auto obj = engine->NewObject();
+    obj.AddModel(*model);
     auto &t = obj.AddTransform(Vec3(0.f, -3.f, -8.f), Vec3(.1f, .1f, .1f), Mat4(1.0));
     t.Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
     obj.AddCollider(Collider::GetDefaultAABB(&model->meshes[0]));
-    obj.AddRigidBody(100.f, Mat3(0), Vec3(0), 0.f, Vec3(0, -1000, 0),
-        Vec3(0), Vec3(1), 0.1f);
+    // obj.AddRigidBody(100.f, Mat3(0), Vec3(0), 0.f, Vec3(0, -1000, 0),
+    //     Vec3(0), Vec3(1), 0.1f);
 }
 
 int main() {
     init();
 
-    MovingBall::New(Vec3(0, 10, 0), 1, "1.png");
-    Table::New(Vec3(10, -10, 10), Vec3(10));
+    for (int i = 0; i < 5; ++i) {
+        MovingBall::New(Vec3(rand() % 100 * 0.01, i * 0.3, rand() % 100 * 0.01), 0.2, "1.png");
+    }
+    Table::New(Vec3(0, -10, 0), Vec3(5));
 
-    addCat();
+    // addCat();
 
     createUI();
 

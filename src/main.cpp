@@ -96,6 +96,12 @@ int main() {
             Vec3(0, -100, 0),
             3.f),
     };
+    for (int i = 0; i < 10; ++i) {
+        getSphereObj(
+            Transform(Vec3(4, 120 * i, 2.0), Vec3(1.0), 0.f, Vec3(1)),
+            Vec3(0, -100, 0),
+            3.f);
+    }
     class FpsText : public Behaviour {
      public:
         void Update(float dt) override {
