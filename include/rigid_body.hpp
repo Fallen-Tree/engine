@@ -57,7 +57,8 @@ private:
         Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody, 
         float dt);
 
- void ComputeFriction(Vec3 normalForce, float friction, Vec3 r, float dt);
+ void ComputeFriction(Vec3 normalForce, float friction, Vec3 r, float dt,
+         Vec3 normal);
 
  // approximate m_Torque to torque
  // rate of approximating depends on TORQUE_SMOTHNESS

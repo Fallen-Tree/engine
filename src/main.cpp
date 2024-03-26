@@ -4,7 +4,6 @@
 #include "behaviour.hpp"
 #include "collisions.hpp"
 #include "logger.hpp"
-#include <glm/gtx/string_cast.hpp>
 
 const char *cubeSource = "/cube2.obj";
 const char *catSource = "/cat.obj";
@@ -41,7 +40,7 @@ int main() {
     t.Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
     obj.AddCollider(Collider::GetDefaultAABB(&model->meshes[0]));
     obj.AddRigidBody(100.f, Mat3(0), Vec3(0), 0.f, Vec3(0, -1000, 0),
-        Vec3(0), Vec3(1), 0.001f);
+        Vec3(0), Vec3(1), 0.01f);
 
     Material material = {
         4.f,
@@ -76,8 +75,8 @@ int main() {
         obj.AddTransform(transform);
         obj.AddModel(*sphereModel);
         obj.AddCollider(Sphere{ Vec3(0), 1.f });
-        obj.AddRigidBody(mass, IBodySphere(mass, transform.GetScale().x),
-                speed, 0.02f, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.01f);
+        obj.AddRigidBody(mass, IBodySphere(1, mass),
+                speed, 0.0001f, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.001f);
         obj.AddBehaviour<MovingSphere>();
         return obj;
     };
@@ -85,16 +84,16 @@ int main() {
     Object spheres[3] = {
         getSphereObj(
             Transform(Vec3(-10, -4, 2.0), Vec3(1), 0.f, Vec3(1)),
-            Vec3(10, 0, 0),
-            10.f),
+            Vec3(8, 0, 0),
+            4),
         getSphereObj(
             Transform(Vec3(0, -3, 2.0), Vec3(1), 0.f, Vec3(1)),
             Vec3(0, 0, 0),
-            1.f),
+            3.f),
         getSphereObj(
             Transform(Vec3(10, -3, 2.0), Vec3(1.0), 0, Vec3(1)),
             Vec3(0, 0, 0),
-            100),
+            1000),
     };
     class FpsText : public Behaviour {
      public:
