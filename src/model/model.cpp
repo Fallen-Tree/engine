@@ -70,8 +70,6 @@ RenderMesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
     float shininess = 1.0f;
     if (mesh->mMaterialIndex >= 0) {
         aiMaterial *mat = scene->mMaterials[mesh->mMaterialIndex];
-        Logger::Info("Diffuse texture count: %d", mat->GetTextureCount(aiTextureType_DIFFUSE));
-        Logger::Info("Specular texture count: %d", mat->GetTextureCount(aiTextureType_SPECULAR));
         if (mat->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
             aiString s;
             mat->GetTexture(aiTextureType_DIFFUSE, 0, &s);
