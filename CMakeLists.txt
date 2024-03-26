@@ -52,8 +52,10 @@ add_subdirectory(thirdparty/assimp/assimp)
 target_include_directories(ENGINE PUBLIC thirdparty PUBLIC include)
 target_link_libraries(ENGINE PUBLIC glfw glad freetype assimp OpenGL::GL)
 
-add_executable(main src/main.cpp)
-target_link_libraries(main PUBLIC ENGINE)
+add_executable(test src/main.cpp)
+add_executable(game src/game/main.cpp)
+target_link_libraries(test PUBLIC ENGINE)
+target_link_libraries(game PUBLIC ENGINE)
 
 add_custom_target(RESOURCES ALL COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/resources)
 
