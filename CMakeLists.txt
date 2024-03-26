@@ -55,5 +55,11 @@ target_link_libraries(ENGINE PUBLIC glfw glad freetype assimp OpenGL::GL)
 add_executable(main src/main.cpp)
 target_link_libraries(main PUBLIC ENGINE)
 
-add_custom_target(RESOURCES ALL COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/resources)
+if (UNIX)
+  add_custom_target(RESOURCES ALL COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/resources)
+else()
+    add_custom_command(TARGET ENGINE PRE_BUILD
+                       COMMAND ${CMAKE_COMMAND} -E copy_directory
+                       ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/resources)
+endif()
 
