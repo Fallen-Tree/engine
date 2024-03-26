@@ -22,25 +22,16 @@ int Shader::CheckSuccess() {
     return success;
 }
 
-int Shader::LoadSourceFromFile(std::string path) {
-    std::ifstream shaderFile;
-    // ensure ifstream objects can throw exceptions:
-    shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    try {
-        // open files
-        shaderFile.open(path);
-        std::stringstream shaderStream;
-        // read file's buffer contents into stream
-        shaderStream << shaderFile.rdbuf();
-        // close file handlers
-        shaderFile.close();
-        // convert stream into string
-        m_Source = shaderStream.str();
+void Shader::LoadSourceFromFile(std::string path) {
+    std::ifstream shaderFile(path);
+    if (!shaderFile.good()) {
+        Logger::Error("SHADER::FILE_NOT_SUCCESSFULLY_READ: %s", path.c_str());
+        return;
     }
-    catch (std::ifstream::failure& e) {
-        Logger::Error("SHADER::FILE_NOT_SUCCESSFULLY_READ: %s", e.what());
-    }
-    return 0;
+    std::stringstream shaderStream;
+    shaderStream << shaderFile.rdbuf();
+    shaderFile.close();
+    m_Source = shaderStream.str();
 }
 
 int Shader::Compile() {
@@ -89,7 +80,7 @@ int ShaderProgram::Link() {
 }
 
 ShaderProgram::ShaderProgram() {
-    m_Program = glCreateProgram();
+    m_Program = -1;
 }
 
 ShaderProgram::ShaderProgram(Shader vShader, Shader fShader) {

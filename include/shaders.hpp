@@ -12,7 +12,7 @@ class Shader {
      std::string m_Source;
      ShaderType m_Type;
      int CheckSuccess();
-     int LoadSourceFromFile(std::string path);
+     void LoadSourceFromFile(std::string path);
      int Compile();
  public:
      unsigned int m_Shader;

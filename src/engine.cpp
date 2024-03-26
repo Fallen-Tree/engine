@@ -4,7 +4,9 @@
 #include <GLFW/glfw3.h>
 #include <vector>
 #include <iostream>
+#include <algorithm>
 
+#include "engine_config.hpp"
 #include "math_types.hpp"
 #include "camera.hpp"
 #include "shaders.hpp"
@@ -17,6 +19,7 @@
 #include "logger.hpp"
 #include "collisions.hpp"
 #include "animation.hpp"
+#include "behaviour.hpp"
 #include "rigid_body.hpp"
 #include "sound.hpp"
 #include <glm/gtx/string_cast.hpp>
@@ -48,9 +51,22 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 void processInput(GLFWwindow *window);
 
 Engine::Engine() {
-    m_Objects = std::vector<Object *>();
     camera = new Camera(Vec3(0.0f, 0.0f, 3.0f));
     s_Engine = this;
+    // Pre-allocate all needed memory
+    m_Transforms = ComponentArray<Transform>();
+    m_Models = ComponentArray<Model>();
+    m_Animations = ComponentArray<Animation>();
+    m_Colliders = ComponentArray<Collider>();
+    m_RigidBodies = ComponentArray<RigidBody>();
+    m_Images = ComponentArray<Image>();
+    m_Texts = ComponentArray<Text>();
+    m_Sounds = ComponentArray<Sound>();
+
+    m_PointLights = ComponentArray<PointLight>();
+    m_DirLights = ComponentArray<DirLight>();
+    m_SpotLights = ComponentArray<SpotLight>();
+    m_ObjectCount = 0;
 
     BASS_Init(-1, 44100, 0, NULL, NULL);
 
@@ -59,12 +75,6 @@ Engine::Engine() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-
-    // glfw window creation
-    // --------------------
     m_Window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
     if (m_Window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -86,12 +96,8 @@ Engine::Engine() {
 }
 
 Engine::~Engine() {
-    // optional: de-allocate all resources once they've outlived their purpose:
-    // ------------------------------------------------------------------------
-    for (int i = 0; i < m_Objects.size(); i++) {
-        if (m_Objects[i] == nullptr || m_Objects[i]->model == nullptr)
-            continue;
-        for (auto mesh : m_Objects[i]->model->meshes) {
+    for (auto &model : m_Models) {
+        for (auto mesh : model.meshes) {
             glDeleteVertexArrays(1, &mesh.VAO);
             glDeleteBuffers(1, &mesh.VBO);
             glDeleteBuffers(1, &mesh.EBO);
@@ -101,25 +107,190 @@ Engine::~Engine() {
     std::cout << "Goodbye";
 }
 
-void Engine::AddObject(Object *a) {
-    if (a != nullptr) {
-        switch (a->light.index()) {
-            case 0:
-                m_DirLights.push_back(std::get<DirLight*>(a->light));
-                break;
-            case 1:
-                m_PointLights.push_back(std::get<PointLight*>(a->light));
-                break;
-            case 2:
-                m_SpotLights.push_back(std::get<SpotLight*>(a->light));
-                break;
-            case 3:
-                break;
-            default:
-                Logger::Error("ENGINE::ADD_OBJECT::INVALID_TYPE_OF_OBJEC");
-        }
+// TODO(theblek): reuse object ids
+Object Engine::NewObject() {
+    ObjectHandle handle = m_ObjectCount++;
+    Logger::Info("Created object %d", handle);
+    return Object(this, handle);
+}
+
+void Engine::RemoveObject(ObjectHandle handle) {
+    if (m_Transforms.HasData(handle))
+        m_Transforms.RemoveData(handle);
+    if (m_Models.HasData(handle))
+        m_Models.RemoveData(handle);
+    if (m_Colliders.HasData(handle))
+        m_Colliders.RemoveData(handle);
+    if (m_RigidBodies.HasData(handle))
+        m_RigidBodies.RemoveData(handle);
+    if (m_Texts.HasData(handle))
+        m_Texts.RemoveData(handle);
+    if (m_Images.HasData(handle))
+        m_Images.RemoveData(handle);
+    if (m_Animations.HasData(handle))
+        m_Animations.RemoveData(handle);
+    if (m_SpotLights.HasData(handle))
+        m_SpotLights.RemoveData(handle);
+    if (m_PointLights.HasData(handle))
+        m_PointLights.RemoveData(handle);
+    if (m_DirLights.HasData(handle))
+        m_DirLights.RemoveData(handle);
+    if (m_Behaviours.HasData(handle))
+        m_Behaviours.RemoveData(handle);
+
+    if (m_Parents.HasData(handle)) {
+        auto parent = m_Parents.GetData(handle);
+        auto &children = m_Children.GetData(parent);
+        children.erase(std::find(children.begin(), children.end(), parent));
+        m_Parents.RemoveData(handle);
     }
-    m_Objects.push_back(a);
+    if (m_Children.HasData(handle)) {
+        for (auto child : m_Children.GetData(handle))
+            RemoveObject(child);
+        m_Children.RemoveData(handle);
+    }
+}
+
+void Engine::AddChild(ObjectHandle parent, ObjectHandle child) {
+    // TODO(theblek): Check for cycles in the tree
+    m_Parents.SetData(child, parent);
+    if (!m_Children.HasData(parent))
+        m_Children.SetData(parent, std::vector<ObjectHandle>());
+    m_Children.GetData(parent).push_back(child);
+}
+
+Object Engine::GetParent(ObjectHandle node) {
+    return m_Parents.HasData(node) ? Object(this, m_Parents.GetData(node)) : Object();
+}
+
+Transform *Engine::GetTransform(ObjectHandle handle) {
+    return m_Transforms.HasData(handle) ? &m_Transforms.GetData(handle) : nullptr;
+}
+
+Model *Engine::GetModel(ObjectHandle handle) {
+    return m_Models.HasData(handle) ? &m_Models.GetData(handle) : nullptr;
+}
+
+Transform Engine::GetGlobalTransform(ObjectHandle handle) {
+    auto transform = GetTransform(handle);
+    if (!transform) {
+        Logger::Error("Failed to get global transform: No transform on object");
+        return Transform();
+    }
+
+    Mat4 modelMat = transform->GetTransformMatrix();
+    auto cur = Object(this, handle);
+    Vec3 scale = transform->GetScale();
+    while (cur.GetParent().IsValid()) {
+        auto pTransform = cur.GetParent().GetTransform();
+        if (!pTransform) break;
+        cur = cur.GetParent();
+        modelMat = pTransform->GetTransformMatrix() * modelMat;
+        scale *= pTransform->GetScale();
+    }
+    Transform result;
+    result.SetScale(scale);
+    result.SetTranslation(Vec3{modelMat[3][0], modelMat[3][1], modelMat[3][2]});
+    modelMat[3][0] = modelMat[3][1] = modelMat[3][2] = 0;
+    modelMat[3][3] = 1;
+    result.SetRotation(glm::scale(modelMat, Vec3{1/scale.x, 1/scale.y, 1/scale.z}));
+
+    return result;
+}
+
+Collider *Engine::GetCollider(ObjectHandle handle) {
+    return m_Colliders.HasData(handle) ? &m_Colliders.GetData(handle) : nullptr;
+}
+
+RigidBody *Engine::GetRigidBody(ObjectHandle handle) {
+    return m_RigidBodies.HasData(handle) ? &m_RigidBodies.GetData(handle) : nullptr;
+}
+
+Animation *Engine::GetAnimation(ObjectHandle handle) {
+    return m_Animations.HasData(handle) ? &m_Animations.GetData(handle) : nullptr;
+}
+
+Text *Engine::GetText(ObjectHandle handle) {
+    return m_Texts.HasData(handle) ? &m_Texts.GetData(handle) : nullptr;
+}
+
+Image *Engine::GetImage(ObjectHandle handle) {
+    return m_Images.HasData(handle) ? &m_Images.GetData(handle) : nullptr;
+}
+
+Sound *Engine::GetSound(ObjectHandle handle) {
+    return m_Sounds.HasData(handle) ? &m_Sounds.GetData(handle) : nullptr;
+}
+
+PointLight *Engine::GetPointLight(ObjectHandle handle) {
+    return m_PointLights.HasData(handle) ? &m_PointLights.GetData(handle) : nullptr;
+}
+
+SpotLight *Engine::GetSpotLight(ObjectHandle handle) {
+    return m_SpotLights.HasData(handle) ? &m_SpotLights.GetData(handle) : nullptr;
+}
+
+DirLight *Engine::GetDirLight(ObjectHandle handle) {
+    return m_DirLights.HasData(handle) ? &m_DirLights.GetData(handle) : nullptr;
+}
+
+Behaviour *Engine::GetBehaviour(ObjectHandle handle) {
+    return m_Behaviours.HasData(handle) ? m_Behaviours.GetData(handle) : nullptr;
+}
+
+Transform &Engine::AddTransform(ObjectHandle id, Transform v) {
+    m_Transforms.SetData(id, v);
+    return m_Transforms.GetData(id);
+}
+
+Model &Engine::AddModel(ObjectHandle id, Model v) {
+    m_Models.SetData(id, v);
+    return m_Models.GetData(id);
+}
+
+Collider &Engine::AddCollider(ObjectHandle id, Collider v) {
+    m_Colliders.SetData(id, v);
+    return m_Colliders.GetData(id);
+}
+
+RigidBody &Engine::AddRigidBody(ObjectHandle id, RigidBody v) {
+    m_RigidBodies.SetData(id, v);
+    return m_RigidBodies.GetData(id);
+}
+
+Text &Engine::AddText(ObjectHandle id, Text v) {
+    m_Texts.SetData(id, v);
+    return m_Texts.GetData(id);
+}
+
+Image &Engine::AddImage(ObjectHandle id, Image v) {
+    m_Images.SetData(id, v);
+    return m_Images.GetData(id);
+}
+
+Sound &Engine::AddSound(ObjectHandle id, Sound v) {
+    m_Sounds.SetData(id, v);
+    return m_Sounds.GetData(id);
+}
+
+Animation &Engine::AddAnimation(ObjectHandle id, Animation v) {
+    m_Animations.SetData(id, v);
+    return m_Animations.GetData(id);
+}
+
+PointLight &Engine::AddPointLight(ObjectHandle id, PointLight v) {
+    m_PointLights.SetData(id, v);
+    return m_PointLights.GetData(id);
+}
+
+SpotLight &Engine::AddSpotLight(ObjectHandle id, SpotLight v) {
+    m_SpotLights.SetData(id, v);
+    return m_SpotLights.GetData(id);
+}
+
+DirLight &Engine::AddDirLight(ObjectHandle id, DirLight v) {
+    m_DirLights.SetData(id, v);
+    return m_DirLights.GetData(id);
 }
 
 void Engine::Run() {
@@ -172,7 +343,7 @@ void Engine::Run() {
 
         fpsFrames++;
         lastRenderedFrame = static_cast<int>(floor(static_cast<float>(glfwGetTime()) / frameTime));
-        Render(SCR_WIDTH, SCR_HEIGHT);
+        Render(viewportWidth, viewportHeight);
     }
 
     glfwTerminate();
@@ -180,53 +351,66 @@ void Engine::Run() {
 }
 
 void Engine::updateObjects(float deltaTime) {
-    // system which detect all collisions of physics object
-    auto size = m_Objects.size();
-    for (int i = 0; i < size - 1; i++) {
-        if (!m_Objects[i]->rigidbody)
-            continue;
-        auto obj = m_Objects[i];
-        if (!obj->collider || !obj->transform) {
+    // Find collisions on rigidbodies and handle them
+    for (int i = 0; i < m_RigidBodies.GetSize(); i++) {
+        auto handle = m_RigidBodies.GetFromInternal(i);
+        if (!m_Colliders.HasData(handle) || !m_Transforms.HasData(handle)) {
             Logger::Error(
-                    "ENGINE::UPDATE_OBJECTS::RIGID_BODY_SHOULD_HAVE_COLLIDER_TRANSFORM : %d"
-                    , i);
+                "RigidBody on object %d must have a collider and a transform to work",
+                handle);
             continue;
         }
-        for (int j = i + 1; j < size; j++) {
-            if (!m_Objects[j]->rigidbody)
-                continue;
-            auto other = m_Objects[j];
-            if (!other->collider || !other->transform) {
+        for (int j = i + 1; j < m_RigidBodies.GetSize(); j++) {
+            auto handle2 = m_RigidBodies.GetFromInternal(j);
+            if (!m_Colliders.HasData(handle2) || !m_Transforms.HasData(handle2)) {
                 Logger::Error(
-                    "ENGINE::UPDATE_OBJECTS::RIGID_BODY_SHOULD_HAVE_COLLIDER_TRANSFORM : %d"
-                    , j);
+                    "RigidBody on object %d must have a collider and a transform to work",
+                    handle2);
                 continue;
             }
-            if (obj->collider->Collide(*obj->transform, other->collider, *other->transform)) {
-                obj->rigidbody->ResolveCollisions(
-                        *obj->transform, *other->transform,
-                        obj->collider, other->collider,
-                        other->rigidbody, deltaTime);
+
+            auto c1 = m_Colliders.GetData(handle);
+            auto c2 = m_Colliders.GetData(handle2);
+            auto t1 = GetGlobalTransform(handle);
+            auto t2 = GetGlobalTransform(handle2);
+            if (c1.Collide(t1, &c2, t2)) {
+                m_RigidBodies.GetData(handle).ResolveCollisions(
+                        t1, t2, &c1, &c2,
+                        &m_RigidBodies.GetData(handle2), deltaTime);
             }
         }
     }
 
-    for (int i = 0; i < m_Objects.size(); i++) {
-        auto object = m_Objects[i];
-        object->Update(deltaTime);
-        if (object->animation) {
-            object->animation->applyAnimations(object->transform, deltaTime);
+    // Update Animations
+    for (int i = 0; i < m_Animations.GetSize(); i++) {
+        ObjectHandle handle = m_Animations.GetFromInternal(i);
+        if (!m_Transforms.HasData(handle)) {
+            Logger::Error(
+                "Animation component on object %d requires transform component to work",
+                handle);
+            continue;
         }
-        if (object->rigidbody) {
-            object->rigidbody->Update(object->transform, deltaTime);
+        m_Animations.entries[i].applyAnimations(&m_Transforms.GetData(handle), deltaTime);
+    }
+
+    // Update RigidBodies
+    for (int i = 0; i < m_RigidBodies.GetSize(); i++) {
+        auto handle = m_RigidBodies.GetFromInternal(i);
+        if (!m_Colliders.HasData(handle) || !m_Transforms.HasData(handle)) {
+            Logger::Error(
+                "RigidBody on object %d must have a collider and a transform to work",
+                handle);
+            continue;
         }
+        m_RigidBodies.GetData(handle).Update(&m_Transforms.GetData(handle), deltaTime);
+    }
+
+    for (auto behaviour : m_Behaviours) {
+        behaviour->Update(deltaTime);
     }
 }
 
 void Engine::Render(int scr_width, int scr_height) {
-    // render
-    // ------
-
     // Coloring all window (black)
     glClearColor(0.f, 0.f, 0.f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -238,30 +422,28 @@ void Engine::Render(int scr_width, int scr_height) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
-    camera->SetScreenSize({static_cast<float>(scr_width), static_cast<float>(scr_height)});
-    for (uint64_t i = 0; i < m_Objects.size(); i++) {
-        auto object = m_Objects[i];
-        if (!object->model || !object->transform)
-            continue;
+    camera->SetScreenSize(
+        {
+            static_cast<float>(viewportWidth),
+            static_cast<float>(viewportHeight)
+        });
+    for (int i = 0; i < m_Models.GetSize(); i++) {
+        ObjectHandle id = m_Models.GetFromInternal(i);
+        if (!m_Transforms.HasData(id)) continue;
 
-        for (RenderMesh mesh : object->model->meshes) {
+        auto model = m_Models.GetData(id);
+        auto transform = GetGlobalTransform(id);
+        Mat4 projection = camera->GetProjectionMatrix();
 
-            auto transform = object->transform;
-
-            auto model = object->model;
-
-            float timeValue = glfwGetTime();
-
-            ShaderProgram* shader = model->shader;
+        for (RenderMesh mesh : model.meshes) {
+            ShaderProgram* shader = model.shader;
             shader->Use();
 
             Mat4 view = camera->GetViewMatrix();
             Vec3 viewPos = camera->GetPosition();
 
-            Mat4 projection = camera->GetProjectionMatrix();
-
             // send matrix transform to shader
-            shader->SetMat4("model", transform->GetTransformMatrix());
+            shader->SetMat4("model", transform.GetTransformMatrix());
             shader->SetMat4("view", view);
             shader->SetVec3("viewPos", viewPos);
 
@@ -270,60 +452,60 @@ void Engine::Render(int scr_width, int scr_height) {
             // send light to shaders
             // pointLight
             char str[100];
-            for (int i = 0; i < m_PointLights.size(); i++) {
+            for (auto light : m_PointLights) {
                 snprintf(str, sizeof(str), "pointLights[%d].position", i);
-                shader->SetVec3(str, m_PointLights[i]->position);
+                shader->SetVec3(str, light.position);
                 snprintf(str, sizeof(str), "pointLights[%d].ambient", i);
-                shader->SetVec3(str, m_PointLights[i]->ambient);
+                shader->SetVec3(str, light.ambient);
                 snprintf(str, sizeof(str), "pointLights[%d].diffuse", i);
-                shader->SetVec3(str, m_PointLights[i]->diffuse);
+                shader->SetVec3(str, light.diffuse);
                 snprintf(str, sizeof(str), "pointLights[%d].specular", i);
-                shader->SetVec3(str, m_PointLights[i]->specular);
+                shader->SetVec3(str, light.specular);
                 snprintf(str, sizeof(str), "pointLights[%d].linearDistCoeff", i);
-                shader->SetFloat(str, m_PointLights[i]->linearDistCoeff);
+                shader->SetFloat(str, light.linearDistCoeff);
                 snprintf(str, sizeof(str), "pointLights[%d].quadraticDistCoeff", i);
-                shader->SetFloat(str, m_PointLights[i]->quadraticDistCoeff);
+                shader->SetFloat(str, light.quadraticDistCoeff);
                 snprintf(str, sizeof(str), "pointLights[%d].constDistCoeff", i);
-                shader->SetFloat(str, m_PointLights[i]->constDistCoeff);
+                shader->SetFloat(str, light.constDistCoeff);
             }
 
-            shader->SetInt("lenArrPointL", m_PointLights.size());
+            shader->SetInt("lenArrPointL", m_PointLights.GetSize());
             // directionLight
-            for (int i = 0; i < m_DirLights.size(); i++) {
+            for (auto light : m_DirLights) {
                 snprintf(str, sizeof(str), "dirLight[%d].ambinet", i);
-                shader->SetVec3(str, m_DirLights[0]->ambient);
+                shader->SetVec3(str, light.ambient);
                 snprintf(str, sizeof(str), "dirLight[%d].specular", i);
-                shader->SetVec3(str, m_DirLights[0]->specular);
+                shader->SetVec3(str, light.specular);
                 snprintf(str, sizeof(str), "dirLight[%d].direction", i);
-                shader->SetVec3(str, m_DirLights[0]->direction);
+                shader->SetVec3(str, light.direction);
                 snprintf(str, sizeof(str), "dirLight[%d].diffuse", i);
-                shader->SetVec3(str, m_DirLights[0]->diffuse);
+                shader->SetVec3(str, light.diffuse);
             }
-            shader->SetInt("lenArrDirL", m_DirLights.size());
+            shader->SetInt("lenArrDirL", m_DirLights.GetSize());
             // spotLight
-            for (int i = 0; i < m_SpotLights.size(); i++) {
+            for (auto light : m_SpotLights) {
                 snprintf(str, sizeof(str), "spotLight[%d].diffuse", i);
-                shader->SetVec3(str, m_SpotLights[i]->diffuse);
+                shader->SetVec3(str, light.diffuse);
                 snprintf(str, sizeof(str), "spotLight[%d].direction", i);
                 shader->SetVec3(str, camera->GetFront());
                 snprintf(str, sizeof(str), "spotLight[%d].ambient", i);
-                shader->SetVec3(str, m_SpotLights[i]->ambient);
+                shader->SetVec3(str, light.ambient);
                 snprintf(str, sizeof(str), "spotLight[%d].position", i);
                 shader->SetVec3(str, camera->GetPosition());
                 snprintf(str, sizeof(str), "spotLight[%d].specular", i);
-                shader->SetVec3(str, m_SpotLights[i]->specular);
+                shader->SetVec3(str, light.specular);
                 snprintf(str, sizeof(str), "spotLight[%d].cutOff", i);
-                shader->SetFloat(str, m_SpotLights[i]->cutOff);
+                shader->SetFloat(str, light.cutOff);
                 snprintf(str, sizeof(str), "spotLight[%d].linearDistCoeff", i);
-                shader->SetFloat(str, m_SpotLights[i]->linearDistCoeff);
+                shader->SetFloat(str, light.linearDistCoeff);
                 snprintf(str, sizeof(str), "spotLight[%d].outerCutOff", i);
-                shader->SetFloat(str, m_SpotLights[i]->outerCutOff);
+                shader->SetFloat(str, light.outerCutOff);
                 snprintf(str, sizeof(str), "spotLight[%d].constDistCoeff", i);
-                shader->SetFloat(str, m_SpotLights[i]->constDistCoeff);
+                shader->SetFloat(str, light.constDistCoeff);
                 snprintf(str, sizeof(str), "spotLight[%d].quadraticDistCoeff", i);
-                shader->SetFloat(str, m_SpotLights[i]->quadraticDistCoeff);
+                shader->SetFloat(str, light.quadraticDistCoeff);
             }
-            shader->SetInt("lenArrSpotL", m_SpotLights.size());
+            shader->SetInt("lenArrSpotL", m_SpotLights.GetSize());
             // send inf about texture
             mesh.material.texture.bind();
             shader->SetInt("material.duffuse", 0);
@@ -334,30 +516,25 @@ void Engine::Render(int scr_width, int scr_height) {
             shader->SetMat4("projection", projection);
 
             glBindVertexArray(mesh.VAO);
-
             glDrawElements(GL_TRIANGLES, mesh.getLenIndices(), GL_UNSIGNED_INT, 0);
         }
     }
 
-    for (unsigned int i = 0; i < m_Objects.size(); i++) {
-        auto object = m_Objects[i];
-        if (!object->image) {
-            continue;
-        }
-
-        object->image->Render();
+    for (auto &image : m_Images) {
+        image.Render();
     }
 
+    for (auto &text : m_Texts) {
+        text.RenderText();
+    }
 
-    for (unsigned int i = 0; i < m_Objects.size(); i++) {
-        auto object = m_Objects[i];
-        if (object->text) {
-            object->text->RenderText();
-        }
+    for (int i = 0; i < m_Sounds.GetSize(); i++) {
+        ObjectHandle id = m_Sounds.GetFromInternal(i);
+        if (!m_Transforms.HasData(id)) continue;
 
-        if (object->sound && object->transform) {
-            object->sound->SetPosition(object->transform->GetTranslation());
-        }
+        auto transform = GetGlobalTransform(id);
+        auto sound = m_Sounds.GetData(id);
+        sound.SetPosition(transform.GetTranslation());
     }
 
     glfwSwapBuffers(m_Window);

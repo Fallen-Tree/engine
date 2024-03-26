@@ -7,16 +7,20 @@ Sound::Sound(SoundType type, std::string path, bool looped) {
     DWORD loop = looped ? BASS_SAMPLE_LOOP : 0;
     HSAMPLE sample;
 
+    m_Type = type;
+    m_Volume = 1.f;
+
     if (type == SOUND_FLAT) {
         sample = BASS_SampleLoad(false, path.c_str(), 0, 0, 10, 0);
+
+        m_Channel = BASS_SampleGetChannel(sample, 0);
     } else {
         sample = BASS_SampleLoad(false, path.c_str(), 0, 0, 10,
             BASS_SAMPLE_3D | BASS_SAMPLE_MUTEMAX | loop);
-    }
 
-    m_Type = type;
-    m_Volume = 1.f;
-    m_Channel = BASS_SampleGetChannel(sample, 0);
+        m_Channel = BASS_SampleGetChannel(sample, 0);
+        SetPosition(Vec3(100000000.f, 100000000.f, 100000000.f));
+    }
 }
 
 void Sound::SetVolume(float v) {

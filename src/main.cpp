@@ -2,21 +2,33 @@
 #include <limits>
 
 #include "engine.hpp"
+#include "object.hpp"
+#include "behaviour.hpp"
 #include "collisions.hpp"
 #include "logger.hpp"
 #include "sound.hpp"
 #include <glm/gtx/string_cast.hpp>
 
-const char *cubeSource = "/cube2.obj";
+const char *cubeSource = "cube2.obj";
 const char *catSource = "cat.obj";
-const char *benchSource = "/bench.obj";
+const char *benchSource = "bench.obj";
 
 const char *vertexShaderSource = "standart.vshader";
 const char *fragmentShaderSource = "standart.fshader";
 
-class MovingSphere : public Object {
+class MovingSphere : public Behaviour {
  public:
     void Update(float dt) override {
+    }
+};
+
+class Moving : public Behaviour {
+ public:
+    void Update(float dt) override {
+        self.GetTransform()->Translate(Vec3 {2, 0, 0} * dt);
+        if (s_Input->IsKeyPressed(Key::Space)) {
+            self.Remove();
+        }
     }
 };
 
@@ -31,20 +43,22 @@ int main() {
     // init a model
     Model * model = Model::loadFromFile(catSource);
     model->shader = shaderProgram;
-    auto obj = new Object();
     Material cat_material = {
         4.f,
         Texture("/Cat_diffuse.png", "/Cat_specular.png")
     };
     model->setMaterial(cat_material);
-    obj->model = model;
-    obj->transform = new Transform(Vec3(0.f, -3.f, -8.f), Vec3(.1f, .1f, .1f), Mat4(1.0));
-    obj->transform->Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
-    obj->collider = new Collider{Collider::GetDefaultAABB(&model->meshes[0])};
-    obj->rigidbody = new RigidBody(100, Mat3(0), Vec3(0), 0, Vec3(0, -1000, 0),
-        Vec3(0), Vec3(1), 0.1);
+    auto cat = engine.NewObject();
+    cat.AddModel(*model);
+    auto &t = cat.AddTransform(Vec3(0.f, -10.f, -8.f), Vec3(1.f), Mat4(1.0));
+    t.Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
+    cat.AddCollider(Collider::GetDefaultAABB(&model->meshes[0]));
+    cat.AddRigidBody(100.f, Mat3(0), Vec3(0), 0.f, Vec3(0, -1000, 0),
+        Vec3(0), Vec3(1), 0.1f);
 
-    engine.AddObject<>(obj);
+    auto catSound = cat.AddSound(SOUND_3D, "explosion.wav", true);
+    catSound.SetRadius(20.f);
+    catSound.Start();
 
     Material material = {
         4.f,
@@ -56,140 +70,100 @@ int main() {
     cubeModel->shader = shaderProgram;
 
     auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model) {
-        auto obj = new Object();
-        obj->model = model;
-        model->shader = shaderProgram;
+        auto obj = engine.NewObject();
+        obj.AddModel(*model);
 
-        obj->transform = new Transform(transform);
-        obj->collider = new Collider { primitive };
-        obj->rigidbody = new RigidBody(0, Mat4(0), Vec3(0), 3, Vec3(0), Vec3(0),
-            Vec3(0), 0.0001);
-        engine.AddObject<>(obj);
+        obj.AddTransform(transform);
+        obj.AddCollider(primitive);
+        obj.AddRigidBody(0.0f, Mat4(0), Vec3(0), 3.0f, Vec3(0), Vec3(0), Vec3(0), 0.0001f);
         return obj;
     };
 
 
     auto aabb = setUpObj(
-        Transform(Vec3(0, -31, 0), Vec3(50), 0, Vec3(1)),
+        Transform(Vec3(0, -31, -30), Vec3(50), 0.0f, Vec3(1)),
         AABB {
             Vec3{-0.5, -0.5, -0.5},
             Vec3{0.5, 0.5, 0.5},
         },
         cubeModel);
 
-    auto getSphereObj = [=](Transform transform, Vec3 speed, float mass) {
-        auto obj = new MovingSphere();
-        obj->transform = new Transform(transform);
-
-        obj->model = sphereModel;
-        obj->collider = new Collider{Sphere{
-            Vec3(0),
-            1,
-        }};
-        obj->rigidbody = new RigidBody(mass, IBodySphere(1, 20),
-                speed, 0, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.0005);
+    auto getSphereObj = [=, &engine](Transform transform, Vec3 speed, float mass) {
+        auto obj = engine.NewObject();
+        obj.AddTransform(transform);
+        obj.AddModel(*sphereModel);
+        obj.AddCollider(Sphere{ Vec3(0), 1.f });
+        obj.AddRigidBody(mass, IBodySphere(1, 20),
+                speed, 0.f, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.0005f);
+        obj.AddBehaviour<MovingSphere>();
         return obj;
     };
 
-    Object *spheres[3] = {
+    Object spheres[3] = {
         getSphereObj(
-            Transform(Vec3(-2, 100, 2.0), Vec3(1), 0, Vec3(1)),
+            Transform(Vec3(-2, 100, 2.0), Vec3(1), 0.f, Vec3(1)),
             Vec3(1, 0, 0),
-            2),
+            2.f),
         getSphereObj(
-            Transform(Vec3(0, 100, 2.0), Vec3(1), 0, Vec3(1)),
+            Transform(Vec3(0, 100, 2.0), Vec3(1), 0.f, Vec3(1)),
             Vec3(0, 0, 0),
-            1),
+            1.f),
         getSphereObj(
-            Transform(Vec3(4, 120, 2.0), Vec3(1.0), 0, Vec3(1)),
+            Transform(Vec3(4, 120, 2.0), Vec3(1.0), 0.f, Vec3(1)),
             Vec3(0, -100, 0),
-            3),
+            3.f),
     };
-    engine.AddObject<>(spheres[0]);
-    engine.AddObject<>(spheres[1]);
-    engine.AddObject<>(spheres[2]);
-    class FpsText : public Object {
+    cat.AddChild(aabb);
+    cat.AddBehaviour<Moving>();
+
+    class FpsText : public Behaviour {
      public:
         void Update(float dt) override {
             int fps = Time::GetCurrentFps();
             char buf[12];
             snprintf(buf, sizeof(buf), "Fps: %d", fps);
-            this->text->SetContent(buf);
+            self.GetText()->SetContent(buf);
         }
     };
 
-    auto textOcra = new Font("OCRAEXT.TTF", 20);
-    auto fpsObj = new FpsText();
-    fpsObj->text = new Text(textOcra, "", 0.85, 0.96, 1.0, Vec3(0, 0, 0));
-    engine.AddObject<>(fpsObj);
+    {
+        auto ocraFont = new Font("OCRAEXT.TTF", 20);
+        auto obj = engine.NewObject();
+        obj.AddText(ocraFont, "", 685.0f, 575.0f, 1.f, Vec3(0, 0, 0));
+        obj.AddBehaviour<FpsText>();
+    }
 
-    auto musicObject1 = new Object();
-    musicObject1->sound = new Sound(SOUND_FLAT, "georgian_disco.mp3");
-    musicObject1->sound->SetVolume(0.05f);
-    musicObject1->sound->Start();
-    engine.AddObject<>(musicObject1);
+    auto s = engine.NewObject().AddSound(SOUND_FLAT, "georgian_disco.mp3");
+    s.SetVolume(0.05f);
+    s.Start();
 
-    // Sphere just for updating movement
-    Object* musicObject2 = getSphereObj(
-            Transform(Vec3(-5, 30, 5.0), Vec3(1.0), 0, Vec3(1)),
-            Vec3(0, 0, 0),
-            3);
-    musicObject2->sound = new Sound(SOUND_3D, "explosion.wav");
-    musicObject2->sound->SetRadius(20.f);
+    engine.NewObject().AddImage("hp.png", 0.03f, 0.15f, 0.4f);
+    engine.NewObject().AddImage("hp_bar.png", 0.015f, 0.01f, 0.4f);
 
-    musicObject2->sound->Start();
-    engine.AddObject<>(musicObject2);
-
-    Object* healthBar1 = new Object();
-    healthBar1->image = new Image("hp.png", 0.03, 0.15, 0.4);
-    engine.AddObject<>(healthBar1);
-
-    Object* healthBar2 = new Object();
-    healthBar2->image = new Image("hp_bar.png", 0.015, 0.01, 0.4);
-    engine.AddObject<>(healthBar2);
-
-    // init light objects
-    Object* pointLight1 = new Object();
-    pointLight1->light = new PointLight(
+    engine.NewObject().AddPointLight(
         Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
         Vec3(1.0f, 1.0f, 1.0f), Vec3(-0.2, -0.5, -1.2),
-        1, 0.09f, 0.032f);
-    auto pointLight = std::get<PointLight*>(pointLight1->light);
-    engine.AddObject<>(pointLight1);
+        1.f, 0.09f, 0.032f);
 
-    Object* pointLight2 = new Object();
-    pointLight2->light = new PointLight(
+    engine.NewObject().AddPointLight(
         Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
         Vec3(1.0f, 1.0f, 1.0f), Vec3(2.3f, -3.3f, -4.0f),
-        1, 0.09f, 0.032f);
-    pointLight = std::get<PointLight*>(pointLight2->light);
-    engine.AddObject<>(pointLight2);
+        1.f, 0.09f, 0.032f);
 
-    Object* pointLight3 = new Object();
-    pointLight3->light = new PointLight(
+    engine.NewObject().AddPointLight(
         Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
         Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0f,  0.0f, -3.0f),
-        1, 0.09f, 0.032f);
-    pointLight = std::get<PointLight*>(pointLight3->light);
-    engine.AddObject<>(pointLight3);
+        1.f, 0.09f, 0.032f);
 
-    Object* dirLight = new Object();
-    dirLight->light = new DirLight(
-            Vec3(0.05f, 0.05f, 0.05f), Vec3(0.4f, 0.4f, 0.4f),
-            Vec3(0.5f, 0.5f, 0.5f),  Vec3(-0.2f, -1.0f, -0.3f));
+    engine.NewObject().AddDirLight(
+        Vec3(0.05f, 0.05f, 0.05f), Vec3(0.4f, 0.4f, 0.4f),
+        Vec3(0.5f, 0.5f, 0.5f),  Vec3(-0.2f, -1.0f, -0.3f));
 
-    auto directionLight = std::get<DirLight*>(dirLight->light);
-    engine.AddObject<>(dirLight);
-
-    Object* spotLight = new Object();
-    spotLight->light = new SpotLight(
-            Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
-            Vec3(1.0f, 1.0f, 1.0f), Vec3(1.0f, 1.0f, 1.0f),
-            1.0f, 0.09f, 0.032f, Vec3(0),
-            glm::cos(glm::radians(12.5f)),
-            glm::cos(glm::radians(15.0f)));
-    auto sptLight = std::get<SpotLight*>(spotLight->light);
-    engine.AddObject<>(spotLight);
+    engine.NewObject().AddSpotLight(Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
+        Vec3(1.0f, 1.0f, 1.0f), Vec3(1.0f, 1.0f, 1.0f),
+        1.0f, 0.09f, 0.032f, Vec3(0),
+        glm::cos(glm::radians(12.5f)),
+        glm::cos(glm::radians(15.0f)));
 
     engine.Run();
 }

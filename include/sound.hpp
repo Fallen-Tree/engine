@@ -10,6 +10,7 @@ enum SoundType {
 
 class Sound {
  public:
+    Sound() = default;
     explicit Sound(SoundType type, std::string path, bool looped = false);
 
     // Set volume of sound from [0, 1], 1 by default

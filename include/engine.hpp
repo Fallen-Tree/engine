@@ -17,43 +17,59 @@
 #include "model.hpp"
 #include "path_resolver.hpp"
 #include "sound.hpp"
+#include "packed_array.hpp"
 #include "rigid_body.hpp"
 #include "pretty_print.hpp"
 #include "images.hpp"
 
 extern Input *s_Input;
 
-struct GLFWwindow;
+class Object;
+class Behaviour;
 
-class Object {
- public:
-     virtual void Update(float) {}
-
-     Transform *transform = nullptr;
-     Model *model = nullptr;
-     Collider *collider = nullptr;
-     Animation *animation = nullptr;
-     Text *text = nullptr;
-     Sound *sound = nullptr;
-
-     RigidBody *rigidbody = nullptr;
-     Image *image = nullptr;
-
-     // monostate is canonical c++ empty state in variant
-     std::variant<DirLight*, PointLight*, SpotLight*, std::monostate> light
-         = std::monostate();
-};
+using ObjectHandle = int;
 
 class Engine {
  public:
     Engine();
     ~Engine();
 
-    // TODO(theblek): Ensure inlining for release builds
-    template<class T>
-    void AddObject(T *a) {
-        AddObject(static_cast<Object *>(a));
+    Transform *GetTransform(ObjectHandle);
+    Transform GetGlobalTransform(ObjectHandle);
+    Model *GetModel(ObjectHandle);
+    Collider *GetCollider(ObjectHandle);
+    RigidBody *GetRigidBody(ObjectHandle);
+    Animation *GetAnimation(ObjectHandle);
+    Text *GetText(ObjectHandle);
+    Image *GetImage(ObjectHandle);
+    Sound *GetSound(ObjectHandle);
+    PointLight *GetPointLight(ObjectHandle);
+    SpotLight *GetSpotLight(ObjectHandle);
+    DirLight *GetDirLight(ObjectHandle);
+    Behaviour *GetBehaviour(ObjectHandle);
+
+    Transform &AddTransform(ObjectHandle, Transform);
+    Model &AddModel(ObjectHandle, Model);
+    Collider &AddCollider(ObjectHandle, Collider);
+    RigidBody &AddRigidBody(ObjectHandle, RigidBody);
+    Animation &AddAnimation(ObjectHandle, Animation);
+    Text &AddText(ObjectHandle, Text);
+    Image &AddImage(ObjectHandle, Image);
+    Sound &AddSound(ObjectHandle, Sound);
+    PointLight &AddPointLight(ObjectHandle, PointLight);
+    SpotLight &AddSpotLight(ObjectHandle, SpotLight);
+    DirLight &AddDirLight(ObjectHandle, DirLight);
+
+    template<typename T>
+    T &AddBehaviour(ObjectHandle id, T *t) {
+        m_Behaviours.SetData(id, t);
+        return static_cast<T &>(*m_Behaviours.GetData(id));
     }
+
+    void RemoveObject(ObjectHandle);
+    Object NewObject();
+    void AddChild(ObjectHandle parent, ObjectHandle child);
+    Object GetParent(ObjectHandle node);
 
     Camera* SwitchCamera(Camera* newCamera);
     void Run();
@@ -61,13 +77,32 @@ class Engine {
     Camera* camera;
 
  private:
-    void AddObject(Object *);
     void Render(int, int);
     void updateObjects(float);
 
-    std::vector<Object *> m_Objects;
     GLFWwindow *m_Window;
-    std::vector<PointLight*> m_PointLights = std::vector<PointLight*>();
-    std::vector<DirLight*> m_DirLights = std::vector<DirLight*>();
-    std::vector<SpotLight*> m_SpotLights = std::vector<SpotLight*>();
+
+    // Components storage
+    template<typename T>
+    using ComponentArray = PackedArray<T, MAX_OBJECT_COUNT>;
+
+    ComponentArray<Transform> m_Transforms;
+    ComponentArray<Model> m_Models;
+    ComponentArray<Collider> m_Colliders;
+    ComponentArray<RigidBody> m_RigidBodies;
+    ComponentArray<Animation> m_Animations;
+    ComponentArray<Image> m_Images;
+    ComponentArray<Text> m_Texts;
+    ComponentArray<Sound> m_Sounds;
+
+    ComponentArray<PointLight> m_PointLights;
+    ComponentArray<DirLight> m_DirLights;
+    ComponentArray<SpotLight> m_SpotLights;
+
+    ComponentArray<Behaviour *> m_Behaviours;
+    int m_ObjectCount;
+
+    // Hierarchy tree
+    PackedArray<ObjectHandle, MAX_OBJECT_COUNT> m_Parents;
+    PackedArray<std::vector<ObjectHandle>, MAX_OBJECT_COUNT> m_Children;
 };

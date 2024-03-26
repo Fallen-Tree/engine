@@ -37,6 +37,7 @@ class Camera {
     Vec3 GetFront();
 
     void SetScreenSize(Vec2);
+    Vec2 GetScreenSize();
 
     // processes input received from any keyboard-like input system.
     // Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
