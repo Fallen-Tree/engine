@@ -64,13 +64,13 @@ if (UNIX)
 
 else()
     target_link_libraries(ENGINE PUBLIC glfw glad freetype assimp 
-    ${CMAKE_SOURCE_DIR}/thirdparty/bass/c/bass.lib
+    ${CMAKE_SOURCE_DIR}/thirdparty/bass/c/x64/bass.lib
     OpenGL::GL)
 
     add_custom_command (
         TARGET ENGINE
         POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different 
-        "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/bass/bass.dll" 
+        "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/bass/x64/bass.dll" 
         "$<TARGET_FILE_DIR:ENGINE>/bass.dll"
     )
 

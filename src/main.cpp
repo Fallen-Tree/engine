@@ -56,9 +56,7 @@ int main() {
     cat.AddRigidBody(100.f, Mat3(0), Vec3(0), 0.f, Vec3(0, -1000, 0),
         Vec3(0), Vec3(1), 0.1f);
 
-    auto catSound = cat.AddSound(SOUND_3D, "explosion.wav", true);
-    catSound.SetRadius(20.f);
-    catSound.Start();
+    cat.AddSound(SOUND_3D, "explosion.wav", true).SetRadius(20.f).Start();
 
     Material material = {
         4.f,
@@ -133,9 +131,7 @@ int main() {
         obj.AddBehaviour<FpsText>();
     }
 
-    auto s = engine.NewObject().AddSound(SOUND_FLAT, "georgian_disco.mp3");
-    s.SetVolume(0.05f);
-    s.Start();
+    engine.NewObject().AddSound(SOUND_FLAT, "georgian_disco.mp3").SetVolume(0.05f).Start();
 
     engine.NewObject().AddImage("hp.png", 0.03f, 0.15f, 0.4f);
     engine.NewObject().AddImage("hp_bar.png", 0.015f, 0.01f, 0.4f);

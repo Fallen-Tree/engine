@@ -23,42 +23,49 @@ Sound::Sound(SoundType type, std::string path, bool looped) {
     }
 }
 
-void Sound::SetVolume(float v) {
+Sound& Sound::SetVolume(float v) {
     m_Volume = v;
     BASS_ChannelSetAttribute(m_Channel, BASS_ATTRIB_VOL, m_Volume);
+    return *this;
 }
 float Sound::GetVolume() {
     return m_Volume;
 }
 
-void Sound::SetPosition(Vec3 v) {
+Sound& Sound::SetPosition(Vec3 v) {
     BASS_3DVECTOR pos = {v.x, v.y, v.z};
     if (m_Type == SOUND_3D) {
         BASS_ChannelSet3DPosition(m_Channel, &pos, NULL, NULL);
     }
+    return *this;
 }
 
-void Sound::SetRadius(float r) {
+Sound& Sound::SetRadius(float r) {
     BASS_ChannelSet3DAttributes(m_Channel, -1, -1, r, -1, -1, -1);
+    return *this;
 }
 
 SoundType Sound::GetType() {
     return m_Type;
 }
 
-void Sound::Pause() {
+Sound& Sound::Pause() {
     BASS_ChannelPause(m_Channel);
+    return *this;
 }
-void Sound::Start() {
+Sound& Sound::Start() {
     BASS_ChannelStart(m_Channel);
+    return *this;
 }
 
-void Sound::Mute() {
+Sound& Sound::Mute() {
     BASS_ChannelSetAttribute(m_Channel, BASS_ATTRIB_VOL, 0);
+    return *this;
 }
 
-void Sound::Unmute() {
+Sound& Sound::Unmute() {
     BASS_ChannelSetAttribute(m_Channel, BASS_ATTRIB_VOL, m_Volume);
+    return *this;
 }
 
 bool Sound::isPlaying() {
