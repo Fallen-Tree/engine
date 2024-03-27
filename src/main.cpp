@@ -6,16 +6,26 @@
 #include "logger.hpp"
 #include <glm/gtx/string_cast.hpp>
 
-const char *cubeSource = "/cube2.obj";
-const char *catSource = "/cat.obj";
-const char *benchSource = "/bench.obj";
+const char *cubeSource = "cube2.obj";
+const char *catSource = "cat.obj";
+const char *benchSource = "bench.obj";
 
-const char *vertexShaderSource = "/standart.vshader";
-const char *fragmentShaderSource = "/standart.fshader";
+const char *vertexShaderSource = "standart.vshader";
+const char *fragmentShaderSource = "standart.fshader";
 
 class MovingSphere : public Behaviour {
  public:
     void Update(float dt) override {
+    }
+};
+
+class Moving : public Behaviour {
+ public:
+    void Update(float dt) override {
+        self.GetTransform()->Translate(Vec3 {2, 0, 0} * dt);
+        if (s_Input->IsKeyPressed(Key::Space)) {
+            self.Remove();
+        }
     }
 };
 
@@ -35,12 +45,12 @@ int main() {
         Texture("/Cat_diffuse.png", "/Cat_specular.png")
     };
     model->setMaterial(cat_material);
-    auto obj = engine.NewObject();
-    obj.AddModel(*model);
-    auto &t = obj.AddTransform(Vec3(0.f, -3.f, -8.f), Vec3(.1f, .1f, .1f), Mat4(1.0));
+    auto cat = engine.NewObject();
+    cat.AddModel(*model);
+    auto &t = cat.AddTransform(Vec3(0.f, -10.f, -8.f), Vec3(1.f), Mat4(1.0));
     t.Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
-    obj.AddCollider(Collider::GetDefaultAABB(&model->meshes[0]));
-    obj.AddRigidBody(100.f, Mat3(0), Vec3(0), 0.f, Vec3(0, -1000, 0),
+    cat.AddCollider(Collider::GetDefaultAABB(&model->meshes[0]));
+    cat.AddRigidBody(100.f, Mat3(0), Vec3(0), 0.f, Vec3(0, -1000, 0),
         Vec3(0), Vec3(1), 0.1f);
 
     Material material = {
@@ -64,7 +74,7 @@ int main() {
 
 
     auto aabb = setUpObj(
-        Transform(Vec3(0, -31, 0), Vec3(50), 0.0f, Vec3(1)),
+        Transform(Vec3(0, -31, -30), Vec3(50), 0.0f, Vec3(1)),
         AABB {
             Vec3{-0.5, -0.5, -0.5},
             Vec3{0.5, 0.5, 0.5},
@@ -96,12 +106,8 @@ int main() {
             Vec3(0, -100, 0),
             3.f),
     };
-    for (int i = 0; i < 10; ++i) {
-        getSphereObj(
-            Transform(Vec3(4, 120 * i, 2.0), Vec3(1.0), 0.f, Vec3(1)),
-            Vec3(0, -100, 0),
-            3.f);
-    }
+    cat.AddChild(aabb);
+    cat.AddBehaviour<Moving>();
     class FpsText : public Behaviour {
      public:
         void Update(float dt) override {

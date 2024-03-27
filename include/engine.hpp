@@ -34,6 +34,7 @@ class Engine {
     ~Engine();
 
     Transform *GetTransform(ObjectHandle);
+    Transform GetGlobalTransform(ObjectHandle);
     Model *GetModel(ObjectHandle);
     Collider *GetCollider(ObjectHandle);
     RigidBody *GetRigidBody(ObjectHandle);
@@ -64,6 +65,8 @@ class Engine {
 
     void RemoveObject(ObjectHandle);
     Object NewObject();
+    void AddChild(ObjectHandle parent, ObjectHandle child);
+    Object GetParent(ObjectHandle node);
 
     Camera* SwitchCamera(Camera* newCamera);
     void Run();
@@ -75,6 +78,7 @@ class Engine {
     void updateObjects(float);
 
     GLFWwindow *m_Window;
+
     // Components storage
     template<typename T>
     using ComponentArray = PackedArray<T, MAX_OBJECT_COUNT>;
@@ -93,4 +97,8 @@ class Engine {
 
     ComponentArray<Behaviour *> m_Behaviours;
     int m_ObjectCount;
+
+    // Hierarchy tree
+    PackedArray<ObjectHandle, MAX_OBJECT_COUNT> m_Parents;
+    PackedArray<std::vector<ObjectHandle>, MAX_OBJECT_COUNT> m_Children;
 };
