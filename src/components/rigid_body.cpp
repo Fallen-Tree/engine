@@ -106,8 +106,8 @@ void RigidBody::ComputeFriction(Vec3 normalForce, float friction,
     if (glm::length(m_ResForce * direction
             + ((direction * velocity) /(dt * massInverse)))
             < glm::length(force)) {
-        m_ResForce -= m_ResForce * direction;
-        velocity -= velocity * direction;
+        m_ResForce -= glm::abs(m_ResForce) * direction;
+        velocity -= glm::abs(velocity) * direction;
         LimitTorque(force, r);
         return;
     }

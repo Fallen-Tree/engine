@@ -44,13 +44,15 @@ int main() {
         Texture("/Cat_diffuse.png", "/Cat_specular.png")
     };
     model->setMaterial(cat_material);
+    /*
     auto cat = engine.NewObject();
     cat.AddModel(*model);
     auto &t = cat.AddTransform(Vec3(0.f, -10.f, -8.f), Vec3(1.f), Mat4(1.0));
     t.Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
     cat.AddCollider(Collider::GetDefaultAABB(&model->meshes[0]));
-    cat.AddRigidBody(100.f, Mat3(0), Vec3(0), 0.f, Vec3(0, -1000, 0),
-        Vec3(0), Vec3(1), 0.1f);
+    cat.AddRigidBody(100.f, Mat3(0), Vec3(0), 0.f, Vec3(0, 0, 0),
+        Vec3(0), Vec3(0), 0.1f);
+        */
 
     Material material = {
         4.f,
@@ -73,7 +75,7 @@ int main() {
 
 
     auto aabb = setUpObj(
-        Transform(Vec3(0, -31, -30), Vec3(50), 0.0f, Vec3(1)),
+        Transform(Vec3(-15, -55, 0), Vec3(100), 0.0f, Vec3(1)),
         AABB {
             Vec3{-0.5, -0.5, -0.5},
             Vec3{0.5, 0.5, 0.5},
@@ -86,27 +88,27 @@ int main() {
         obj.AddModel(*sphereModel);
         obj.AddCollider(Sphere{ Vec3(0), 1.f });
         obj.AddRigidBody(mass, IBodySphere(1, mass),
-                speed, 0.f, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.03f);
+                speed, 0.1f, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.03f);
         obj.AddBehaviour<MovingSphere>();
         return obj;
     };
 
     Object spheres[3] = {
         getSphereObj(
-            Transform(Vec3(-10, -3, 2.0), Vec3(1), 0.f, Vec3(1)),
+            Transform(Vec3(-20, 2, 2.0), Vec3(1), 0.f, Vec3(1)),
             Vec3(8, 0, 0),
             4),
         getSphereObj(
-            Transform(Vec3(0, -3, 2.0), Vec3(1), 0.f, Vec3(1)),
+            Transform(Vec3(0, 2, 2.0), Vec3(1), 0.f, Vec3(1)),
             Vec3(0, 0, 0),
             3.f),
         getSphereObj(
-            Transform(Vec3(10, -3, 2.0), Vec3(1.0), 0, Vec3(1)),
+            Transform(Vec3(10, 2, 2.0), Vec3(1.0), 0, Vec3(1)),
             Vec3(0, 0, 0),
             1000),
     };
-    cat.AddChild(aabb);
-    cat.AddBehaviour<Moving>();
+    //cat.AddChild(aabb);
+    //cat.AddBehaviour<Moving>();
     class FpsText : public Behaviour {
      public:
         void Update(float dt) override {
