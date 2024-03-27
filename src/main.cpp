@@ -88,7 +88,7 @@ int main() {
         obj.AddModel(*sphereModel);
         obj.AddCollider(Sphere{ Vec3(0), 1.f });
         obj.AddRigidBody(mass, IBodySphere(1, mass),
-                speed, 0.1f, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.03f);
+                speed, 1.f, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.03f);
         obj.AddBehaviour<MovingSphere>();
         return obj;
     };
@@ -97,7 +97,7 @@ int main() {
         getSphereObj(
             Transform(Vec3(-20, 2, 2.0), Vec3(1), 0.f, Vec3(1)),
             Vec3(8, 0, 0),
-            4),
+            40),
         getSphereObj(
             Transform(Vec3(0, 2, 2.0), Vec3(1), 0.f, Vec3(1)),
             Vec3(0, 0, 0),
@@ -107,8 +107,8 @@ int main() {
             Vec3(0, 0, 0),
             1000),
     };
-    //cat.AddChild(aabb);
-    //cat.AddBehaviour<Moving>();
+    // cat.AddChild(aabb);
+    // cat.AddBehaviour<Moving>();
     class FpsText : public Behaviour {
      public:
         void Update(float dt) override {
