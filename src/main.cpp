@@ -69,7 +69,7 @@ int main() {
 
         obj.AddTransform(transform);
         obj.AddCollider(primitive);
-        obj.AddRigidBody(0.0f, Mat4(0), Vec3(0), 3.0f, Vec3(0), Vec3(0), Vec3(0), 0.01f);
+        obj.AddRigidBody(10000.f, Mat4(0), Vec3(0), -1.f, Vec3(0), Vec3(0), Vec3(0), 0.01f);
         return obj;
     };
 
@@ -88,22 +88,22 @@ int main() {
         obj.AddModel(*sphereModel);
         obj.AddCollider(Sphere{ Vec3(0), 1.f });
         obj.AddRigidBody(mass, IBodySphere(1, mass),
-                speed, 1.f, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.03f);
+           speed, 0.f, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.01f);
         obj.AddBehaviour<MovingSphere>();
         return obj;
     };
 
     Object spheres[3] = {
         getSphereObj(
-            Transform(Vec3(-20, 2, 2.0), Vec3(1), 0.f, Vec3(1)),
-            Vec3(8, 0, 0),
-            40),
+            Transform(Vec3(-30, -1, 2.0), Vec3(1), 0.f, Vec3(1)),
+            Vec3(10, 0, 0),
+            4),
         getSphereObj(
-            Transform(Vec3(0, 2, 2.0), Vec3(1), 0.f, Vec3(1)),
+            Transform(Vec3(0, -1, 2.0), Vec3(1), 0.f, Vec3(1)),
             Vec3(0, 0, 0),
-            3.f),
+            4.f),
         getSphereObj(
-            Transform(Vec3(10, 2, 2.0), Vec3(1.0), 0, Vec3(1)),
+            Transform(Vec3(10, -1, 2.0), Vec3(1.0), 0, Vec3(1)),
             Vec3(0, 0, 0),
             1000),
     };
