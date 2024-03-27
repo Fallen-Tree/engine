@@ -10,6 +10,7 @@ enum class Resource {
     FSHADER,
     VSHADER,
     TEXTURE,
+    SOUND,
     IMAGE
 };
 

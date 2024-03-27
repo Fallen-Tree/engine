@@ -16,6 +16,7 @@
 #include "light.hpp"
 #include "model.hpp"
 #include "path_resolver.hpp"
+#include "sound.hpp"
 #include "packed_array.hpp"
 #include "rigid_body.hpp"
 #include "pretty_print.hpp"
@@ -23,7 +24,7 @@
 
 extern Input *s_Input;
 
-struct Object;
+class Object;
 class Behaviour;
 
 using ObjectHandle = int;
@@ -41,6 +42,7 @@ class Engine {
     Animation *GetAnimation(ObjectHandle);
     Text *GetText(ObjectHandle);
     Image *GetImage(ObjectHandle);
+    Sound *GetSound(ObjectHandle);
     PointLight *GetPointLight(ObjectHandle);
     SpotLight *GetSpotLight(ObjectHandle);
     DirLight *GetDirLight(ObjectHandle);
@@ -53,6 +55,7 @@ class Engine {
     Animation &AddAnimation(ObjectHandle, Animation);
     Text &AddText(ObjectHandle, Text);
     Image &AddImage(ObjectHandle, Image);
+    Sound &AddSound(ObjectHandle, Sound);
     PointLight &AddPointLight(ObjectHandle, PointLight);
     SpotLight &AddSpotLight(ObjectHandle, SpotLight);
     DirLight &AddDirLight(ObjectHandle, DirLight);
@@ -90,6 +93,7 @@ class Engine {
     ComponentArray<Animation> m_Animations;
     ComponentArray<Image> m_Images;
     ComponentArray<Text> m_Texts;
+    ComponentArray<Sound> m_Sounds;
 
     ComponentArray<PointLight> m_PointLights;
     ComponentArray<DirLight> m_DirLights;

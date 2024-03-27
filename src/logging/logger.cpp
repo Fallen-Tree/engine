@@ -48,7 +48,7 @@ void Logger::Info(const char *format, ...) {
 }
 
 void Logger::Warn(const char *format, ...) {
-    if (Logger::s_LogLevel == ERROR) return;
+    if (Logger::s_LogLevel == ERR) return;
     va_list args;
     va_start(args, format);
     Logger::Log("WARNING", format, args);

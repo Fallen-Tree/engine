@@ -21,6 +21,7 @@
 #include "animation.hpp"
 #include "behaviour.hpp"
 #include "rigid_body.hpp"
+#include "sound.hpp"
 #include <glm/gtx/string_cast.hpp>
 
 int viewportWidth, viewportHeight;
@@ -60,11 +61,14 @@ Engine::Engine() {
     m_RigidBodies = ComponentArray<RigidBody>();
     m_Images = ComponentArray<Image>();
     m_Texts = ComponentArray<Text>();
+    m_Sounds = ComponentArray<Sound>();
 
     m_PointLights = ComponentArray<PointLight>();
     m_DirLights = ComponentArray<DirLight>();
     m_SpotLights = ComponentArray<SpotLight>();
     m_ObjectCount = 0;
+
+    BASS_Init(-1, 44100, 0, NULL, NULL);
 
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -99,6 +103,8 @@ Engine::~Engine() {
             glDeleteBuffers(1, &mesh.EBO);
         }
     }
+    BASS_Free();
+    std::cout << "Goodbye";
 }
 
 // TODO(theblek): reuse object ids
@@ -212,6 +218,10 @@ Image *Engine::GetImage(ObjectHandle handle) {
     return m_Images.HasData(handle) ? &m_Images.GetData(handle) : nullptr;
 }
 
+Sound *Engine::GetSound(ObjectHandle handle) {
+    return m_Sounds.HasData(handle) ? &m_Sounds.GetData(handle) : nullptr;
+}
+
 PointLight *Engine::GetPointLight(ObjectHandle handle) {
     return m_PointLights.HasData(handle) ? &m_PointLights.GetData(handle) : nullptr;
 }
@@ -256,6 +266,11 @@ Text &Engine::AddText(ObjectHandle id, Text v) {
 Image &Engine::AddImage(ObjectHandle id, Image v) {
     m_Images.SetData(id, v);
     return m_Images.GetData(id);
+}
+
+Sound &Engine::AddSound(ObjectHandle id, Sound v) {
+    m_Sounds.SetData(id, v);
+    return m_Sounds.GetData(id);
 }
 
 Animation &Engine::AddAnimation(ObjectHandle id, Animation v) {
@@ -505,13 +520,21 @@ void Engine::Render(int scr_width, int scr_height) {
         }
     }
 
-    //      Image rendering
     for (auto &image : m_Images) {
         image.Render();
     }
 
     for (auto &text : m_Texts) {
         text.RenderText();
+    }
+
+    for (int i = 0; i < m_Sounds.GetSize(); i++) {
+        ObjectHandle id = m_Sounds.GetFromInternal(i);
+        if (!m_Transforms.HasData(id)) continue;
+
+        auto transform = GetGlobalTransform(id);
+        auto sound = m_Sounds.GetData(id);
+        sound.SetPosition(transform.GetTranslation());
     }
 
     glfwSwapBuffers(m_Window);

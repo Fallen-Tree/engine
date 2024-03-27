@@ -1,9 +1,11 @@
 #include "camera.hpp"
+
 #include "input.hpp"
 #include "math_types.hpp"
 #include "math.h"
 #include "user_config.hpp"
 #include "logger.hpp"
+#include "sound.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/string_cast.hpp>
 
@@ -161,4 +163,14 @@ void Camera::Update(Input * input, float deltaTime) {
         ProcessKeyboard(LEFT, deltaTime);
     if (input->IsKeyDown(Key::D))
         ProcessKeyboard(RIGHT, deltaTime);
+
+    // Set Sounds Listener position
+    Vec3 pos = m_Transform.GetTranslation();
+    BASS_3DVECTOR bpos = {pos.x, pos.y, pos.z};
+    BASS_3DVECTOR bup = {m_WorldUp.x, m_WorldUp.y, m_WorldUp.z};
+    // don't know why "-" before lookDirection
+    BASS_3DVECTOR bfront = {-m_Front.x, -m_Front.y, -m_Front.z};
+
+    BASS_Set3DPosition(&bpos, NULL, &bfront, &bup);
+    BASS_Apply3D();
 }

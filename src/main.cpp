@@ -1,9 +1,12 @@
+
 #include <limits>
+
 #include "engine.hpp"
 #include "object.hpp"
 #include "behaviour.hpp"
 #include "collisions.hpp"
 #include "logger.hpp"
+#include "sound.hpp"
 #include <glm/gtx/string_cast.hpp>
 
 const char *cubeSource = "cube2.obj";
@@ -52,6 +55,8 @@ int main() {
     cat.AddCollider(Collider::GetDefaultAABB(&model->meshes[0]));
     cat.AddRigidBody(100.f, Mat3(0), Vec3(0), 0.f, Vec3(0, -1000, 0),
         Vec3(0), Vec3(1), 0.1f);
+
+    cat.AddSound(SOUND_3D, "explosion.wav", true).SetRadius(20.f).Start();
 
     Material material = {
         4.f,
@@ -108,6 +113,7 @@ int main() {
     };
     cat.AddChild(aabb);
     cat.AddBehaviour<Moving>();
+
     class FpsText : public Behaviour {
      public:
         void Update(float dt) override {
@@ -123,15 +129,9 @@ int main() {
         auto obj = engine.NewObject();
         obj.AddText(ocraFont, "", 685.0f, 575.0f, 1.f, Vec3(0, 0, 0));
         obj.AddBehaviour<FpsText>();
-        /*
-        obj.AddBehaviour<>([](auto &self, float dt) {
-            int fps = Time::GetCurrentFps();
-            char buf[12];
-            snprintf(buf, sizeof(buf), "Fps: %d", fps);
-            self.GetText()->SetContent(buf);
-        });
-         */
     }
+
+    engine.NewObject().AddSound(SOUND_FLAT, "georgian_disco.mp3").SetVolume(0.05f).Start();
 
     engine.NewObject().AddImage("hp.png", 0.03f, 0.15f, 0.4f);
     engine.NewObject().AddImage("hp_bar.png", 0.015f, 0.01f, 0.4f);

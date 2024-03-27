@@ -1,5 +1,4 @@
-#ifndef SRC_CAMERA_CAMERA_HPP_
-#define SRC_CAMERA_CAMERA_HPP_
+#pragma once
 
 #include <glad/glad.h>
 #include "math_types.hpp"
@@ -20,8 +19,8 @@ enum Camera_Movement {
 class Camera {
  public:
     // constructor with vectors
-    explicit Camera(Vec3 translation, Vec3 up = Vec3(0.0f, 1.0f, 0.0f), 
-            Vec3 scale = Vec3(1), Mat4 rotation = Mat4(1), 
+    explicit Camera(Vec3 translation, Vec3 up = Vec3(0.0f, 1.0f, 0.0f),
+            Vec3 scale = Vec3(1), Mat4 rotation = Mat4(1),
             float nearPlane = DFL_NEAR_PLANE, float farPlane = DFL_FAR_PLANE);
 
     void SetTransform(Transform transform, Vec3 up = Vec3(0.0f, 1.0f, 0.0f));
@@ -78,4 +77,3 @@ class Camera {
     void UpdateCameraVectors();
 };
 
-#endif  // SRC_CAMERA_CAMERA_HPP_

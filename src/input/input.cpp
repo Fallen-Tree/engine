@@ -1,6 +1,7 @@
+#include <vector>
+
 #include "input.hpp"
 #include "logger.hpp"
-#include <vector>
 
 // should send to all constants
 const int maxValidKey = 350;
@@ -16,11 +17,11 @@ Input::Input() {
 
 
 bool Input::IsKeyPressed(Key button) {
-    return m_IsDown[button];
+    return m_IsDown[static_cast<int>(button)];
 }
 
 bool Input::IsKeyDown(Key button) {
-    return glfwGetKey(m_Window, button) == GLFW_PRESS;
+    return glfwGetKey(m_Window, static_cast<int>(button)) == GLFW_PRESS;
 }
 
 float Input::ScrollOfsset() {

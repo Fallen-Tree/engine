@@ -4,7 +4,7 @@
 #include <vector>
 #include "math_types.hpp"
 
-enum Key {
+enum class Key {
       /* Printable keys */
       Space = GLFW_KEY_SPACE,
       Apostrophe = GLFW_KEY_APOSTROPHE,         /* ' */
