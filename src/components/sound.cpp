@@ -11,16 +11,18 @@ Sound::Sound(SoundType type, std::string path, bool looped) {
     m_Volume = 1.f;
 
     if (type == SOUND_FLAT) {
-        sample = BASS_SampleLoad(false, path.c_str(), 0, 0, 10, 0);
-
-        m_Channel = BASS_SampleGetChannel(sample, 0);
+        sample = BASS_SampleLoad(false, path.c_str(), 0, 0, 10, loop);
     } else {
         sample = BASS_SampleLoad(false, path.c_str(), 0, 0, 10,
             BASS_SAMPLE_3D | BASS_SAMPLE_MUTEMAX | loop);
-
-        m_Channel = BASS_SampleGetChannel(sample, 0);
-        SetPosition(Vec3(100000000.f, 100000000.f, 100000000.f));
     }
+
+    if (!sample) {
+        Logger::Error("File not found: %s", path.c_str());
+    }
+
+    m_Channel = BASS_SampleGetChannel(sample, 0);
+    SetPosition(Vec3(100000000.f, 100000000.f, 100000000.f));
 }
 
 Sound& Sound::SetVolume(float v) {

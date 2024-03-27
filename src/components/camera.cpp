@@ -144,9 +144,6 @@ void Camera::UpdateCameraVectors() {
     this->m_Up    = glm::normalize(glm::cross(m_Right, m_Front));
 }
 
-
-// extern irrklang::ISoundEngine *SoundEngine;
-
 void Camera::Update(Input * input, float deltaTime) {
     float xOffset = input->OffsetX();
     float yOffset = input->OffsetY();
@@ -168,13 +165,11 @@ void Camera::Update(Input * input, float deltaTime) {
         ProcessKeyboard(RIGHT, deltaTime);
 
     // Set Sounds Listener position
-
     Vec3 pos = m_Transform.GetTranslation();
     BASS_3DVECTOR bpos = {pos.x, pos.y, pos.z};
     BASS_3DVECTOR bup = {m_WorldUp.x, m_WorldUp.y, m_WorldUp.z};
+    // don't know why "-" before lookDirection
     BASS_3DVECTOR bfront = {-m_Front.x, -m_Front.y, -m_Front.z};
-    // // don't know why "-" before lookDirection
-    // SoundEngine->setListenerPosition(position, -lookDirection, irrklang::vec3df(0, 0, 0), up);
 
     BASS_Set3DPosition(&bpos, NULL, &bfront, &bup);
     BASS_Apply3D();
