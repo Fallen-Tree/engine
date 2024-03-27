@@ -42,11 +42,15 @@ void Texture::loadImage(std::string path) {
         Logger::Error("TEXTURE::LOADER::PROGRAM::FILE_NOT_FOUND_FAILED: %s", path.c_str());
         return;
     }
-    GLenum format = GL_RGBA;
+    GLenum format = nrComponents == 4 ? GL_RGBA : GL_RGB;
 
     glGenTextures(1, &m_TextureId[m_Count]);
 
     glBindTexture(GL_TEXTURE_2D, m_TextureId[m_Count]);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 

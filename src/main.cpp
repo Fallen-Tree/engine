@@ -7,7 +7,7 @@
 #include <glm/gtx/string_cast.hpp>
 
 const char *cubeSource = "cube2.obj";
-const char *catSource = "cat.obj";
+const char *catSource = "fish.obj";
 const char *benchSource = "bench.obj";
 
 const char *vertexShaderSource = "standart.vshader";
@@ -44,10 +44,10 @@ int main() {
         4.f,
         Texture("/Cat_diffuse.png", "/Cat_specular.png")
     };
-    model->setMaterial(cat_material);
+    /* model->setMaterial(cat_material); */
     auto cat = engine.NewObject();
     cat.AddModel(*model);
-    auto &t = cat.AddTransform(Vec3(0.f, -10.f, -8.f), Vec3(1.f), Mat4(1.0));
+    auto &t = cat.AddTransform(Vec3(0.f, -10.f, -8.f), Vec3(0.1f), Mat4(1.0));
     t.Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
     cat.AddCollider(Collider::GetDefaultAABB(&model->meshes[0]));
     cat.AddRigidBody(100.f, Mat3(0), Vec3(0), 0.f, Vec3(0, -1000, 0),

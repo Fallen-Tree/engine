@@ -66,15 +66,24 @@ RenderMesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
         for (unsigned int j = 0; j < face.mNumIndices; j++)
             indices.push_back(face.mIndices[j]);
     }
-    // process material
-    // load default material for now
-    Material material = Material{1.0, Texture("default.png")};
-    // does not work now
+    Texture t = Texture("default.png");
+    float shininess = 1.0f;
     if (mesh->mMaterialIndex >= 0) {
         aiMaterial *mat = scene->mMaterials[mesh->mMaterialIndex];
-        // convert material from assimp to our material
+        if (mat->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
+            aiString s;
+            mat->GetTexture(aiTextureType_DIFFUSE, 0, &s);
+            t = Texture(std::string(s.C_Str()));
+
+            if (mat->GetTextureCount(aiTextureType_SPECULAR) > 0) {
+                aiString s;
+                mat->GetTexture(aiTextureType_SPECULAR, 0, &s);
+                t.loadImage(std::string(s.C_Str()));
+            }
+        }
+        mat->Get(AI_MATKEY_SHININESS, shininess);
     }
-    RenderMesh newMesh = RenderMesh(points, indices, material);
+    RenderMesh newMesh = RenderMesh(points, indices, Material{shininess, t});
     return newMesh;
 }
 
