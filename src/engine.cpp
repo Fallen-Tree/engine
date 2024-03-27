@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <vector>
 #include <iostream>
+#include <algorithm>
 
 #include "engine_config.hpp"
 #include "math_types.hpp"
@@ -100,8 +101,11 @@ Engine::~Engine() {
     }
 }
 
+// TODO(theblek): reuse object ids
 Object Engine::NewObject() {
-    return Object(this, m_ObjectCount++);
+    ObjectHandle handle = m_ObjectCount++;
+    Logger::Info("Created object %d", handle);
+    return Object(this, handle);
 }
 
 void Engine::RemoveObject(ObjectHandle handle) {
@@ -127,6 +131,30 @@ void Engine::RemoveObject(ObjectHandle handle) {
         m_DirLights.RemoveData(handle);
     if (m_Behaviours.HasData(handle))
         m_Behaviours.RemoveData(handle);
+
+    if (m_Parents.HasData(handle)) {
+        auto parent = m_Parents.GetData(handle);
+        auto &children = m_Children.GetData(parent);
+        children.erase(std::find(children.begin(), children.end(), parent));
+        m_Parents.RemoveData(handle);
+    }
+    if (m_Children.HasData(handle)) {
+        for (auto child : m_Children.GetData(handle))
+            RemoveObject(child);
+        m_Children.RemoveData(handle);
+    }
+}
+
+void Engine::AddChild(ObjectHandle parent, ObjectHandle child) {
+    // TODO(theblek): Check for cycles in the tree
+    m_Parents.SetData(child, parent);
+    if (!m_Children.HasData(parent))
+        m_Children.SetData(parent, std::vector<ObjectHandle>());
+    m_Children.GetData(parent).push_back(child);
+}
+
+Object Engine::GetParent(ObjectHandle node) {
+    return m_Parents.HasData(node) ? Object(this, m_Parents.GetData(node)) : Object();
 }
 
 Transform *Engine::GetTransform(ObjectHandle handle) {
@@ -135,6 +163,33 @@ Transform *Engine::GetTransform(ObjectHandle handle) {
 
 Model *Engine::GetModel(ObjectHandle handle) {
     return m_Models.HasData(handle) ? &m_Models.GetData(handle) : nullptr;
+}
+
+Transform Engine::GetGlobalTransform(ObjectHandle handle) {
+    auto transform = GetTransform(handle);
+    if (!transform) {
+        Logger::Error("Failed to get global transform: No transform on object");
+        return Transform();
+    }
+
+    Mat4 modelMat = transform->GetTransformMatrix();
+    auto cur = Object(this, handle);
+    Vec3 scale = transform->GetScale();
+    while (cur.GetParent().IsValid()) {
+        auto pTransform = cur.GetParent().GetTransform();
+        if (!pTransform) break;
+        cur = cur.GetParent();
+        modelMat = pTransform->GetTransformMatrix() * modelMat;
+        scale *= pTransform->GetScale();
+    }
+    Transform result;
+    result.SetScale(scale);
+    result.SetTranslation(Vec3{modelMat[3][0], modelMat[3][1], modelMat[3][2]});
+    modelMat[3][0] = modelMat[3][1] = modelMat[3][2] = 0;
+    modelMat[3][3] = 1;
+    result.SetRotation(glm::scale(modelMat, Vec3{1/scale.x, 1/scale.y, 1/scale.z}));
+
+    return result;
 }
 
 Collider *Engine::GetCollider(ObjectHandle handle) {
@@ -301,8 +356,8 @@ void Engine::updateObjects(float deltaTime) {
 
             auto c1 = m_Colliders.GetData(handle);
             auto c2 = m_Colliders.GetData(handle2);
-            auto t1 = m_Transforms.GetData(handle);
-            auto t2 = m_Transforms.GetData(handle2);
+            auto t1 = GetGlobalTransform(handle);
+            auto t2 = GetGlobalTransform(handle2);
             if (c1.Collide(t1, &c2, t2)) {
                 m_RigidBodies.GetData(handle).ResolveCollisions(
                         t1, t2, &c1, &c2,
@@ -362,7 +417,7 @@ void Engine::Render(int scr_width, int scr_height) {
         if (!m_Transforms.HasData(id)) continue;
 
         auto model = m_Models.GetData(id);
-        auto transform = m_Transforms.GetData(id);
+        auto transform = GetGlobalTransform(id);
         Mat4 projection = camera->GetProjectionMatrix();
 
         for (RenderMesh mesh : model.meshes) {

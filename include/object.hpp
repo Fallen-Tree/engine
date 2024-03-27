@@ -87,6 +87,8 @@ class Object {
 
     void Remove();
     bool IsValid();
+    void AddChild(Object child);
+    Object GetParent();
 
  private:
     Engine *m_Engine;
