@@ -19,6 +19,7 @@ Sound::Sound(SoundType type, std::string path, bool looped) {
 
     if (!sample) {
         Logger::Error("File not found: %s", path.c_str());
+        return;
     }
 
     m_Channel = BASS_SampleGetChannel(sample, 0);
