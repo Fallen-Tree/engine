@@ -69,7 +69,7 @@ int main() {
 
         obj.AddTransform(transform);
         obj.AddCollider(primitive);
-        obj.AddRigidBody(10000.f, Mat4(0), Vec3(0), -1.f, Vec3(0), Vec3(0), Vec3(0), 0.01f);
+        obj.AddRigidBody(0.f, Mat4(0), Vec3(0), -1.f, Vec3(0), Vec3(0), Vec3(0), 0.01f);
         return obj;
     };
 

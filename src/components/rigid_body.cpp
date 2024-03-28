@@ -106,23 +106,12 @@ void RigidBody::ComputeFriction(Vec3 normalForce, float friction,
     if (glm::length(m_ResForce * direction
             + ((direction * velocity) /(dt * massInverse)))
             < glm::length(force)) {
-        //Logger::Info("here");
-        //Logger::Info("mass %f", massInverse);
-        //Logger::Info("vel %s", ToString(velocity));
-        //Logger::Info("force %s", ToString(m_ResForce));
-        //Logger::Info("minus %s", ToString(-velocity * glm::abs(direction)));
         m_ResForce -= m_ResForce * glm::abs(direction);
         velocity -= velocity * glm::abs(direction);
-        //Logger::Info("vel %s", ToString(velocity));
-        //Logger::Info("force %s", ToString(m_ResForce));
-        //Logger::Info("mass %0.15f", velocity.x);
         LimitTorque(force, r);
         return;
     }
 
-    Logger::Info("here2");
-    Logger::Info("vel %s", ToString(velocity));
-    Logger::Info("mass %f", massInverse);
     // otherwise apply full friction force
     m_ResForce += force;
     LimitTorque(force, r);
@@ -155,60 +144,30 @@ void RigidBody::ComputeForceTorque(Transform tranform, Transform otherTransform,
         Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody,
         float dt) {
     if (massInverse == 0 && otherRigidBody->massInverse == 0) {
-        Logger::Error(
-                "RIGID_BODY::CALC_IMPULSE_FORCE::BOTH_RIGID_BODIES_HAVE_INFINITY_MASS");
         return;
     }
-    Logger::Info("mass %f", massInverse);
-    Logger::Info("mass2 %f", otherRigidBody->massInverse);
     Vec3 rv = velocity - otherRigidBody->velocity;
 
     Vec3 normal = CollisionNormal(collider, otherCollider,
         tranform, otherTransform, rv, dt);
 
-    Logger::Info("normal %s", ToString(normal));
 
     float velAlongNormal = glm::dot(rv, normal);
 
     Vec3 impulseForce = ImpulseForce(this, otherRigidBody, normal,
             velAlongNormal, dt);
-    Logger::Info("impulse %s", ToString(impulseForce));
 
     // Compute normal force
-    Logger::Info("force %s", ToString(m_ResForce));
-    Logger::Info("force2 %s", ToString(otherRigidBody->m_ResForce));
-    Logger::Info("vlocity %s", ToString(velocity));
-    Logger::Info("velocity2 %s", ToString(otherRigidBody->velocity));
     Vec3 normalForce = -m_ResForce * normal;
     Vec3 otherNormalForce = otherRigidBody->m_ResForce * normal;
-    Logger::Info("force %s", ToString(m_ResForce));
-    Logger::Info("force2 %s", ToString(otherRigidBody->m_ResForce));
-    Logger::Info("unlock %s", ToString(linearUnlock));
-    Logger::Info("unlock2 %s", ToString(otherRigidBody->linearUnlock));
     m_ResForce += normalForce;
     otherRigidBody->m_ResForce += otherNormalForce;
 
 
-    velocity -= velocity * glm::abs(normal);
-       //* (Vec3(1) - otherRigidBody->linearUnlock);
-    otherRigidBody->velocity -= otherRigidBody->velocity * glm::abs(normal);
-        //* (Vec3(1) - linearUnlock);
-    Logger::Info("min %s", ToString(otherRigidBody->velocity * glm::abs(normal) * linearUnlock));
-    /*if (otherRigidBody->massInverse == 0
-            || massInverse > otherRigidBody->massInverse) {
-        velocity -= velocity * glm::abs(normal);
-    }
-    if (massInverse == 0
-            || massInverse < otherRigidBody->massInverse) {
-        otherRigidBody->velocity -= otherRigidBody->velocity * glm::abs(normal);
-    }
-    */
-
-    Logger::Info("velocity %s", ToString(velocity));
-    Logger::Info("velocity %s", ToString(velocity));
-    Logger::Info("velocity2 %s", ToString(otherRigidBody->velocity));
-    Logger::Info("force %s", ToString(m_ResForce));
-    Logger::Info("force2 %s", ToString(otherRigidBody->m_ResForce));
+    velocity -= velocity * glm::abs(normal)
+       * (Vec3(1) - otherRigidBody->linearUnlock);
+    otherRigidBody->velocity -= otherRigidBody->velocity * glm::abs(normal)
+        * (Vec3(1) - linearUnlock);
 
     // Compute lever of force
     auto r1 = normal * tranform.GetScale() * 0.5f;
@@ -216,7 +175,6 @@ void RigidBody::ComputeForceTorque(Transform tranform, Transform otherTransform,
 
     // Compute impulse
     if (velAlongNormal < 0) {
-        Logger::Info("impulse");
         m_ResForce += impulseForce;
         otherRigidBody->m_ResForce -= impulseForce;
 
