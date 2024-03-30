@@ -99,22 +99,24 @@ void RigidBody::ComputeFriction(Vec3 normalForce, float friction,
         return;
     Vec3 direction = CalculateFrictionDirection(normal, velocity);
     // Full friction force
-    Vec3 force = -direction * glm::length(friction * normalForce);
+    Vec3 frictionForce = -direction * glm::length(friction * normalForce);
 
     // if result force in direction of veloctiy is less than full friction
     // force, than rigid bodu will stop.
-    if (glm::length(m_ResForce * direction
-            + ((direction * velocity) /(dt * massInverse)))
-            < glm::length(force)) {
+    auto projectionVel = Projection(velocity, direction);
+    auto projectionForce = Projection(m_ResForce, direction);
+    if (glm::length(projectionForce +
+            + (projectionVel / (dt * massInverse)))
+            < glm::length(frictionForce)) {
         m_ResForce -= m_ResForce * glm::abs(direction);
         velocity -= velocity * glm::abs(direction);
-        LimitTorque(force, r);
+        LimitTorque(frictionForce, r);
         return;
     }
 
     // otherwise apply full friction force
-    m_ResForce += force;
-    LimitTorque(force, r);
+    m_ResForce += frictionForce;
+    LimitTorque(frictionForce, r);
 }
 
 Vec3 ImpulseForce(RigidBody *rigidBody, RigidBody *otherRigidBody,
@@ -146,6 +148,7 @@ void RigidBody::ComputeForceTorque(Transform tranform, Transform otherTransform,
     if (massInverse == 0 && otherRigidBody->massInverse == 0) {
         return;
     }
+
     Vec3 rv = velocity - otherRigidBody->velocity;
 
     Vec3 normal = CollisionNormal(collider, otherCollider,
@@ -158,15 +161,15 @@ void RigidBody::ComputeForceTorque(Transform tranform, Transform otherTransform,
             velAlongNormal, dt);
 
     // Compute normal force
-    Vec3 normalForce = -m_ResForce * normal;
-    Vec3 otherNormalForce = otherRigidBody->m_ResForce * normal;
+    Vec3 normalForce = Projection(m_ResForce, normal);
+    Vec3 otherNormalForce = -Projection(otherRigidBody->m_ResForce, normal);
     m_ResForce += normalForce;
     otherRigidBody->m_ResForce += otherNormalForce;
 
 
-    velocity -= velocity * glm::abs(normal)
+    velocity -= Projection(velocity, -normal)
        * (Vec3(1) - otherRigidBody->linearUnlock);
-    otherRigidBody->velocity -= otherRigidBody->velocity * glm::abs(normal)
+    otherRigidBody->velocity -= Projection(otherRigidBody->velocity, normal)
         * (Vec3(1) - linearUnlock);
 
     // Compute lever of force
