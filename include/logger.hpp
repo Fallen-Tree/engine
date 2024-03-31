@@ -2,11 +2,12 @@
 
 #include<string.h>
 #include<cstdio>
+#undef ERROR
 
-enum LogLevel {
+enum class LogLevel {
   INFO,
   WARN,
-  ERR
+  ERROR
 };
 
 class Logger {

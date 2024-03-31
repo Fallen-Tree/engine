@@ -5,7 +5,7 @@
 #include <chrono>
 
 FILE* Logger::s_LoggingFile = stdout;
-LogLevel Logger::s_LogLevel = INFO;
+LogLevel Logger::s_LogLevel = LogLevel::INFO;
 
 void Logger::GetTime(char* buffer, size_t bufsiz) {
     const std::chrono::time_point<std::chrono::system_clock> now =
@@ -40,7 +40,7 @@ void Logger::Log(const char* logLevel, const char *format, va_list args) {
 }
 
 void Logger::Info(const char *format, ...) {
-    if (Logger::s_LogLevel != INFO) return;
+    if (Logger::s_LogLevel != LogLevel::INFO) return;
     va_list args;
     va_start(args, format);
     Logger::Log("INFO", format, args);
@@ -48,7 +48,7 @@ void Logger::Info(const char *format, ...) {
 }
 
 void Logger::Warn(const char *format, ...) {
-    if (Logger::s_LogLevel == ERR) return;
+    if (Logger::s_LogLevel == LogLevel::ERROR) return;
     va_list args;
     va_start(args, format);
     Logger::Log("WARNING", format, args);
