@@ -54,8 +54,6 @@ target_include_directories(ENGINE PUBLIC thirdparty/bass/c)
 
 
 if (UNIX)
-    add_custom_target(RESOURCES ALL COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/resources)
-
     target_link_libraries(ENGINE PUBLIC 
         glfw glad freetype assimp
         ${CMAKE_SOURCE_DIR}/thirdparty/bass/libbass.so
@@ -64,8 +62,8 @@ if (UNIX)
 
 else()
     target_link_libraries(ENGINE PUBLIC glfw glad freetype assimp 
-    ${CMAKE_SOURCE_DIR}/thirdparty/bass/c/x64/bass.lib
-    OpenGL::GL)
+      ${CMAKE_SOURCE_DIR}/thirdparty/bass/c/x64/bass.lib
+      OpenGL::GL)
 
     add_custom_command (
         TARGET ENGINE
@@ -73,15 +71,13 @@ else()
         "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/bass/x64/bass.dll" 
         "$<TARGET_FILE_DIR:ENGINE>/bass.dll"
     )
-
-    add_custom_command(
-        TARGET ENGINE PRE_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/resources
-    )
-    
 endif()
 
 add_executable(main src/main.cpp)
 target_link_libraries(main PUBLIC ENGINE)
+
+add_custom_command(TARGET ENGINE PRE_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy_directory
+                   ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/resources)
+
 
