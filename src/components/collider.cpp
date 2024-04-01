@@ -5,24 +5,14 @@
 
 AABB Collider::GetDefaultAABB(Mesh* m) {
     int len = m->getLenArrPoints();
-    if (len < 3) {
-        Logger::Error("Collider::Model with no vertices!");
-        return AABB{Vec3(0), Vec3(0)};
-    }
-
-    /*
-        Assuming that pattern of every point is: point, normal, texturecoord
-
-        The same pattern as in RenderDataBinder
-    */
-
-    float* cur = m->getPoints();
-    Vec3 min = {cur[0], cur[1], cur[2]};
+    assert(len > 0);
+    Vertex* cur = m->getPoints();
+    Vec3 min = cur[0].Position;
     Vec3 max = min;
 
-    for (int i = 8; i < len; i += 8) {
-        min = glm::min(min, Vec3{cur[i], cur[i + 1], cur[i + 2]});
-        max = glm::max(max, Vec3{cur[i], cur[i + 1], cur[i + 2]});
+    for (int i = 0; i < len; i ++) {
+        min = glm::min(min, cur[i].Position);
+        max = glm::max(max, cur[i].Position);
     }
     return AABB{min, max};
 }

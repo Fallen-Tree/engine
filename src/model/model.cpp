@@ -33,7 +33,7 @@ void Model::processNode(aiNode *node, const aiScene *scene) {
 }
 
 RenderMesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
-    std::vector<float> points;
+    std::vector<Vertex> points;
     std::vector<unsigned int> indices;
 
     for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
@@ -51,14 +51,15 @@ RenderMesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
             texture.x = mesh->mTextureCoords[0][i].x;
             texture.y = mesh->mTextureCoords[0][i].y;
         }
-        points.push_back(position.x);
-        points.push_back(position.y);
-        points.push_back(position.z);
-        points.push_back(normal.x);
-        points.push_back(normal.y);
-        points.push_back(normal.z);
-        points.push_back(texture.x);
-        points.push_back(texture.y);
+        points.push_back(Vertex{position, normal, texture, {-1, -1, -1, -1}, {0.f, 0.f, 0.f, 0.f}});
+        // points.push_back(position.x);
+        // points.push_back(position.y);
+        // points.push_back(position.z);
+        // points.push_back(normal.x);
+        // points.push_back(normal.y);
+        // points.push_back(normal.z);
+        // points.push_back(texture.x);
+        // points.push_back(texture.y);
     }
     // process indices
     for (unsigned int i = 0; i < mesh->mNumFaces; i++) {

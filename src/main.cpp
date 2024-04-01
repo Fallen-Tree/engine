@@ -10,7 +10,7 @@ const char *cubeSource = "cube2.obj";
 const char *catSource = "fish.obj";
 const char *benchSource = "bench.obj";
 
-const char *vertexShaderSource = "standart.vshader";
+const char *vertexShaderSource = "skeletal.vshader";
 const char *fragmentShaderSource = "standart.fshader";
 
 class MovingSphere : public Behaviour {
