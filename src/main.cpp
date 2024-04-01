@@ -48,17 +48,6 @@ int main() {
         Texture("/Cat_diffuse.png", "/Cat_specular.png")
     };
     model->setMaterial(cat_material);
-    /*
-    auto cat = engine.NewObject();
-    cat.AddModel(*model);
-    auto &t = cat.AddTransform(Vec3(0.f, -10.f, -8.f), Vec3(0.1f), Mat4(1.0));
-    t.Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
-    cat.AddCollider(Collider::GetDefaultAABB(&model->meshes[0]));
-    cat.AddRigidBody(100.f, Mat3(0), Vec3(0), 0.f, Vec3(0, 0, 0),
-        Vec3(0), Vec3(0), 0.1f);
-        */
-
-    cat.AddSound(SOUND_3D, "explosion.wav", true).SetRadius(20.f).Start();
 
     Material material = {
         4.f,
@@ -78,7 +67,6 @@ int main() {
         obj.AddRigidBody(0.f, Mat4(0), Vec3(0), -1.f, Vec3(0), Vec3(0), Vec3(0), 0.01f);
         return obj;
     };
-
 
     auto aabb = setUpObj(
         Transform(Vec3(-15, -55, 0), Vec3(100), 0.0f, Vec3(1)),
@@ -113,9 +101,6 @@ int main() {
             Vec3(0, 0, 0),
             1000),
     };
-
-    cat.AddChild(aabb);
-    cat.AddBehaviour<Moving>();
 
     class FpsText : public Behaviour {
      public:
