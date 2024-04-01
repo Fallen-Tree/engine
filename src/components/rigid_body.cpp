@@ -20,7 +20,7 @@ RigidBody::RigidBody(float mass, Mat3 iBody, float restitution, Vec3 defaultForc
 }
 
 RigidBody::RigidBody(float mass, Mat3 iBody, Vec3 initalVelocity,
-        float restitution, Vec3 defaultForce, 
+        float restitution, Vec3 defaultForce,
         Vec3 angularUnlock, float kineticFriction) {
     SetMass(mass);
     SetIbodyInverse(iBody);
