@@ -4,7 +4,6 @@
 #include "behaviour.hpp"
 #include "collisions.hpp"
 #include "logger.hpp"
-#include <glm/gtx/string_cast.hpp>
 
 const char *cubeSource = "cube2.obj";
 const char *catSource = "fish.obj";
@@ -44,14 +43,16 @@ int main() {
         4.f,
         Texture("/Cat_diffuse.png", "/Cat_specular.png")
     };
-    /* model->setMaterial(cat_material); */
+    model->setMaterial(cat_material);
+    /*
     auto cat = engine.NewObject();
     cat.AddModel(*model);
     auto &t = cat.AddTransform(Vec3(0.f, -10.f, -8.f), Vec3(0.1f), Mat4(1.0));
     t.Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
     cat.AddCollider(Collider::GetDefaultAABB(&model->meshes[0]));
-    cat.AddRigidBody(100.f, Mat3(0), Vec3(0), 0.f, Vec3(0, -1000, 0),
-        Vec3(0), Vec3(1), 0.1f);
+    cat.AddRigidBody(100.f, Mat3(0), Vec3(0), 0.f, Vec3(0, 0, 0),
+        Vec3(0), Vec3(0), 0.1f);
+        */
 
     Material material = {
         4.f,
@@ -68,13 +69,13 @@ int main() {
 
         obj.AddTransform(transform);
         obj.AddCollider(primitive);
-        obj.AddRigidBody(0.0f, Mat4(0), Vec3(0), 3.0f, Vec3(0), Vec3(0), Vec3(0), 0.0001f);
+        obj.AddRigidBody(0.f, Mat4(0), Vec3(0), -1.f, Vec3(0), Vec3(0), Vec3(0), 0.01f);
         return obj;
     };
 
 
     auto aabb = setUpObj(
-        Transform(Vec3(0, -31, -30), Vec3(50), 0.0f, Vec3(1)),
+        Transform(Vec3(-15, -55, 0), Vec3(100), 0.0f, Vec3(1)),
         AABB {
             Vec3{-0.5, -0.5, -0.5},
             Vec3{0.5, 0.5, 0.5},
@@ -86,28 +87,28 @@ int main() {
         obj.AddTransform(transform);
         obj.AddModel(*sphereModel);
         obj.AddCollider(Sphere{ Vec3(0), 1.f });
-        obj.AddRigidBody(mass, IBodySphere(1, 20),
-                speed, 0.f, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.0005f);
+        obj.AddRigidBody(mass, IBodySphere(1, mass),
+           speed, 0.f, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.01f);
         obj.AddBehaviour<MovingSphere>();
         return obj;
     };
 
     Object spheres[3] = {
         getSphereObj(
-            Transform(Vec3(-2, 100, 2.0), Vec3(1), 0.f, Vec3(1)),
-            Vec3(1, 0, 0),
-            2.f),
+            Transform(Vec3(-30, -1, 2.0), Vec3(1), 0.f, Vec3(1)),
+            Vec3(10, 0, 0),
+            4),
         getSphereObj(
-            Transform(Vec3(0, 100, 2.0), Vec3(1), 0.f, Vec3(1)),
+            Transform(Vec3(0, -1, 2.0), Vec3(1), 0.f, Vec3(1)),
             Vec3(0, 0, 0),
-            1.f),
+            4.f),
         getSphereObj(
-            Transform(Vec3(4, 120, 2.0), Vec3(1.0), 0.f, Vec3(1)),
-            Vec3(0, -100, 0),
-            3.f),
+            Transform(Vec3(10, -1, 2.0), Vec3(1.0), 0, Vec3(1)),
+            Vec3(0, 0, 0),
+            1000),
     };
-    cat.AddChild(aabb);
-    cat.AddBehaviour<Moving>();
+    // cat.AddChild(aabb);
+    // cat.AddBehaviour<Moving>();
     class FpsText : public Behaviour {
      public:
         void Update(float dt) override {
