@@ -68,7 +68,10 @@ Engine::Engine() {
     m_SpotLights = ComponentArray<SpotLight>();
     m_ObjectCount = 0;
 
-    BASS_Init(-1, 44100, 0, NULL, NULL);
+    bool bassInit = BASS_Init(-1, 44100, 0, NULL, NULL);
+    if (!bassInit) {
+        Logger::Error("BASS: Can't init bass, error code: %d", BASS_ErrorGetCode());
+    }
 
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);

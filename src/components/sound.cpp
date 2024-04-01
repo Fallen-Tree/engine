@@ -18,7 +18,12 @@ Sound::Sound(SoundType type, std::string path, bool looped) {
     }
 
     if (!sample) {
-        Logger::Error("File not found: %s", path.c_str());
+        int errorCode = BASS_ErrorGetCode();
+        if (errorCode == BASS_ERROR_FILEOPEN) {
+            Logger::Error("BASS: File not found: %s", path.c_str());
+        } else {
+            Logger::Error("BASS: Can't load sample, error code %d", errorCode);
+        }
         return;
     }
 
