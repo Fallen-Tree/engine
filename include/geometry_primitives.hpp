@@ -65,3 +65,11 @@ struct Plane {
     explicit Plane(Triangle t);
     explicit Plane(Vec3 normal, Vec3 point);
 };
+
+struct Interval {
+    float min;
+    float max;
+};
+
+Interval GetInterval(AABB rect, Vec3 axis);
+Interval GetInterval(OBB rect, Vec3 axis);

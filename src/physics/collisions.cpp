@@ -8,6 +8,16 @@
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+bool OverlapOnAxis(AABB aabb, OBB obb, Vec3 axis);
+
+
+bool CollidePrimitive(OBB, AABB) {
+    return false;
+}
+
+bool CollidePrimitive(AABB, OBB) {
+    return false;
+}
 
 bool CollidePrimitive(Triangle, OBB) {
     return false;
