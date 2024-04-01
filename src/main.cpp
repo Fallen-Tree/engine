@@ -69,7 +69,7 @@ int main() {
 
         obj.AddTransform(transform);
         obj.AddCollider(primitive);
-        obj.AddRigidBody(0.f, Mat4(0), Vec3(0), -1.f, Vec3(0), Vec3(0), Vec3(0), 0.01f);
+        obj.AddRigidBody(0.f, Mat4(0), Vec3(0), 1.f, Vec3(0), Vec3(0), 0.01f);
         return obj;
     };
 
@@ -88,7 +88,7 @@ int main() {
         obj.AddModel(*sphereModel);
         obj.AddCollider(Sphere{ Vec3(0), 1.f });
         obj.AddRigidBody(mass, IBodySphere(1, mass),
-           speed, 0.f, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.01f);
+           speed, 0.1f, Vec3(0, -mass * 10, 0), Vec3(1), 0.01f);
         obj.AddBehaviour<MovingSphere>();
         return obj;
     };

@@ -20,14 +20,13 @@ RigidBody::RigidBody(float mass, Mat3 iBody, float restitution, Vec3 defaultForc
 }
 
 RigidBody::RigidBody(float mass, Mat3 iBody, Vec3 initalVelocity,
-        float restitution, Vec3 defaultForce, Vec3 lineraUnlock,
+        float restitution, Vec3 defaultForce, 
         Vec3 angularUnlock, float kineticFriction) {
     SetMass(mass);
     SetIbodyInverse(iBody);
     this->velocity = initalVelocity;
     this->restitution = restitution;
     this->defaultForce = defaultForce;
-    this->linearUnlock = lineraUnlock;
     this->angularUnlock = angularUnlock;
     this->kineticFriction = kineticFriction;
 }
@@ -65,7 +64,7 @@ void RigidBody::SetIbodyInverse(Mat3 iBody) {
 void RigidBody::LinearCalculation(Transform *transform, float dt) {
     Vec3 acceleration = m_ResForce * massInverse;
     velocity += acceleration * dt;
-    transform->Translate(velocity * linearUnlock * dt);
+    transform->Translate(velocity * dt);
 }
 
 void RigidBody::AngularCalculation(Transform *transform, float dt) {
@@ -119,12 +118,20 @@ void RigidBody::ComputeFriction(Vec3 normalForce, float friction,
     LimitTorque(frictionForce, r);
 }
 
+float getRestitution(RigidBody *rigidBody, RigidBody *otherRigidBody) {
+    float e = std::min(rigidBody->restitution, otherRigidBody->restitution);
+    if (rigidBody->massInverse == 0 || otherRigidBody->massInverse == 0) {
+        return -e;
+    }
+    return -(1 + e);
+}
+
 Vec3 ImpulseForce(RigidBody *rigidBody, RigidBody *otherRigidBody,
     Vec3 normal, float velAlongNormal, float dt) {
     // Calculate restitution
-    float e = std::min(rigidBody->restitution, otherRigidBody->restitution);
+    auto restitution = getRestitution(rigidBody, otherRigidBody);
     // Calculate impulse scalar
-    float impulseScalar = -(1 + e) * velAlongNormal;
+    float impulseScalar = restitution * velAlongNormal;
     impulseScalar /= rigidBody->massInverse + otherRigidBody->massInverse;
     // Apply impulse
     Vec3 impulse = impulseScalar * normal;
@@ -167,10 +174,14 @@ void RigidBody::ComputeForceTorque(Transform tranform, Transform otherTransform,
     otherRigidBody->m_ResForce += otherNormalForce;
 
 
-    velocity -= Projection(velocity, -normal)
-       * (Vec3(1) - otherRigidBody->linearUnlock);
-    otherRigidBody->velocity -= Projection(otherRigidBody->velocity, normal)
-        * (Vec3(1) - linearUnlock);
+    // If one of body is static (has infinity mass), then other body will stop
+    if (massInverse == 0) {
+        otherRigidBody->velocity -=
+            Projection(otherRigidBody->velocity, normal);
+    }
+    if (otherRigidBody->massInverse == 0) {
+        velocity -= Projection(velocity, -normal);
+    }
 
     // Compute lever of force
     auto r1 = normal * tranform.GetScale() * 0.5f;
