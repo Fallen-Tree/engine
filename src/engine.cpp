@@ -308,6 +308,17 @@ bool Engine::Collide(ObjectHandle a, ObjectHandle b) {
     return m_CollideCache[a][b];
 }
 
+std::vector<Object> Engine::CollideAll(ObjectHandle a) {
+    std::vector<Object> res;
+    for (int i = 0; i < m_Colliders.GetSize(); i++) {
+       auto handle = m_Colliders.GetFromInternal(i); 
+       if (handle != a && Collide(a, handle)) {
+           res.push_back(Object(this, handle));
+       }
+    }
+    return res;
+}
+
 void Engine::Run() {
     scrWidth = SCR_WIDTH;
     scrHeight = SCR_HEIGHT;

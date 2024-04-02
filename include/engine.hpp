@@ -72,6 +72,7 @@ class Engine {
     Object GetParent(ObjectHandle node);
 
     bool Collide(ObjectHandle, ObjectHandle);
+    std::vector<Object> CollideAll(ObjectHandle);
 
     Camera* SwitchCamera(Camera* newCamera);
     void Run();

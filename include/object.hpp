@@ -95,6 +95,7 @@ class Object {
     void AddChild(Object child);
     Object GetParent();
     bool Collide(Object other);
+    std::vector<Object> CollideAll();
 
  private:
     Engine *m_Engine;

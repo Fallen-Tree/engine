@@ -72,3 +72,7 @@ Behaviour *Object::GetBehaviour() {
 bool Object::Collide(Object other) {
     return m_Engine->Collide(m_Handle, other.m_Handle);
 }
+
+std::vector<Object> Object::CollideAll() {
+    return m_Engine->CollideAll(m_Handle);
+}
