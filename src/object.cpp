@@ -68,3 +68,7 @@ SpotLight *Object::GetSpotLight() {
 Behaviour *Object::GetBehaviour() {
     return m_Engine->GetBehaviour(m_Handle);
 }
+
+RigidBody *Object::GetRigidBody() {
+    return m_Engine->GetRigidBody(m_Handle);
+}

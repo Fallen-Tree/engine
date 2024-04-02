@@ -77,6 +77,7 @@ class TriggerArea : public Behaviour {
     }
 };
 
+float gravity = 9.8;
 Model* ball_model = nullptr;
 // Classes for pool
 class MovingBall : public Behaviour {
@@ -92,7 +93,7 @@ class MovingBall : public Behaviour {
 
         Collider *collider = new Collider{Sphere{Vec3(0.0), 1.0}};
         RigidBody *rb = new RigidBody(mass, IBodySphere(1, mass),
-                Vec3(0), 0.6f, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.001f);
+                Vec3(0), 0.6f, Vec3(0, -mass * gravity, 0), Vec3(1), Vec3(1), 0.001f);
         return newDynamicBody<MovingBall>(transform, model, collider, rb);
     }
 
@@ -196,6 +197,102 @@ class Table : public Behaviour {
     void Update(float dt) override {}
 };
 
+
+class Cue : public Behaviour {
+ public:
+    static Object New(std::vector<MovingBall *> objects, Camera *camera) {
+        Model *model = Model::loadFromFile("/cue.obj");
+        Material material = {
+            4.f,
+            Texture("/kiy.png"),
+        };
+        model->setMaterial(material);
+        Transform *transform = new Transform(Vec3(0), Vec3(8), Mat4(0));
+        Object newCue = newModel<Cue>(transform, model);
+        newCue.AddAnimation();
+        reinterpret_cast<Cue*>(newCue.GetBehaviour())->Init(objects, camera);
+        return newCue;
+    }
+
+    void Init(std::vector<MovingBall *> objects, Camera *camera) {
+        m_Objects = objects;
+        m_Camera = camera;
+        m_CueDistance = 1.f;
+        m_AttackVelocity = 12.f;
+        m_Attacking = false;
+    }
+
+    void Update(float dt) override {
+        Ray ray = Ray(m_Camera->GetPosition(), m_Camera->GetPosition() + m_Camera->GetFront());
+        MovingBall *target = nullptr;
+        float closest = std::numeric_limits<float>::max();
+        for (int i = 0; i < m_Objects.size(); i++) {
+            auto obj = m_Objects[i];
+            auto hit = obj->self.GetCollider()->RaycastHit(*obj->self.GetTransform(), ray);
+            if (hit && *hit < closest) {
+                target = obj;
+                closest = *hit;
+            }
+        }
+
+        if (s_Input->IsKeyPressed(Key::MouseLeft)) {
+            if (m_CurrentTarget != nullptr) {
+                m_Attacking = true;
+                Vec3 myPos = self.GetTransform()->GetTranslation();
+                Vec3 targetPos = m_CurrentTarget->self.GetTransform()->GetTranslation();
+                Vec3 direction = glm::normalize(targetPos - myPos);
+                auto nextTransform = *self.GetTransform();
+                nextTransform.Translate(0.8f * direction);
+                self.GetAnimation()->addAnimation(nextTransform, .15f);
+            }
+
+            if (m_CurrentTarget == nullptr && target != nullptr)
+                m_CurrentTarget = target;
+        }
+
+        if (self.GetAnimation()->isComplete()) {
+            if (m_Attacking) {
+                Vec3 nextPos = self.GetTransform()->GetTranslation();
+                Vec3 targetPos = m_CurrentTarget->self.GetTransform()->GetTranslation();
+                Vec3 direction = glm::normalize(targetPos - nextPos);
+                direction.y = 0.f;
+                m_CurrentTarget->self.GetRigidBody()->velocity += m_AttackVelocity * direction;
+                m_CurrentTarget = nullptr;
+            }
+            m_Attacking = false;
+        }
+
+        if (m_Attacking)
+            return;
+
+        if (s_Input->IsKeyPressed(Key::MouseRight))
+            m_CurrentTarget = nullptr;
+
+        if (m_CurrentTarget != nullptr) {
+            Vec3 center = m_CurrentTarget->self.GetTransform()->GetTranslation();
+            Vec3 closest = ray.origin + glm::dot(center - ray.origin, ray.direction) * ray.direction;
+            closest.y = center.y;
+            Vec3 onCircle = center + glm::normalize(closest - center) * m_CueDistance;
+            self.GetTransform()->SetTranslation(onCircle);
+
+            Vec3 toCenter = center - onCircle;
+            float angle = glm::acos(glm::dot(toCenter, ray.direction) / m_CueDistance);
+            self.GetTransform()->SetRotation(-glm::pi<float>()/2 + 0.06, glm::cross(Vec3{0.f, 1.f, 0.f}, toCenter));
+        } else {
+            self.GetTransform()->SetRotation(glm::pi<float>(), Vec3(1.f, 0.f, 0.f));
+            self.GetTransform()->SetTranslation(m_Camera->GetPosition() + Vec3{0.5f, -0.5f, -0.5f});
+        }
+     }
+
+ private:
+    bool m_Attacking;
+    float m_CueDistance;
+    float m_AttackVelocity;
+    MovingBall *m_CurrentTarget = nullptr;
+    std::vector<MovingBall *> m_Objects;
+    Camera *m_Camera;
+};
+
 void createUI() {
     class FpsText : public Behaviour {
      public:
@@ -267,33 +364,36 @@ int main() {
     init();
 
     std::vector<Vec3> coordinates {
-        Vec3(-2, 0, -0.2f),
-        Vec3(-2.5f, 0, -0.5f),
-        Vec3(-2.5f, 0, 0.1f),
-        Vec3(-3.f, 0, -0.8f),
-        Vec3(-3.f, 0, -0.2f),
-        Vec3(-3.f, 0, 0.4f),
-        Vec3(-3.5f, 0, -1.1f),
-        Vec3(-3.5f, 0, -0.5f),
-        Vec3(-3.5f, 0, 0.1f),
-        Vec3(-3.5f, 0, 0.7f),
-        Vec3(-4, 0, -1.4f),
-        Vec3(-4, 0, -0.8f),
-        Vec3(-4, 0, -0.2f),
-        Vec3(-4, 0, 0.4f),
-        Vec3(-4, 0, 1.f),
+        Vec3(-2, -2.0, -0.2f),
+        Vec3(-2.5f, -2.0, -0.5f),
+        Vec3(-2.5f, -2.0, 0.1f),
+        Vec3(-3.f, -2.0, -0.8f),
+        Vec3(-3.f, -2.0, -0.2f),
+        Vec3(-3.f, -2.0, 0.4f),
+        Vec3(-3.5f, -2.0, -1.1f),
+        Vec3(-3.5f, -2.0, -0.5f),
+        Vec3(-3.5f, -2.0, 0.1f),
+        Vec3(-3.5f, -2.0, 0.7f),
+        Vec3(-4, -2.0, -1.4f),
+        Vec3(-4, -2.0, -0.8f),
+        Vec3(-4, -2.0, -0.2f),
+        Vec3(-4, -2.0, 0.4f),
+        Vec3(-4, -2.0, 1.f),
 
-        Vec3(2, 0, -0.2f),
+        Vec3(2, -2.0, -0.2f),
     };
 
     int ballsCount = coordinates.size();
-
+    std::vector<MovingBall*> balls;
     for (int i = 0; i < ballsCount; i++) {
         Vec3 pos = coordinates[i];
-        MovingBall::New(pos, 0.2, std::to_string(i % 16 + 1) + ".png");
+        auto newBall = MovingBall::New(pos, 0.2, std::to_string(i % 16 + 1) + ".png");
+        balls.push_back(reinterpret_cast<MovingBall*>(newBall.GetBehaviour()));
     }
 
     Table::New(Vec3(0, -7, 0), Vec3(5));
+
+    Cue::New(balls, engine->camera);
 
     // addCat();
 

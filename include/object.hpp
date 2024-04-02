@@ -27,6 +27,7 @@ class Object {
     DirLight *GetDirLight();
     SpotLight *GetSpotLight();
     Behaviour *GetBehaviour();
+    RigidBody *GetRigidBody();
 
     template<typename ...Ts>
     Transform &AddTransform(Ts... ts) {
