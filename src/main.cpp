@@ -37,6 +37,31 @@ int main() {
 
     ShaderProgram *shaderProgram = new ShaderProgram(vShader, fShader);
 
+    {
+        /* PIGEON */
+        Model *pigeonModel = Model::loadFromFile("pigeon/scene.gltf");
+        // Написать что локально нельзя
+        auto pigeonAnimation = new SkeletalAnimationData("pigeon/scene.gltf", pigeonModel);
+        pigeonModel->shader = shaderProgram;
+
+        auto pigeonObj = engine.NewObject();
+        pigeonObj.AddTransform(Vec3(0.f, -10.f, -10.f), Vec3(10.f), Mat4(1.0));
+        pigeonObj.AddModel(*pigeonModel);
+        pigeonObj.AddSkeletalAnimationsManager(pigeonAnimation);
+    }
+
+    {
+        /* Wolf */
+        Model *wolfModel = Model::loadFromFile("Wolf_dae.dae");
+        auto wolfAnimation = new SkeletalAnimationData("Wolf_dae.dae", wolfModel);
+        wolfModel->shader = shaderProgram;
+
+        auto wolfObj = engine.NewObject();
+        wolfObj.AddTransform(Vec3(5.f, -10.f, -10.f), Vec3(10.f), Mat4(1.0));
+        wolfObj.AddModel(*wolfModel);
+        wolfObj.AddSkeletalAnimationsManager(wolfAnimation);
+    }
+
     // init a model
     Model * model = Model::loadFromFile(catSource);
     model->shader = shaderProgram;
@@ -47,8 +72,8 @@ int main() {
     /* model->setMaterial(cat_material); */
     auto cat = engine.NewObject();
     cat.AddModel(*model);
-    auto &t = cat.AddTransform(Vec3(0.f, -10.f, -8.f), Vec3(0.1f), Mat4(1.0));
-    t.Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
+    auto &t = cat.AddTransform(Vec3(0.f, -7.f, -5.f), Vec3(0.01f), Mat4(1.0));
+    t.RotateGlobal(1.67f, Vec3(-1.f, 0.f, 0.f));
     cat.AddCollider(Collider::GetDefaultAABB(&model->meshes[0]));
     cat.AddRigidBody(100.f, Mat3(0), Vec3(0), 0.f, Vec3(0, -1000, 0),
         Vec3(0), Vec3(1), 0.1f);
@@ -73,13 +98,13 @@ int main() {
     };
 
 
-    auto aabb = setUpObj(
-        Transform(Vec3(0, -31, -30), Vec3(50), 0.0f, Vec3(1)),
-        AABB {
-            Vec3{-0.5, -0.5, -0.5},
-            Vec3{0.5, 0.5, 0.5},
-        },
-        cubeModel);
+    // auto aabb = setUpObj(
+    //     Transform(Vec3(0, -31, -30), Vec3(50), 0.0f, Vec3(1)),
+    //     AABB {
+    //         Vec3{-0.5, -0.5, -0.5},
+    //         Vec3{0.5, 0.5, 0.5},
+    //     },
+    //     cubeModel);
 
     auto getSphereObj = [=, &engine](Transform transform, Vec3 speed, float mass) {
         auto obj = engine.NewObject();
@@ -106,8 +131,8 @@ int main() {
             Vec3(0, -100, 0),
             3.f),
     };
-    cat.AddChild(aabb);
-    cat.AddBehaviour<Moving>();
+    // cat.AddChild(aabb);
+    // cat.AddBehaviour<Moving>();
     class FpsText : public Behaviour {
      public:
         void Update(float dt) override {

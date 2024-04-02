@@ -60,6 +60,7 @@ Engine::Engine() {
     m_RigidBodies = ComponentArray<RigidBody>();
     m_Images = ComponentArray<Image>();
     m_Texts = ComponentArray<Text>();
+    m_SkeletalAnimationsManagers = ComponentArray<SkeletalAnimationsManager>();
 
     m_PointLights = ComponentArray<PointLight>();
     m_DirLights = ComponentArray<DirLight>();
@@ -208,6 +209,11 @@ Text *Engine::GetText(ObjectHandle handle) {
     return m_Texts.HasData(handle) ? &m_Texts.GetData(handle) : nullptr;
 }
 
+SkeletalAnimationsManager *Engine::GetSkeletalAnimationsManager(ObjectHandle handle) {
+    return m_SkeletalAnimationsManagers.HasData(handle) ?
+        &m_SkeletalAnimationsManagers.GetData(handle) : nullptr;
+}
+
 Image *Engine::GetImage(ObjectHandle handle) {
     return m_Images.HasData(handle) ? &m_Images.GetData(handle) : nullptr;
 }
@@ -251,6 +257,12 @@ RigidBody &Engine::AddRigidBody(ObjectHandle id, RigidBody v) {
 Text &Engine::AddText(ObjectHandle id, Text v) {
     m_Texts.SetData(id, v);
     return m_Texts.GetData(id);
+}
+
+SkeletalAnimationsManager &Engine::AddSkeletalAnimationsManager
+    (ObjectHandle id, SkeletalAnimationsManager v) {
+    m_SkeletalAnimationsManagers.SetData(id, v);
+    return m_SkeletalAnimationsManagers.GetData(id);
 }
 
 Image &Engine::AddImage(ObjectHandle id, Image v) {
@@ -311,7 +323,7 @@ void Engine::Run() {
 
         if (currentTime - lastFpsShowedTime > FPS_SHOWING_INTERVAL) {
             fps = static_cast<unsigned int>(fpsFrames / (currentTime - lastFpsShowedTime));
-            Logger::Info("%d", fps);
+            Logger::Info("FPS: %d", fps);
             Time::SetCurrentFps(fps);
             lastFpsShowedTime = currentTime;
             fpsFrames = 0;
@@ -378,6 +390,11 @@ void Engine::updateObjects(float deltaTime) {
         m_Animations.entries[i].applyAnimations(&m_Transforms.GetData(handle), deltaTime);
     }
 
+    // Update Skeletal Animations
+    for (int i = 0; i < m_SkeletalAnimationsManagers.GetSize(); i++) {
+        m_SkeletalAnimationsManagers.entries[i].UpdateAnimation(deltaTime);
+    }
+
     // Update RigidBodies
     for (int i = 0; i < m_RigidBodies.GetSize(); i++) {
         auto handle = m_RigidBodies.GetFromInternal(i);
@@ -422,6 +439,9 @@ void Engine::Render(int scr_width, int scr_height) {
 
         for (RenderMesh mesh : model.meshes) {
             ShaderProgram* shader = model.shader;
+            if (shader == nullptr) {
+                Logger::Error("No shader connected with Mesh!");
+            }
             shader->Use();
 
             Mat4 view = camera->GetViewMatrix();
@@ -431,6 +451,13 @@ void Engine::Render(int scr_width, int scr_height) {
             shader->SetMat4("model", transform.GetTransformMatrix());
             shader->SetMat4("view", view);
             shader->SetVec3("viewPos", viewPos);
+
+            if (m_SkeletalAnimationsManagers.HasData(id)) {
+                auto bones = m_SkeletalAnimationsManagers.entries[id].GetFinalBoneMatrices();
+                for (int i = 0; i < bones.size(); ++i) {
+                    shader->SetMat4(("finalBonesMatrices[" + std::to_string(i) + "]").c_str(), bones[i]);
+                }
+            }
 
             // send material to shaders
             shader->SetFloat("material.shininess", mesh.material.shininess);

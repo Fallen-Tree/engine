@@ -33,34 +33,23 @@ void Model::processNode(aiNode *node, const aiScene *scene) {
 }
 
 RenderMesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
-    std::vector<Vertex> points;
+    std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
     for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
         // process vertex positions, normals and texture coordinates
-        Vec3 position;
-        position.x = mesh->mVertices[i].x;
-        position.y = mesh->mVertices[i].y;
-        position.z = mesh->mVertices[i].z;
-        Vec3 normal;
-        normal.x = mesh->mNormals[i].x;
-        normal.y = mesh->mNormals[i].y;
-        normal.z = mesh->mNormals[i].z;
-        Vec2 texture;
+        Vertex vertex;
+        SetVertexBoneDataToDefault(&vertex);
+        vertex.Position = {mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z};
+        vertex.Normal = {mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z};
         if (mesh->mTextureCoords[0]) {
-            texture.x = mesh->mTextureCoords[0][i].x;
-            texture.y = mesh->mTextureCoords[0][i].y;
+            vertex.TexCoords = {mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y};
+        } else {
+            vertex.TexCoords = {0.f, 0.f};
         }
-        points.push_back(Vertex{position, normal, texture, {-1, -1, -1, -1}, {0.f, 0.f, 0.f, 0.f}});
-        // points.push_back(position.x);
-        // points.push_back(position.y);
-        // points.push_back(position.z);
-        // points.push_back(normal.x);
-        // points.push_back(normal.y);
-        // points.push_back(normal.z);
-        // points.push_back(texture.x);
-        // points.push_back(texture.y);
+        vertices.push_back(vertex);
     }
+    
     // process indices
     for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
         aiFace face = mesh->mFaces[i];
@@ -84,8 +73,9 @@ RenderMesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
         }
         mat->Get(AI_MATKEY_SHININESS, shininess);
     }
-    RenderMesh newMesh = RenderMesh(points, indices, Material{shininess, t});
-    return newMesh;
+
+    ExtractBoneWeightForVertices(vertices, mesh, scene);
+    return RenderMesh(vertices, indices, Material{shininess, t});
 }
 
 void Model::setMaterial(Material material) {
