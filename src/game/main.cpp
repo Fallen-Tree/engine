@@ -21,7 +21,7 @@ void init() {
 }
 
 // My functions for object creation
-template<typename T, typename ...Ts>
+template<typename T>
 Object newModel(Transform *transform, Model *model) {
     Object obj = engine->NewObject();
     obj.AddTransform(*transform);
@@ -31,7 +31,7 @@ Object newModel(Transform *transform, Model *model) {
     return obj;
 }
 
-template<typename T, typename ...Ts>
+template<typename T>
 Object newStaticBody(Transform *transform, Model *model, Collider *collider) {
     Object obj = newModel<T>(transform, model);
     obj.AddCollider(*collider);
@@ -47,7 +47,7 @@ Object newStaticBody(Transform *transform, Collider *collider) {
     return obj;
 }
 
-template<typename T, typename ...Ts>
+template<typename T>
 Object newDynamicBody(Transform *transform, Model *model,
         Collider *collider, RigidBody *rigidBody) {
     Object obj = newModel<T>(transform, model);
@@ -60,6 +60,7 @@ class TriggerArea : public Behaviour {
  public:
     static Object New(Transform *transform, Collider *collider) {
         Object obj = engine->NewObject();
+        obj.AddTransform(*transform);
         obj.AddCollider(*collider);
         // mark collider as trigger
         return obj;
@@ -68,7 +69,7 @@ class TriggerArea : public Behaviour {
     virtual void OnCollision(Collider other);
 
     void Update(float dt) override {
-        // I need function too get all colliders (or objects) intersecting this object
+        // I need a function too get all colliders (or objects) intersecting with this object
         // std::vector<Collider> colls = self.GetCollider()->getCollisions();
         // for (auto col : colls) {
         //     OnCollision(col);
@@ -76,22 +77,22 @@ class TriggerArea : public Behaviour {
     }
 };
 
-
+Model* ball_model = nullptr;
 // Classes for pool
-
 class MovingBall : public Behaviour {
  public:
     static Object New(Vec3 position, float radius,
      std::string diffuseSource, float mass = 1.0) {
         Transform *transform = new Transform(position, Vec3(radius), Mat4(1.0));
 
+        if (ball_model == nullptr) ball_model = Model::loadFromFile("shar_1200.obj");
+        Model *model = ball_model;
         Material sphereMaterial = {4.f, Texture(diffuseSource)};
-        Model *model = Model::loadFromFile("shar_1200.obj");
         model->setMaterial(sphereMaterial);
 
         Collider *collider = new Collider{Sphere{Vec3(0.0), 1.0}};
-        RigidBody *rb = new RigidBody(mass, IBodySphere(1, 20),
-                Vec3(0), 0.5f, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.0005f);
+        RigidBody *rb = new RigidBody(mass, IBodySphere(1, mass),
+                Vec3(0), 0.6f, Vec3(0, -mass * 10, 0), Vec3(1), Vec3(1), 0.001f);
         return newDynamicBody<MovingBall>(transform, model, collider, rb);
     }
 
@@ -102,10 +103,10 @@ class Hole : public TriggerArea {
  public:
     void OnCollision(Collider other) {
         return;
-        // if getCollisions() returns colliders then I need function to get object from it.
+        // if getCollisions returns colliders then I need a function to get objects from it.
         // Object obj = other.GetObject();
 
-        // check if some object is ball and not table or player
+        // check if some object is a ball and not a table or a player
         // can be done with collision layers or with some info about objects.
         // if (obj is ball) {
         //     Consume(obj);
@@ -118,6 +119,7 @@ class Hole : public TriggerArea {
         // how???
     }
 
+    // i hate that i need to override Update even if it is empty
     void Update(float dt) override {}
 };
 
@@ -157,7 +159,7 @@ class Table : public Behaviour {
         Transform *transform = new Transform(position, scale, Mat4(1.0));
 
         Model *model = Model::loadFromFile("/stol_1.obj");
-        Material material = {
+        Material material = Material{
             4.f,
             Texture("/stol.png"),
         };
@@ -170,7 +172,7 @@ class Table : public Behaviour {
         float width = 0.7;
         float length = 0.4;
 
-        Collider *col = new Collider {AABB {
+        Collider *col = new Collider{AABB {
             Vec3{-width, -0.5, -length},
             Vec3{width, h, length},
         }};
@@ -178,14 +180,14 @@ class Table : public Behaviour {
 
         float wall_height = 0.5;
         AABB walls[] = {
-            AABB {Vec3(width, h + 0.01, -length), Vec3(width + 1, h + wall_height, length)},
-            AABB {Vec3(-width - 1, h + 0.01, -length), Vec3(-width, h + wall_height, length)},
-            AABB {Vec3(-width, h + 0.01, length), Vec3(width, h + wall_height, length + 1)},
-            AABB {Vec3(-width, h + 0.01, -length - 1), Vec3(width, h + wall_height, -length)}
+            AABB {Vec3(width + 0.01, h + 0.01, -length), Vec3(width + 1, h + wall_height, length)},
+            AABB {Vec3(-width - 1+ 0.01, h + 0.01, -length), Vec3(-width, h + wall_height, length)},
+            AABB {Vec3(-width+ 0.01, h + 0.01, length), Vec3(width, h + wall_height, length + 1)},
+            AABB {Vec3(-width+ 0.01, h + 0.01, -length - 1), Vec3(width, h + wall_height, -length)}
         };
         for (int i = 0; i < 4; ++i) {
-            Collider col = Collider{walls[i]};
-            newStaticBody(transform, &col);
+            Collider *col = new Collider{walls[i]};
+            newStaticBody(transform, col);
         }
 
         return obj;
@@ -260,12 +262,38 @@ void addCat() {
 }
 
 int main() {
+    // Logger::SetLoggingLevel(WARN);
+
     init();
 
-    for (int i = 0; i < 5; ++i) {
-        MovingBall::New(Vec3(rand() % 100 * 0.01, i * 0.3, rand() % 100 * 0.01), 0.2, "1.png");
+    std::vector<Vec3> coordinates {
+        Vec3(-2, 0, -0.2f),
+        Vec3(-2.5f, 0, -0.5f),
+        Vec3(-2.5f, 0, 0.1f),
+        Vec3(-3.f, 0, -0.8f),
+        Vec3(-3.f, 0, -0.2f),
+        Vec3(-3.f, 0, 0.4f),
+        Vec3(-3.5f, 0, -1.1f),
+        Vec3(-3.5f, 0, -0.5f),
+        Vec3(-3.5f, 0, 0.1f),
+        Vec3(-3.5f, 0, 0.7f),
+        Vec3(-4, 0, -1.4f),
+        Vec3(-4, 0, -0.8f),
+        Vec3(-4, 0, -0.2f),
+        Vec3(-4, 0, 0.4f),
+        Vec3(-4, 0, 1.f),
+
+        Vec3(2, 0, -0.2f),
+    };
+
+    int ballsCount = coordinates.size();
+
+    for (int i = 0; i < ballsCount; i++) {
+        Vec3 pos = coordinates[i];
+        MovingBall::New(pos, 0.2, std::to_string(i % 16 + 1) + ".png");
     }
-    Table::New(Vec3(0, -10, 0), Vec3(5));
+
+    Table::New(Vec3(0, -7, 0), Vec3(5));
 
     // addCat();
 
