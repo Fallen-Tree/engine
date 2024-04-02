@@ -351,7 +351,7 @@ Vec3 CollisionNormal(AABB a1, AABB a2, Transform tr1, Transform tr2, Vec3 veloci
 
 Vec3 CollisionNormal(Sphere sph, AABB a, Transform tr1, Transform tr2,
         Vec3 velocity, float dt) {
-    return -CollisionNormal(a, sph, tr2, tr1, velocity, dt);
+    return -CollisionNormal(a, sph, tr2, tr1, -velocity, dt);
 }
 
 Vec3 CollisionNormal(AABB a, Sphere sph, Transform tr1, Transform tr2,

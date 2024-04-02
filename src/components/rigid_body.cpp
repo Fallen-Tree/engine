@@ -142,7 +142,7 @@ Vec3 CollisionNormal(Collider *coll1, Collider *coll2,
         }, coll1->shape);
 }
 
-void RigidBody::ComputeForceTorque(Transform tranform, Transform otherTransform,
+void RigidBody::ComputeForceTorque(Transform transform, Transform otherTransform,
         Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody,
         float dt) {
     if (massInverse == 0 && otherRigidBody->massInverse == 0) {
@@ -152,8 +152,7 @@ void RigidBody::ComputeForceTorque(Transform tranform, Transform otherTransform,
     Vec3 rv = velocity - otherRigidBody->velocity;
 
     Vec3 normal = CollisionNormal(collider, otherCollider,
-        tranform, otherTransform, rv, dt);
-
+        transform, otherTransform, rv, dt);
 
     float velAlongNormal = glm::dot(rv, normal);
 
@@ -166,14 +165,15 @@ void RigidBody::ComputeForceTorque(Transform tranform, Transform otherTransform,
     m_ResForce += normalForce;
     otherRigidBody->m_ResForce += otherNormalForce;
 
-
-    velocity -= Projection(velocity, -normal)
-       * (Vec3(1) - otherRigidBody->linearUnlock);
-    otherRigidBody->velocity -= Projection(otherRigidBody->velocity, normal)
-        * (Vec3(1) - linearUnlock);
+    if (massInverse != 0) {
+        velocity -= Projection(velocity, -normal);
+    }
+    if (otherRigidBody->massInverse != 0) {
+        otherRigidBody->velocity -= Projection(otherRigidBody->velocity, normal);
+    }
 
     // Compute lever of force
-    auto r1 = normal * tranform.GetScale() * 0.5f;
+    auto r1 = normal * transform.GetScale() * 0.5f;
     auto r2 = -normal * otherTransform.GetScale() * 0.5f;
 
     // Compute impulse
