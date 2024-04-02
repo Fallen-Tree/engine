@@ -1,11 +1,10 @@
-
-#ifndef SRC_LOGGING_LOGGER_HPP_
-#define SRC_LOGGING_LOGGER_HPP_
+#pragma once
 
 #include<string.h>
 #include<cstdio>
+#undef ERROR
 
-enum LogLevel {
+enum class LogLevel {
   INFO,
   WARN,
   ERROR
@@ -25,5 +24,3 @@ class Logger {
     static void Warn(const char *format, ...);
     static void Error(const char *format, ...);
 };
-
-#endif  // SRC_LOGGING_LOGGER_HPP_
