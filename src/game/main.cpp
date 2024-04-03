@@ -1,4 +1,3 @@
-#include <limits>
 #include "engine.hpp"
 #include "object.hpp"
 #include "behaviour.hpp"
@@ -105,11 +104,12 @@ void buildRoom() {
 }
 
 void poolTable() {
-    float balls_y = 0;
+
+    float balls_y = 2;
     std::vector<Vec3> coordinates {
-        Vec3(-2, balls_y, -0.2f),
+        /*Vec3(-2, balls_y, -0.2f),
         Vec3(-2.5f, balls_y, -0.5f),
-        /* Vec3(-2.5f, balls_y, 0.1f),
+        Vec3(-2.5f, balls_y, 0.1f),
         Vec3(-3.f, balls_y, -0.8f),
         Vec3(-3.f, balls_y, -0.2f),
         Vec3(-3.f, balls_y, 0.4f),
@@ -121,16 +121,16 @@ void poolTable() {
         Vec3(-4, balls_y, -0.8f),
         Vec3(-4, balls_y, -0.2f),
         Vec3(-4, balls_y, 0.4f),
-        Vec3(-4, balls_y, 1.f),
+        Vec3(-4, balls_y, 1.f),*/
 
-        Vec3(2, balls_y, -0.2f),*/
+        Vec3(2, balls_y, -0.2f),
     };
 
     int ballsCount = coordinates.size();
     std::vector<MovingBall*> balls;
     for (int i = 0; i < ballsCount; i++) {
         Vec3 pos = coordinates[i];
-        auto newBall = MovingBall::New(pos, 0.2, std::to_string(i % 16 + 1) + ".png");
+        auto newBall = MovingBall::New(pos, 0.2f, std::to_string(i % 16 + 1) + ".png");
         balls.push_back(reinterpret_cast<MovingBall*>(newBall.GetBehaviour()));
     }
 

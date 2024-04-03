@@ -6,8 +6,9 @@ Vec3 Mul(Vec3 vec, Mat4 mat) {
 }
 
 Vec3 Norm(Vec3 vec) {
-    if (glm::length(vec) == 0) {
-        return vec;
+    const float epsilon = 1e-9;
+    if (glm::length(vec) < epsilon) {
+        return Vec3(0);
     }
     return glm::normalize(vec);
 }

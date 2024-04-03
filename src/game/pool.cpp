@@ -8,7 +8,7 @@
 
 #include "classes.cpp"
 
-float gravity = 5;
+float gravity = 9.8;
 Model* ball_model = nullptr;
 // Classes for pool
 class MovingBall : public Behaviour {
@@ -24,7 +24,7 @@ class MovingBall : public Behaviour {
 
         Collider *collider = new Collider{Sphere{Vec3(0.0), 1.0}};
         RigidBody *rb = new RigidBody(mass, IBodySphere(1, mass),
-                0.6f, Vec3(0, -mass * gravity, 0), 0.1f);
+                0.9f, Vec3(0, -mass * gravity, 0), 0.0001f);
         return newDynamicBody<MovingBall>(transform, model, collider, rb);
     }
 
@@ -189,27 +189,29 @@ class Table : public Behaviour {
 
         // get full mesh of the table or make multiple objects for walls of the table.
         // Collider *col = new Collider {&model->meshes[0]};
-        float h = 0.9;
+        float h0 = -0.5;
+        float h = 0.85;
 
-        float width = 0.7;
-        float length = 0.4;
+        float width = 0.9;
+        float length = 0.6;
 
         Collider *col = new Collider{AABB {
-            Vec3{-width, -0.5, -length},
+            Vec3{-width, h0, -length},
             Vec3{width, h, length},
         }};
-        Object obj = newStaticBody<Table>(transform, model, col);
+        float bounciness = 0.9f;
+        Object obj = newStaticBody<Table>(transform, model, col, bounciness);
 
-        float wall_height = 0.5;
+        float wall_height = 1;
         AABB walls[] = {
-            AABB {Vec3(width + 0.01, h + 0.01, -length), Vec3(width + 1, h + wall_height, length)},
-            AABB {Vec3(-width - 1+ 0.01, h + 0.01, -length), Vec3(-width, h + wall_height, length)},
-            AABB {Vec3(-width+ 0.01, h + 0.01, length), Vec3(width, h + wall_height, length + 1)},
-            AABB {Vec3(-width+ 0.01, h + 0.01, -length - 1), Vec3(width, h + wall_height, -length)}
+            AABB {Vec3(width, h0, -length), Vec3(width + 1, h + wall_height, length)},
+            AABB {Vec3(-width - 1, h0, -length), Vec3(-width, h + wall_height, length)},
+            AABB {Vec3(-width, h0, length), Vec3(width, h + wall_height, length + 1)},
+            AABB {Vec3(-width, h0, -length - 1), Vec3(width, h + wall_height, -length)}
         };
         for (int i = 0; i < 4; ++i) {
             Collider *col = new Collider{walls[i]};
-            newStaticBody(transform, col);
+            newStaticBody(transform, col, bounciness);
         }
 
         return obj;

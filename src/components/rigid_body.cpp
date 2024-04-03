@@ -162,16 +162,15 @@ void RigidBody::ComputeForceTorque(Transform transform, Transform otherTransform
         transform, otherTransform, rv, dt);
 
     float velAlongNormal = glm::dot(rv, normal);
-
     Vec3 impulseForce = ImpulseForce(this, otherRigidBody, normal,
             velAlongNormal, dt);
 
     // Compute normal force
-    Vec3 normalForce = Projection(m_ResForce, normal);
+    Vec3 normalForce = -Projection(m_ResForce, normal);
     Vec3 otherNormalForce = -Projection(otherRigidBody->m_ResForce, normal);
+    Logger::Info("vel sign: %f", velAlongNormal);
     m_ResForce += normalForce;
     otherRigidBody->m_ResForce += otherNormalForce;
-
 
     // If one of body is static (has infinity mass), then other body will stop
     if (massInverse == 0) {
@@ -192,12 +191,21 @@ void RigidBody::ComputeForceTorque(Transform transform, Transform otherTransform
         otherRigidBody->m_ResForce -= impulseForce;
 
         // Compute torque for impulse force
-        ApplyTorque(-impulseForce, r1);
-        otherRigidBody->ApplyTorque(impulseForce, r2);
+        ApplyTorque(+impulseForce, r1);
+        otherRigidBody->ApplyTorque(-impulseForce, r2);
     }
 
     // Compute friction
     auto friction = (kineticFriction + otherRigidBody->kineticFriction) / 2;
     ComputeFriction(normalForce, friction, r1, dt, normal);
     otherRigidBody->ComputeFriction(otherNormalForce, friction, r2, dt, -normal);
+
+    Logger::Info("normal: %f %f %f", normal.x, normal.y, normal.z);
+    Logger::Info("force1: %f %f %f", m_ResForce.x, m_ResForce.y, m_ResForce.z);
+    auto rf2 = otherRigidBody->m_ResForce;
+    Logger::Info("force2: %f %f %f", rf2.x, rf2.y, rf2.z);
+    Logger::Info("velocity1: %f %f %f", velocity.x, velocity.y, velocity.z);
+    auto v = otherRigidBody->velocity;
+    Logger::Info("velocity: %f %f %f", v.x, v.y, v.z);
+
 }
