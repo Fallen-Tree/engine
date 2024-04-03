@@ -4,7 +4,6 @@ project(Engine VERSION 0.1)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR})
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
@@ -30,6 +29,7 @@ add_library(ENGINE STATIC
             src/components/collider.cpp
             src/components/transform.cpp
             src/components/camera.cpp 
+            src/components/sound.cpp
             src/engine/time.cpp
             src/engine/path_resolver.cpp
             src/engine/math.cpp
@@ -52,7 +52,28 @@ SET(ASSIMP_BUILD_TESTS OFF)
 add_subdirectory(thirdparty/assimp/assimp)
 
 target_include_directories(ENGINE PUBLIC thirdparty PUBLIC include)
-target_link_libraries(ENGINE PUBLIC glfw glad freetype assimp OpenGL::GL)
+target_include_directories(ENGINE PUBLIC thirdparty/bass/c)
+
+
+if (UNIX)
+    target_link_libraries(ENGINE PUBLIC 
+        glfw glad freetype assimp
+        ${CMAKE_SOURCE_DIR}/thirdparty/bass/libbass.so
+        OpenGL::GL
+    )
+
+else()
+    target_link_libraries(ENGINE PUBLIC glfw glad freetype assimp 
+      ${CMAKE_SOURCE_DIR}/thirdparty/bass/c/x64/bass.lib
+      OpenGL::GL)
+
+    add_custom_command (
+        TARGET ENGINE
+        POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+        "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/bass/x64/bass.dll" 
+        "$<TARGET_FILE_DIR:ENGINE>/bass.dll"
+    )
+endif()
 
 add_executable(main src/main.cpp)
 target_link_libraries(main PUBLIC ENGINE)
@@ -60,4 +81,5 @@ target_link_libraries(main PUBLIC ENGINE)
 add_custom_command(TARGET ENGINE PRE_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
                    ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/resources)
+
 

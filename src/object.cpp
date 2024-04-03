@@ -72,3 +72,11 @@ SpotLight *Object::GetSpotLight() {
 Behaviour *Object::GetBehaviour() {
     return m_Engine->GetBehaviour(m_Handle);
 }
+
+bool Object::Collide(Object other) {
+    return m_Engine->Collide(m_Handle, other.m_Handle);
+}
+
+std::vector<Object> Object::CollideAll() {
+    return m_Engine->CollideAll(m_Handle);
+}

@@ -65,6 +65,11 @@ class Object {
     }
 
     template<typename ...Ts>
+    Sound &AddSound(Ts... ts) {
+        return m_Engine->AddSound(m_Handle, Sound{ts...});
+    }
+
+    template<typename ...Ts>
     Animation &AddAnimation(Ts... ts) {
         return m_Engine->AddAnimation(m_Handle, Animation{ts...});
     }
@@ -95,6 +100,8 @@ class Object {
     bool IsValid();
     void AddChild(Object child);
     Object GetParent();
+    bool Collide(Object other);
+    std::vector<Object> CollideAll();
 
  private:
     Engine *m_Engine;

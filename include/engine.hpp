@@ -16,6 +16,7 @@
 #include "light.hpp"
 #include "model.hpp"
 #include "path_resolver.hpp"
+#include "sound.hpp"
 #include "packed_array.hpp"
 #include "rigid_body.hpp"
 #include "pretty_print.hpp"
@@ -44,6 +45,7 @@ class Engine {
     Text *GetText(ObjectHandle);
     SkeletalAnimationsManager *GetSkeletalAnimationsManager(ObjectHandle);
     Image *GetImage(ObjectHandle);
+    Sound *GetSound(ObjectHandle);
     PointLight *GetPointLight(ObjectHandle);
     SpotLight *GetSpotLight(ObjectHandle);
     DirLight *GetDirLight(ObjectHandle);
@@ -57,6 +59,7 @@ class Engine {
     Text &AddText(ObjectHandle, Text);
     SkeletalAnimationsManager &AddSkeletalAnimationsManager(ObjectHandle, SkeletalAnimationsManager);
     Image &AddImage(ObjectHandle, Image);
+    Sound &AddSound(ObjectHandle, Sound);
     PointLight &AddPointLight(ObjectHandle, PointLight);
     SpotLight &AddSpotLight(ObjectHandle, SpotLight);
     DirLight &AddDirLight(ObjectHandle, DirLight);
@@ -71,6 +74,9 @@ class Engine {
     Object NewObject();
     void AddChild(ObjectHandle parent, ObjectHandle child);
     Object GetParent(ObjectHandle node);
+
+    bool Collide(ObjectHandle, ObjectHandle);
+    std::vector<Object> CollideAll(ObjectHandle);
 
     Camera* SwitchCamera(Camera* newCamera);
     void Run();
@@ -95,6 +101,7 @@ class Engine {
     ComponentArray<Image> m_Images;
     ComponentArray<Text> m_Texts;
     ComponentArray<SkeletalAnimationsManager> m_SkeletalAnimationsManagers;
+    ComponentArray<Sound> m_Sounds;
 
     ComponentArray<PointLight> m_PointLights;
     ComponentArray<DirLight> m_DirLights;
@@ -106,4 +113,9 @@ class Engine {
     // Hierarchy tree
     PackedArray<ObjectHandle, MAX_OBJECT_COUNT> m_Parents;
     PackedArray<std::vector<ObjectHandle>, MAX_OBJECT_COUNT> m_Children;
+
+    // Collision cache
+    // TODO(theblek): Make this a binary search tree
+    // Or just an ordered array and do binary search. Should be fast enough.
+    std::vector<std::vector<bool>> m_CollideCache;
 };
