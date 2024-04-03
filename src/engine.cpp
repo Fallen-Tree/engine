@@ -453,7 +453,7 @@ void Engine::Render(int scr_width, int scr_height) {
             shader->SetVec3("viewPos", viewPos);
 
             if (m_SkeletalAnimationsManagers.HasData(id)) {
-                auto bones = m_SkeletalAnimationsManagers.entries[id].GetFinalBoneMatrices();
+                auto bones = m_SkeletalAnimationsManagers.GetData(id).GetFinalBoneMatrices();
                 for (int i = 0; i < bones.size(); ++i) {
                     shader->SetMat4(("finalBonesMatrices[" + std::to_string(i) + "]").c_str(), bones[i]);
                 }

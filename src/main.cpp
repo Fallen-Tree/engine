@@ -10,7 +10,8 @@ const char *cubeSource = "cube2.obj";
 const char *catSource = "fish.obj";
 const char *benchSource = "bench.obj";
 
-const char *vertexShaderSource = "skeletal.vshader";
+const char *standartVertexShaderSource = "standart.vshader";
+const char *skeletalVertexShaderSource = "skeletal.vshader";
 const char *fragmentShaderSource = "standart.fshader";
 
 class MovingSphere : public Behaviour {
@@ -32,17 +33,19 @@ class Moving : public Behaviour {
 int main() {
     auto engine = Engine();
 
-    Shader vShader = Shader(VertexShader, vertexShaderSource);
+    Shader standartVShader = Shader(VertexShader, standartVertexShaderSource);
+    Shader skeletalVShader = Shader(VertexShader, skeletalVertexShaderSource);
     Shader fShader = Shader(FragmentShader, fragmentShaderSource);
 
-    ShaderProgram *shaderProgram = new ShaderProgram(vShader, fShader);
+    ShaderProgram *standartShaderProgram = new ShaderProgram(standartVShader, fShader);
+    ShaderProgram *skeletalShaderProgram = new ShaderProgram(skeletalVShader, fShader);
 
     {
         /* PIGEON */
         Model *pigeonModel = Model::loadFromFile("pigeon/scene.gltf");
         // Написать что локально нельзя
         auto pigeonAnimation = new SkeletalAnimationData("pigeon/scene.gltf", pigeonModel);
-        pigeonModel->shader = shaderProgram;
+        pigeonModel->shader = skeletalShaderProgram;
 
         auto pigeonObj = engine.NewObject();
         pigeonObj.AddTransform(Vec3(0.f, -10.f, -10.f), Vec3(10.f), Mat4(1.0));
@@ -54,7 +57,7 @@ int main() {
         /* Wolf */
         Model *wolfModel = Model::loadFromFile("Wolf_dae.dae");
         auto wolfAnimation = new SkeletalAnimationData("Wolf_dae.dae", wolfModel);
-        wolfModel->shader = shaderProgram;
+        wolfModel->shader = skeletalShaderProgram;
 
         auto wolfObj = engine.NewObject();
         wolfObj.AddTransform(Vec3(5.f, -10.f, -10.f), Vec3(10.f), Mat4(1.0));
@@ -64,7 +67,7 @@ int main() {
 
     // init a model
     Model * model = Model::loadFromFile(catSource);
-    model->shader = shaderProgram;
+    model->shader = standartShaderProgram;
     Material cat_material = {
         4.f,
         Texture("/Cat_diffuse.png", "/Cat_specular.png")
@@ -84,8 +87,8 @@ int main() {
     };
     Model *sphereModel = Model::fromMesh(Mesh::GetSphere(), material);
     Model *cubeModel = Model::fromMesh(Mesh::GetCube(), material);
-    sphereModel->shader = shaderProgram;
-    cubeModel->shader = shaderProgram;
+    sphereModel->shader = standartShaderProgram;
+    cubeModel->shader = standartShaderProgram;
 
     auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model) {
         auto obj = engine.NewObject();
