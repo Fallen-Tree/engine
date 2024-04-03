@@ -89,16 +89,25 @@ void addCat() {
 }
 
 void buildRoom() {
-    Transform *transform = new Transform(Vec3(0, -5, 0), Vec3(2), Mat4(0));
-    Model *floor = Model::loadFromFile("floor/model.obj");
-    Object f1 = newModel(transform, floor);
+    Model *chair = Model::loadFromFile("Chair.obj");
+    Material mat = { 4.f, Texture("Chair_BaseColor.png") };
+    chair->setMaterial(mat);
+    for (int i = 0; i < 4; ++i) {
+        Transform *chTransform = new Transform(Vec3(20, -6, 9 - i * 4), Vec3(0.4), Mat4(1.0));
+        Object chairObj = newModel(chTransform, chair);
+    }
+
+    Transform *barTransform = new Transform(Vec3(5, -8, -1), Vec3(2), Mat4(1.0));
+    Model *bar = Model::loadFromFile("bar/Bar.obj");
+    bar->setMaterial({4.f, Texture("Bar_A_BaseColor.png")});
+    Object barObj = newModel(barTransform, bar);
 }
 
 void poolTable() {
-    float balls_y = 0;
+    float balls_y = -2.5;
     std::vector<Vec3> coordinates {
         Vec3(-2, balls_y, -0.2f),
-        /*Vec3(-2.5f, balls_y, -0.5f),
+        Vec3(-2.5f, balls_y, -0.5f),
         Vec3(-2.5f, balls_y, 0.1f),
         Vec3(-3.f, balls_y, -0.8f),
         Vec3(-3.f, balls_y, -0.2f),
@@ -113,7 +122,7 @@ void poolTable() {
         Vec3(-4, balls_y, 0.4f),
         Vec3(-4, balls_y, 1.f),
 
-        Vec3(2, balls_y, -0.2f),*/
+        Vec3(2, balls_y, -0.2f),
     };
 
     int ballsCount = coordinates.size();
@@ -133,7 +142,7 @@ int main() {
     // Logger::SetLoggingLevel(WARN);
     init();
 
-    //buildRoom();
+    buildRoom();
     poolTable();
     addCat();
     createUI();

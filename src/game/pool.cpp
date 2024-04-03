@@ -29,8 +29,8 @@ class MovingBall : public Behaviour {
     }
 
     void Update(float dt) override {
-        Vec3 pos = self.GetTransform()->GetTranslation();
-        Logger::Info("ball pos: %f %f %f", pos.x, pos.y, pos.z);
+        // Vec3 pos = self.GetTransform()->GetTranslation();
+        // Logger::Info("ball pos: %f %f %f", pos.x, pos.y, pos.z);
     }
 };
 
@@ -48,8 +48,15 @@ class Hole : public TriggerArea {
         // }
     }
 
-    void Consume(Object *ball) {
+    void Consume(MovingBall *ball) {
         // delete ball
+        // for now just move with animation
+        ball->self.GetRigidBody()->velocity = Vec3(0, 0, 0);
+        ball->self.GetTransform()->SetTranslation(self.GetTransform()->GetTranslation());
+        ball->self.AddAnimation();
+        auto newTrans = *ball->self.GetTransform();
+        newTrans.Translate(Vec3(0, -2, 0));
+        ball->self.GetAnimation()->addAnimation(newTrans, 2.f);
         // add score
         // how???
     }
