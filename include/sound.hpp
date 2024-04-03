@@ -3,7 +3,7 @@
 #include "math_types.hpp"
 #include "bass.h"
 
-enum SoundType {
+enum class SoundType {
     SOUND_FLAT,
     SOUND_3D
 };

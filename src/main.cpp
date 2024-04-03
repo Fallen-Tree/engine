@@ -118,7 +118,7 @@ int main() {
         obj.AddBehaviour<FpsText>();
     }
 
-    engine.NewObject().AddSound(SOUND_FLAT, "georgian_disco.mp3").SetVolume(0.05f).Start();
+    engine.NewObject().AddSound(SoundType::SOUND_FLAT, "georgian_disco.mp3").SetVolume(0.05f).Start();
 
     engine.NewObject().AddImage("hp.png", 0.03f, 0.15f, 0.4f);
     engine.NewObject().AddImage("hp_bar.png", 0.015f, 0.01f, 0.4f);

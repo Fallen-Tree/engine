@@ -445,6 +445,22 @@ void Engine::updateObjects(float deltaTime) {
         m_RigidBodies.GetData(handle).Update(&m_Transforms.GetData(handle), deltaTime);
     }
 
+    // Update sound sources
+    for (int i = 0; i < m_Sounds.GetSize(); i++) {
+        ObjectHandle id = m_Sounds.GetFromInternal(i);
+        auto sound = m_Sounds.GetData(id);
+        if (sound.GetType() != SoundType::SOUND_3D)
+            continue;
+
+        if (!m_Transforms.HasData(id)) {
+            Logger::Warn("Be careful, 3D sound obj with id %d doesn't have transform", id);
+            continue;
+        }
+
+        auto transform = GetGlobalTransform(id);
+        sound.SetPosition(transform.GetTranslation());
+    }
+
     for (auto behaviour : m_Behaviours) {
         behaviour->Update(deltaTime);
     }
@@ -566,15 +582,6 @@ void Engine::Render(int scr_width, int scr_height) {
 
     for (auto &text : m_Texts) {
         text.RenderText();
-    }
-
-    for (int i = 0; i < m_Sounds.GetSize(); i++) {
-        ObjectHandle id = m_Sounds.GetFromInternal(i);
-        if (!m_Transforms.HasData(id)) continue;
-
-        auto transform = GetGlobalTransform(id);
-        auto sound = m_Sounds.GetData(id);
-        sound.SetPosition(transform.GetTranslation());
     }
 
     glfwSwapBuffers(m_Window);
