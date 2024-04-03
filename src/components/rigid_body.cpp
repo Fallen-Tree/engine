@@ -168,7 +168,7 @@ void RigidBody::ComputeForceTorque(Transform tranform, Transform otherTransform,
             velAlongNormal, dt);
 
     // Compute normal force
-    Vec3 normalForce = Projection(m_ResForce, normal);
+    Vec3 normalForce = -Projection(m_ResForce, normal);
     Vec3 otherNormalForce = -Projection(otherRigidBody->m_ResForce, normal);
     m_ResForce += normalForce;
     otherRigidBody->m_ResForce += otherNormalForce;
