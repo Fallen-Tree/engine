@@ -49,7 +49,7 @@ RenderMesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
         }
         vertices.push_back(vertex);
     }
-    
+
     // process indices
     for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
         aiFace face = mesh->mFaces[i];

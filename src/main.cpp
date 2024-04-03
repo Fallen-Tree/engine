@@ -78,9 +78,6 @@ int main() {
         cat.AddModel(*model);
         auto &t = cat.AddTransform(Vec3(0.f, -7.f, -5.f), Vec3(0.01f), Mat4(1.0));
         t.RotateGlobal(1.67f, Vec3(-1.f, 0.f, 0.f));
-        cat.AddCollider(Collider::GetDefaultAABB(&model->meshes[0]));
-        cat.AddRigidBody(100.f, Mat3(0), Vec3(0), 0.f, Vec3(0, -1000, 0),
-            Vec3(0), Vec3(1), 0.1f);
     }
 
 
