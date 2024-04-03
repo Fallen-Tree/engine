@@ -71,6 +71,9 @@ class Engine {
     void AddChild(ObjectHandle parent, ObjectHandle child);
     Object GetParent(ObjectHandle node);
 
+    bool Collide(ObjectHandle, ObjectHandle);
+    std::vector<Object> CollideAll(ObjectHandle);
+
     Camera* SwitchCamera(Camera* newCamera);
     void Run();
     Input m_Input;
@@ -105,4 +108,9 @@ class Engine {
     // Hierarchy tree
     PackedArray<ObjectHandle, MAX_OBJECT_COUNT> m_Parents;
     PackedArray<std::vector<ObjectHandle>, MAX_OBJECT_COUNT> m_Children;
+
+    // Collision cache
+    // TODO(theblek): Make this a binary search tree
+    // Or just an ordered array and do binary search. Should be fast enough.
+    std::vector<std::vector<bool>> m_CollideCache;
 };

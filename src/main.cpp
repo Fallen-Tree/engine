@@ -51,7 +51,7 @@ int main() {
 
     Material material = {
         4.f,
-        Texture("/wall.png", "/wallspecular.png")
+        Texture("wall.png", "wallspecular.png")
     };
     Model *sphereModel = Model::fromMesh(Mesh::GetSphere(), material);
     Model *cubeModel = Model::fromMesh(Mesh::GetCube(), material);
