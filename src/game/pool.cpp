@@ -8,7 +8,7 @@
 
 #include "classes.cpp"
 
-float gravity = 9.8;
+float gravity = 5;
 Model* ball_model = nullptr;
 // Classes for pool
 class MovingBall : public Behaviour {
@@ -24,7 +24,7 @@ class MovingBall : public Behaviour {
 
         Collider *collider = new Collider{Sphere{Vec3(0.0), 1.0}};
         RigidBody *rb = new RigidBody(mass, IBodySphere(1, mass),
-                Vec3(0), 0.6f, Vec3(0, -mass * gravity, 0), Vec3(1), Vec3(1), 0.1f);
+                0.6f, Vec3(0, -mass * gravity, 0), 0.1f);
         return newDynamicBody<MovingBall>(transform, model, collider, rb);
     }
 

@@ -31,7 +31,7 @@ template<typename T>
 Object newStaticBody(Transform *transform, Model *model, Collider *collider) {
     Object obj = newModel<T>(transform, model);
     obj.AddCollider(*collider);
-    obj.AddRigidBody(0.0f, Mat4(0), Vec3(0), 0.0f, Vec3(0), Vec3(1), Vec3(1), 0.0f);
+    obj.AddRigidBody(0.0f, Mat4(0), 0.0f, Vec3(0), 0.0f);
     return obj;
 }
 
@@ -39,7 +39,7 @@ Object newStaticBody(Transform *transform, Collider *collider) {
     Object obj = engine->NewObject();
     obj.AddTransform(*transform);
     obj.AddCollider(*collider);
-    obj.AddRigidBody(0.0f, Mat4(0), Vec3(0), 0.0f, Vec3(0), Vec3(1), Vec3(1), 0.0f);
+    obj.AddRigidBody(0.0f, Mat4(0), 0.0f, Vec3(0), 0.0f);
     return obj;
 }
 
