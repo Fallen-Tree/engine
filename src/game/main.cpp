@@ -107,7 +107,7 @@ void poolTable() {
 
     float balls_y = 2;
     std::vector<Vec3> coordinates {
-        /*Vec3(-2, balls_y, -0.2f),
+        Vec3(-2, balls_y, -0.2f),
         Vec3(-2.5f, balls_y, -0.5f),
         Vec3(-2.5f, balls_y, 0.1f),
         Vec3(-3.f, balls_y, -0.8f),
@@ -121,7 +121,7 @@ void poolTable() {
         Vec3(-4, balls_y, -0.8f),
         Vec3(-4, balls_y, -0.2f),
         Vec3(-4, balls_y, 0.4f),
-        Vec3(-4, balls_y, 1.f),*/
+        Vec3(-4, balls_y, 1.f),
 
         Vec3(2, balls_y, -0.2f),
     };

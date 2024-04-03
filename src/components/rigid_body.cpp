@@ -168,7 +168,6 @@ void RigidBody::ComputeForceTorque(Transform transform, Transform otherTransform
     // Compute normal force
     Vec3 normalForce = -Projection(m_ResForce, normal);
     Vec3 otherNormalForce = -Projection(otherRigidBody->m_ResForce, normal);
-    Logger::Info("vel sign: %f", velAlongNormal);
     m_ResForce += normalForce;
     otherRigidBody->m_ResForce += otherNormalForce;
 
@@ -186,7 +185,7 @@ void RigidBody::ComputeForceTorque(Transform transform, Transform otherTransform
     auto r2 = -normal * otherTransform.GetScale() * 0.5f;
 
     // Compute impulse
-    if (velAlongNormal < 0) {
+    if (velAlongNormal <= 0) {
         m_ResForce += impulseForce;
         otherRigidBody->m_ResForce -= impulseForce;
 
@@ -199,13 +198,4 @@ void RigidBody::ComputeForceTorque(Transform transform, Transform otherTransform
     auto friction = (kineticFriction + otherRigidBody->kineticFriction) / 2;
     ComputeFriction(normalForce, friction, r1, dt, normal);
     otherRigidBody->ComputeFriction(otherNormalForce, friction, r2, dt, -normal);
-
-    Logger::Info("normal: %f %f %f", normal.x, normal.y, normal.z);
-    Logger::Info("force1: %f %f %f", m_ResForce.x, m_ResForce.y, m_ResForce.z);
-    auto rf2 = otherRigidBody->m_ResForce;
-    Logger::Info("force2: %f %f %f", rf2.x, rf2.y, rf2.z);
-    Logger::Info("velocity1: %f %f %f", velocity.x, velocity.y, velocity.z);
-    auto v = otherRigidBody->velocity;
-    Logger::Info("velocity: %f %f %f", v.x, v.y, v.z);
-
 }

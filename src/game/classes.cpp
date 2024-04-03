@@ -28,10 +28,11 @@ Object newModel(Transform *transform, Model *model) {
 }
 
 template<typename T>
-Object newStaticBody(Transform *transform, Model *model, Collider *collider, float bounciness = 0.0f) {
+Object newStaticBody(Transform *transform, Model *model, Collider *collider,
+        float bounciness = 0.0f, float friction = 0.0f) {
     Object obj = newModel<T>(transform, model);
     obj.AddCollider(*collider);
-    obj.AddRigidBody(0.0f, Mat4(0), 0.0f, Vec3(0), bounciness);
+    obj.AddRigidBody(0.0f, Mat4(0), bounciness, Vec3(0), friction);
     return obj;
 }
 
@@ -39,7 +40,7 @@ Object newStaticBody(Transform *transform, Collider *collider, float bounciness 
     Object obj = engine->NewObject();
     obj.AddTransform(*transform);
     obj.AddCollider(*collider);
-    obj.AddRigidBody(0.0f, Mat4(0), 0.0f, Vec3(0), bounciness);
+    obj.AddRigidBody(0.0f, Mat4(0), bounciness, Vec3(0), 0.0f);
     return obj;
 }
 

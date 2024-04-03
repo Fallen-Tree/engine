@@ -199,8 +199,10 @@ class Table : public Behaviour {
             Vec3{-width, h0, -length},
             Vec3{width, h, length},
         }};
-        float bounciness = 0.9f;
-        Object obj = newStaticBody<Table>(transform, model, col, bounciness);
+        float floor_friction = 0.5f;
+        float floor_bounciness = 0.05f;
+        float walls_bounciness = 0.9f;
+        Object obj = newStaticBody<Table>(transform, model, col, floor_bounciness, floor_friction);
 
         float wall_height = 1;
         AABB walls[] = {
@@ -211,7 +213,7 @@ class Table : public Behaviour {
         };
         for (int i = 0; i < 4; ++i) {
             Collider *col = new Collider{walls[i]};
-            newStaticBody(transform, col, bounciness);
+            newStaticBody(transform, col, walls_bounciness);
         }
 
         return obj;
