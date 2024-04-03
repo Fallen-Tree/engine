@@ -1,4 +1,3 @@
-
 #include <limits>
 
 #include "engine.hpp"
@@ -115,7 +114,7 @@ int main() {
     {
         auto ocraFont = new Font("OCRAEXT.TTF", 20);
         auto obj = engine.NewObject();
-        obj.AddText(ocraFont, "", 685.0f, 575.0f, 1.f, Vec3(0, 0, 0));
+        obj.AddText(ocraFont, "", 0.85f, 0.95f, 1.f, Vec3(0, 0, 0));
         obj.AddBehaviour<FpsText>();
     }
 
