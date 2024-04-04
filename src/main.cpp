@@ -295,6 +295,5 @@ int main() {
             glm::cos(glm::radians(15.0f)));
     auto sptLight = std::get<SpotLight*>(spotLight->light);
     engine.AddObject<>(spotLight);
-
     engine.Run();
 }
