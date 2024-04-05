@@ -8,11 +8,17 @@ struct Sphere;
 struct Ray;
 struct AABB;
 
+struct Interval {
+    float min;
+    float max;
+};
+
 struct OBB {
     Vec3 center;
-    Mat3 axes; // Local x-, y-, and z-axes
+    Mat3 axis; // Local x-, y-, and z-axis
     Vec3 halfWidth; // Positive halfwidth extents of OBB along each axis
 
+    Interval GetInterval(Vec3 axisParametr);
     Vec3 ClosestPoint(Vec3);
     float Distance2(Vec3);
 
@@ -22,6 +28,7 @@ struct OBB {
 struct AABB {
     Vec3 min, max;
 
+    Interval GetInterval(Vec3 axis);
     Vec3 ClosestPoint(Vec3);
     float Distance2(Vec3);
 
@@ -43,6 +50,7 @@ struct Triangle {
 
     explicit Triangle(Vec3, Vec3, Vec3);
 
+    Interval GetInterval(Vec3 axis);
     Vec3 ClosestPoint(Vec3);
     float Distance2(Vec3);
     Triangle Transformed(Transform);
@@ -63,11 +71,3 @@ struct Plane {
     explicit Plane(Triangle t);
     explicit Plane(Vec3 normal, Vec3 point);
 };
-
-struct Interval {
-    float min;
-    float max;
-};
-
-Interval GetInterval(AABB rect, Vec3 axis);
-Interval GetInterval(OBB rect, Vec3 axis);
