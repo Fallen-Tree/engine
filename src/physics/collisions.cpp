@@ -675,3 +675,32 @@ Vec3 CollisionNormal(Mesh*, Mesh*, Transform, Transform, Vec3, float) {
             "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
     return Vec3(0);
 }
+
+Vec3 CollisionNormal(OBB, OBB,       Transform, Transform, Vec3, float) {
+    Logger::Info("error");
+    return Vec3(0);
+}
+Vec3 CollisionNormal(AABB, OBB,      Transform, Transform, Vec3, float) {
+    Logger::Info("error");
+    return Vec3(0);
+}
+Vec3 CollisionNormal(OBB, AABB,      Transform, Transform, Vec3, float) {
+    Logger::Info("error");
+    return Vec3(0);
+}
+Vec3 CollisionNormal(Sphere, OBB,    Transform, Transform, Vec3, float) {
+    Logger::Info("error");
+    return Vec3(0);
+}
+Vec3 CollisionNormal(OBB, Sphere,    Transform, Transform, Vec3, float) {
+    Logger::Info("error");
+    return Vec3(0);
+}
+Vec3 CollisionNormal(OBB, Mesh*,     Transform, Transform, Vec3, float) {
+    Logger::Info("error");
+    return Vec3(0);
+}
+Vec3 CollisionNormal(Mesh*, OBB,     Transform, Transform, Vec3, float) {
+    Logger::Info("error");
+    return Vec3(0);
+}
