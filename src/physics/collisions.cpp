@@ -98,6 +98,10 @@ Mat3 RotationMatrix(OBB a, OBB b) {
     return res;
 }
 
+bool CollidePrimitive(Ray, OBB) {
+    return true;
+}
+
 Mat3 AbsRotationMatrix(Mat3 rotationMat, float epsilon) {
     Mat3 res;
     for (int i = 0; i < 3; i++) {
@@ -249,6 +253,7 @@ bool CollidePrimitive(OBB a, OBB b) {
 }
 
 bool CollidePrimitive(Sphere a, OBB b) {
+    Logger::Info("here");
     Vec3 p = b.ClosestPoint(a.center);
     Vec3 v = p - a.center;
     return glm::dot(v, v) <= a.radius * a.radius;
@@ -484,6 +489,7 @@ bool CollideMeshAt(T t, Mesh *mesh, Transform transform) {
 template bool CollideMeshAt<AABB>(AABB, Mesh *, Transform);
 template bool CollideMeshAt<Sphere>(Sphere, Mesh *, Transform);
 template bool CollideMeshAt<Triangle>(Triangle, Mesh *, Transform);
+template bool CollideMeshAt<OBB>(OBB, Mesh *, Transform);
 
 bool CollideMeshes(Mesh *mesh, Transform transform, Mesh *mesh2, Transform transform2) {
     // WARNING: This makes assumptions about data layout
@@ -584,6 +590,11 @@ std::optional<float> CollisionPrimitive(Ray r, Sphere s) {
         x = 0;
 
     return x;
+}
+
+//TODO: make this shit
+std::optional<float> CollisionPrimitive(Ray r, OBB o) {
+    return 0;
 }
 
 Vec3 CollisionNormal(AABB a1, AABB a2, Transform tr1, Transform tr2, Vec3 velocity, float dt) {

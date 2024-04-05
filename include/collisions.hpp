@@ -38,9 +38,12 @@ bool CollideMeshes(Mesh *mesh, Transform transform, Mesh *mesh2, Transform trans
 
 bool CollidePrimitive(Ray, Sphere);
 bool CollidePrimitive(Ray, AABB);
+bool CollidePrimitive(Ray, OBB);
 
 std::optional<float> CollisionPrimitive(Ray, Sphere);
 std::optional<float> CollisionPrimitive(Ray, AABB);
+std::optional<float> CollisionPrimitive(Ray, OBB);
+
 
 Vec3 CollisionNormal(AABB, AABB,     Transform, Transform, Vec3, float);
 Vec3 CollisionNormal(Sphere, AABB,   Transform, Transform, Vec3, float);

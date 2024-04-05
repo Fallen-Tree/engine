@@ -6,7 +6,7 @@
 #include "mesh.hpp"
 
 struct Collider {
-    std::variant<AABB, Sphere, Mesh *> shape;
+    std::variant<AABB, Sphere, OBB, Model *> shape;
 
     static AABB GetDefaultAABB(Mesh*);
     bool Collide(Transform self, Collider *other, Transform otherTransform);
