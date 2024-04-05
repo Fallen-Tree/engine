@@ -8,30 +8,91 @@
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-bool OverlapOnAxis(AABB aabb, OBB obb, Vec3 axis);
-
-
-bool CollidePrimitive(OBB, AABB) {
-    return false;
+bool CollidePrimitive(OBB obb, AABB aabb) {
+    return CollidePrimitive(aabb, obb);
 }
 
-bool CollidePrimitive(AABB, OBB) {
-    return false;
+bool OverlapOnAxis(AABB aabb, OBB obb, Vec3 axis) {
+    Interval a = aabb.GetInterval(axis);
+    Interval b = obb.GetInterval(axis);
+    return ((b.min <= a.max) && (a.min <= b.max));
 }
 
-bool CollidePrimitive(Triangle, OBB) {
-    return false;
+bool CollidePrimitive(AABB aabb, OBB obb) {
+    Vec3 test[15] = {
+        Vec3(1, 0, 0),
+        // AABB axis 1
+        Vec3(0, 1, 0),
+        // AABB axis 2
+        Vec3(0, 0, 1),
+        // AABB axis 3
+        obb.axis[0], // OBB axis 1
+        obb.axis[1], // OBB axis 2
+        obb.axis[2] // OBB axis 3
+        // We will fill out the remaining axis in the next step
+    };
+
+    for (int i = 0; i < 3; i++) { // Fill out rest of axis
+        test[6 + i * 3 + 0] = glm::cross(test[i], test[0]);
+        test[6 + i * 3 + 1] = glm::cross(test[i], test[1]);
+        test[6 + i * 3 + 2] = glm::cross(test[i], test[2]);
+    }
+
+    for (int i = 0; i < 15; ++i) {
+        if (!OverlapOnAxis(aabb, obb, test[i])) {
+            return false; // Seperating axis found
+        }
+    }
+
+    return true; // Seperating axis not found
 }
 
-bool CollidePrimitive(OBB, Triangle) {
-    return false;
+bool OverlapOnAxis(OBB obb, Triangle triangle, Vec3 axis) {
+    Interval a = obb.GetInterval(axis);
+    Interval b = triangle.GetInterval(axis);
+    return ((b.min <= a.max) && (a.min <= b.max));
+}
+
+bool CollidePrimitive(Triangle triangle, OBB obb) {
+    // Compute the edge vectors of the triangle (ABC)
+    Vec3 f0 = triangle.b - triangle.a;
+    Vec3 f1 = triangle.c - triangle.b;
+    Vec3 f2 = triangle.a - triangle.c;
+
+    Vec3 test[13] = {
+        obb.axis[0],
+        obb.axis[1],
+        obb.axis[2],
+        triangle.normal,
+        glm::cross(obb.axis[0], f0),
+        glm::cross(obb.axis[0], f1),
+        glm::cross(obb.axis[0], f2),
+        glm::cross(obb.axis[1], f0),
+        glm::cross(obb.axis[1], f1),
+        glm::cross(obb.axis[1], f2),
+        glm::cross(obb.axis[2], f0),
+        glm::cross(obb.axis[2], f1),
+        glm::cross(obb.axis[2], f2)
+    };
+
+    for (int i = 0; i < 13; i++) {
+        if (!OverlapOnAxis(obb, triangle, test[i])) {
+            return false; // Separating axis found
+        }
+    }
+
+    return true; // Separating axis not found
+}
+
+bool CollidePrimitive(OBB obb, Triangle triangle) {
+    return CollidePrimitive(triangle, obb);
 }
 
 Mat3 RotationMatrix(OBB a, OBB b) {
     Mat3 res;
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-            res[i][j] = glm::dot(a.axes[i], b.axes[j]);
+            res[i][j] = glm::dot(a.axis[i], b.axis[j]);
         }
     }
     return res;
@@ -55,9 +116,9 @@ bool CollidePrimitive(OBB a, OBB b) {
     Vec3 translation = b.center - a.center;
     // Bring translation into a’s coordinate frame
     translation = Vec3(
-            glm::dot(translation, a.axes[0]),
-            glm::dot(translation, a.axes[1]),
-            glm::dot(translation, a.axes[2]));
+            glm::dot(translation, a.axis[0]),
+            glm::dot(translation, a.axis[1]),
+            glm::dot(translation, a.axis[2]));
     
     float ra;
     float rb;
@@ -202,9 +263,9 @@ bool CollidePrimitive(Plane a, OBB b) {
 }
 
 bool CollidePrimitive(OBB a, Plane b) {
-    float r = a.halfWidth[0] + std::abs(glm::dot(b.normal, a.axes[0]))
-        + a.halfWidth[1] + std::abs(glm::dot(b.normal, a.axes[1]))
-        + a.halfWidth[2] + std::abs(glm::dot(b.normal, a.axes[2]));
+    float r = a.halfWidth[0] + std::abs(glm::dot(b.normal, a.axis[0]))
+        + a.halfWidth[1] + std::abs(glm::dot(b.normal, a.axis[1]))
+        + a.halfWidth[2] + std::abs(glm::dot(b.normal, a.axis[2]));
     return std::abs(glm::dot(b.normal, a.center)- b.d) <= r;
 }
 

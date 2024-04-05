@@ -22,6 +22,34 @@ Vec3 AABB::ClosestPoint(Vec3 point) {
     return result;
 }
 
+Interval AABB::GetInterval(Vec3 axis) {
+    Vec3 i = min;
+    Vec3 a = max;
+    Vec3 vertex[8] = {
+        Vec3(i.x, a.y, a.z),
+        Vec3(i.x, a.y, i.z),
+        Vec3(i.x, i.y, a.z),
+        Vec3(i.x, i.y, i.z),
+        Vec3(a.x, a.y, a.z),
+        Vec3(a.x, a.y, i.z),
+        Vec3(a.x, i.y, a.z),
+        Vec3(a.x, i.y, i.z)
+    };
+    
+    Interval result;
+    result.min = result.max = glm::dot(axis, vertex[0]);
+    for (int i = 1; i < 8; ++i) {
+        float projection = glm::dot(axis, vertex[i]);
+        result.min = (projection < result.min) ?
+            projection : result.min;
+        result.max = (projection > result.max) ?
+            projection : result.max;
+    }
+
+    return result;
+}
+
+
 Vec3 Sphere::ClosestPoint(Vec3 point) {
     return center + radius
         * Norm(point - center);
@@ -46,6 +74,7 @@ float AABB::Distance2(Vec3 point) {
     } else if (point.z > max.z) {
         res += (point.z - max.z) * (point.z - max.z);
     }
+
     return res;
 }
 
@@ -119,6 +148,23 @@ Vec3 Triangle::ClosestPoint(Vec3 point) {
     return u*a + v*b + w*c;
 }
 
+Interval Triangle::GetInterval(Vec3 axis) {
+    Interval result;
+
+    result.min = glm::dot(axis, a);
+    result.max = result.min;
+
+    float value = glm::dot(axis, b);
+    result.min = fminf(result.min, value);
+    result.max = fmaxf(result.max, value);
+
+    value = glm::dot(axis, c);
+    result.min = fminf(result.min, value);
+    result.max = fmaxf(result.max, value);
+
+    return result;
+}
+
 float Triangle::Distance2(Vec3 point) {
     return glm::length2(point - ClosestPoint(point));
 }
@@ -153,19 +199,60 @@ Ray::Ray(Vec3 from, Vec3 to) {
     direction = glm::normalize(to - from);
 }
 
+OBB OBB::Transformed(Transform transform) {
+    return OBB {
+        center + transform.GetTranslation(),
+        Mat3(transform.GetRotation()) * axis,
+        halfWidth * transform.GetScale(),
+    };
+}
+
+Interval OBB::GetInterval(Vec3 axis) {
+    Vec3 vertex[8];
+
+    vertex[0] = center + axis[0] * halfWidth[0]
+        + axis[1] * halfWidth[1] + axis[2] * halfWidth[2];
+    vertex[1] = center - axis[0] * halfWidth[0]
+        + axis[1] * halfWidth[1] + axis[2] * halfWidth[2];
+    vertex[2] = center + axis[0] * halfWidth[0]
+        - axis[1] * halfWidth[1] + axis[2] * halfWidth[2];
+    vertex[3] = center + axis[0] * halfWidth[0]
+        + axis[1] * halfWidth[1] - axis[2] * halfWidth[2];
+    vertex[4] = center - axis[0] * halfWidth[0]
+        - axis[1] * halfWidth[1] - axis[2] * halfWidth[2];
+    vertex[5] = center + axis[0] * halfWidth[0]
+        - axis[1] * halfWidth[1] - axis[2] * halfWidth[2];
+    vertex[6] = center - axis[0] * halfWidth[0]
+        + axis[1] * halfWidth[1] - axis[2] * halfWidth[2];
+    vertex[7] = center - axis[0] * halfWidth[0]
+        - axis[1] * halfWidth[1] + axis[2] * halfWidth[2];
+
+    Interval result;
+    result.min = result.max = glm::dot(axis, vertex[0]);
+    for (int i = 1; i < 8; ++i) {
+        float projection = glm::dot(axis, vertex[i]);
+        result.min = (projection < result.min) ?
+            projection : result.min;
+        result.max = (projection > result.max) ?
+            projection : result.max;
+    }
+
+    return result; 
+}
+
 Vec3 OBB::ClosestPoint(Vec3 point) {
     const Vec3 d = point - center;
 
     Vec3 res = center;
     // for each OBB axis
     for (int i = 0; i < 3; i++) {
-        float dist = glm::dot(d, axes[i]);
+        float dist = glm::dot(d, axis[i]);
 
         const float halfwidth = halfWidth[i];
         if (dist > halfwidth) dist = halfwidth;
         if (dist < -halfwidth) dist = -halfwidth; 
 
-        res += dist * axes[i];
+        res += dist * axis[i];
     }
 
     return res;
