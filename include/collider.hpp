@@ -6,7 +6,7 @@
 #include "model.hpp"
 
 struct Collider {
-    std::variant<AABB, Sphere, Model *> shape;
+    std::variant<AABB, Sphere, OBB, Model *> shape;
 
     static AABB GetDefaultAABB(Model*);
     bool Collide(Transform self, Collider *other, Transform otherTransform);

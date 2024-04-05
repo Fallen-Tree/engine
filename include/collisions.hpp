@@ -38,6 +38,8 @@ bool CollideModels(Model *model, Transform transform, Model *model2, Transform t
 
 bool CollidePrimitive(Ray, Sphere);
 bool CollidePrimitive(Ray, AABB);
+bool CollidePrimitive(Ray, OBB);
 
 std::optional<float> CollisionPrimitive(Ray, Sphere);
 std::optional<float> CollisionPrimitive(Ray, AABB);
+std::optional<float> CollisionPrimitive(Ray, OBB);
