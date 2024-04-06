@@ -26,13 +26,13 @@ bool CollidePrimitive(AABB aabb, OBB obb) {
         // AABB axis 2
         Vec3(0, 0, 1),
         // AABB axis 3
-        obb.axis[0], // OBB axis 1
-        obb.axis[1], // OBB axis 2
-        obb.axis[2] // OBB axis 3
+        obb.axis[0],  // OBB axis 1
+        obb.axis[1],  // OBB axis 2
+        obb.axis[2]   // OBB axis 3
         // We will fill out the remaining axis in the next step
     };
 
-    for (int i = 0; i < 3; i++) { // Fill out rest of axis
+    for (int i = 0; i < 3; i++) {  // Fill out rest of axis
         test[6 + i * 3 + 0] = glm::cross(test[i], test[0]);
         test[6 + i * 3 + 1] = glm::cross(test[i], test[1]);
         test[6 + i * 3 + 2] = glm::cross(test[i], test[2]);
@@ -40,11 +40,11 @@ bool CollidePrimitive(AABB aabb, OBB obb) {
 
     for (int i = 0; i < 15; i++) {
         if (!OverlapOnAxis(aabb, obb, test[i])) {
-            return false; // Seperating axis found
+            return false;  // Seperating axis found
         }
     }
 
-    return true; // Seperating axis not found
+    return true;  // Seperating axis not found
 }
 
 bool OverlapOnAxis(OBB obb, Triangle triangle, Vec3 axis) {
@@ -77,11 +77,11 @@ bool CollidePrimitive(Triangle triangle, OBB obb) {
 
     for (int i = 0; i < 13; i++) {
         if (!OverlapOnAxis(obb, triangle, test[i])) {
-            return false; // Separating axis found
+            return false;  // Separating axis found
         }
     }
 
-    return true; // Separating axis not found
+    return true;  // Separating axis not found
 }
 
 bool CollidePrimitive(OBB obb, Triangle triangle) {
@@ -123,7 +123,7 @@ bool CollidePrimitive(OBB a, OBB b) {
             glm::dot(translation, a.axis[0]),
             glm::dot(translation, a.axis[1]),
             glm::dot(translation, a.axis[2]));
-    
+
     float ra;
     float rb;
 
@@ -159,7 +159,7 @@ bool CollidePrimitive(OBB a, OBB b) {
     if (std::abs(
                 translation[2] * rotationMat[1][0]
                 - translation[1] * rotationMat[2][0])
-            > ra + rb) 
+            > ra + rb)
         return false;
 
     // Test axis L = A0 x B1
@@ -598,14 +598,12 @@ std::optional<float> CollisionPrimitive(Ray r, OBB o) {
     Vec3 f(
         glm::dot(o.axis[0], r.direction),
         glm::dot(o.axis[1], r.direction),
-        glm::dot(o.axis[2], r.direction)
-    );
+        glm::dot(o.axis[2], r.direction));
 
     Vec3 e(
         glm::dot(o.axis[0], p),
         glm::dot(o.axis[1], p),
-        glm::dot(o.axis[2], p)
-    );
+        glm::dot(o.axis[2], p));
 
     float t[6] = {0, 0, 0, 0, 0, 0};
     for (int i = 0; i < 3; i++) {
@@ -614,25 +612,23 @@ std::optional<float> CollisionPrimitive(Ray r, OBB o) {
             if (-e[i] - o.axis[0][i] > 0 || -e[i] + o.axis[0][i] < 0) {
                 return {};
             }
-            f[i] = 0.00001f; // Avoid div by 0!
+            f[i] = 0.00001f;  // Avoid div by 0!
         }
-        t[i * 2 + 0] = (e[i] + o.axis[0][i]) / f[i]; // min
-        t[i * 2 + 1] = (e[i] - o.axis[0][i]) / f[i]; // max
+        t[i * 2 + 0] = (e[i] + o.axis[0][i]) / f[i];  // min
+        t[i * 2 + 1] = (e[i] - o.axis[0][i]) / f[i];  // max
     }
 
     float tmin = fmaxf(
         fmaxf(
             fminf(t[0], t[1]),
             fminf(t[2], t[3])),
-            fminf(t[4], t[5])
-    );
+            fminf(t[4], t[5]));
 
     float tmax = fminf(
         fminf(
             fmaxf(t[0], t[1]),
             fmaxf(t[2], t[3])),
-        fmaxf(t[4], t[5])
-        );
+        fmaxf(t[4], t[5]));
 
     if (tmax < 0) {
         return {};
