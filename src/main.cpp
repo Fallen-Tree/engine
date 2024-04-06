@@ -24,9 +24,28 @@ class MovingSphere : public Behaviour {
 class Moving : public Behaviour {
  public:
     void Update(float dt) override {
-        self.GetTransform()->Translate(Vec3 {2, 0, 0} * dt);
-        if (s_Input->IsKeyPressed(Key::Space)) {
-            self.Remove();
+        if (self.CollideAll().size() == 0)
+            self.GetTransform()->Translate(Vec3(0, -0.5, 0) * dt);
+    }
+};
+
+class MovingRotating : public Behaviour {
+ public:
+    void Update(float dt) override {
+        if (self.CollideAll().size() == 0) {
+            self.GetTransform()->Translate(Vec3(-1, -1, -1) * dt);
+            self.GetTransform()->Rotate(0.01, Vec3(1));
+        }
+    }
+};
+
+class MovingRotating2 : public Behaviour {
+ public:
+    Vec3 speed;
+    void Update(float dt) override {
+        if (self.CollideAll().size() == 0) {
+            self.GetTransform()->Translate(Vec3(2, 0, 0) * dt);
+            self.GetTransform()->Rotate(0.05, Vec3(1, 0, 1));
         }
     }
 };
@@ -63,34 +82,62 @@ int main() {
 
         obj.AddTransform(transform);
         obj.AddCollider(primitive);
-        obj.AddRigidBody(0.f, Mat4(0), Vec3(0), 1.f, Vec3(0), Vec3(0), 0.01f);
         return obj;
     };
 
-    auto aabb = setUpObj(
-        Transform(Vec3(-15, -55, 0), Vec3(100), 0.0f, Vec3(1)),
-        AABB {
-            Vec3{-0.5, -0.5, -0.5},
-            Vec3{0.5, 0.5, 0.5},
+    auto cat = engine.NewObject();
+    cat.AddModel(*model);
+    auto &t = cat.AddTransform(Vec3(0.f, -5.f, -8.f), Vec3(0.1f), Mat4(1.0));
+    cat.AddCollider(&model->meshes[0]);
+
+    auto obb = setUpObj(
+        Transform(Vec3(0, 0, 2.0), Vec3(1), 0.0f, Vec3(1)),
+        OBB {
+            Vec3(0, 0, 0),
+            Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
+            Vec3(0.5, 0.5, 0.5),
         },
         cubeModel);
+
+    obb.AddBehaviour<MovingRotating>();
+
+    auto obb2 = setUpObj(
+        Transform(Vec3(-5, -3, 2.0), Vec3(2), 0.0f, Vec3(1)),
+        OBB {
+            Vec3(0, 0, 0),
+            Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
+            Vec3(0.5, 0.5, 0.5),
+        },
+        cubeModel);
+
+    obb2.AddBehaviour<MovingRotating2>();
+
+    auto obb3 = setUpObj(
+        Transform(Vec3(10, 13, 10.0), Vec3(2), 0.0f, Vec3(1)),
+        OBB {
+            Vec3(0, 0, 0),
+            Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
+            Vec3(0.5, 0.5, 0.5),
+        },
+        cubeModel);
+
+    obb3.AddBehaviour<MovingRotating>();
 
     auto getSphereObj = [=, &engine](Transform transform, Vec3 speed, float mass) {
         auto obj = engine.NewObject();
         obj.AddTransform(transform);
         obj.AddModel(*sphereModel);
         obj.AddCollider(Sphere{ Vec3(0), 1.f });
-        obj.AddRigidBody(mass, IBodySphere(1, mass),
-           speed, 0.1f, Vec3(0, -mass * 10, 0), Vec3(1), 0.01f);
-        obj.AddBehaviour<MovingSphere>();
+        obj.AddBehaviour<Moving>();
         return obj;
     };
 
-    Object spheres[3] = {
+    /*
+    Object spheres[1] = {
         getSphereObj(
-            Transform(Vec3(-30, -1, 2.0), Vec3(1), 0.f, Vec3(1)),
+            Transform(Vec3(0, -1, 2.0), Vec3(1), 0.f, Vec3(1)),
             Vec3(10, 0, 0),
-            4),
+            4)
         getSphereObj(
             Transform(Vec3(0, -1, 2.0), Vec3(1), 0.f, Vec3(1)),
             Vec3(0, 0, 0),
@@ -98,8 +145,8 @@ int main() {
         getSphereObj(
             Transform(Vec3(10, -1, 2.0), Vec3(1.0), 0, Vec3(1)),
             Vec3(0, 0, 0),
-            1000),
     };
+*/
 
     class FpsText : public Behaviour {
      public:

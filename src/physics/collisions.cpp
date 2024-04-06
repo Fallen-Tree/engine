@@ -38,7 +38,7 @@ bool CollidePrimitive(AABB aabb, OBB obb) {
         test[6 + i * 3 + 2] = glm::cross(test[i], test[2]);
     }
 
-    for (int i = 0; i < 15; ++i) {
+    for (int i = 0; i < 15; i++) {
         if (!OverlapOnAxis(aabb, obb, test[i])) {
             return false; // Seperating axis found
         }
@@ -253,7 +253,6 @@ bool CollidePrimitive(OBB a, OBB b) {
 }
 
 bool CollidePrimitive(Sphere a, OBB b) {
-    Logger::Info("here");
     Vec3 p = b.ClosestPoint(a.center);
     Vec3 v = p - a.center;
     return glm::dot(v, v) <= a.radius * a.radius;
@@ -592,9 +591,62 @@ std::optional<float> CollisionPrimitive(Ray r, Sphere s) {
     return x;
 }
 
-//TODO: make this shit
 std::optional<float> CollisionPrimitive(Ray r, OBB o) {
-    return 0;
+    const float epsilon = 0.000001;
+    Vec3 p = o.center - r.origin;
+
+    Vec3 f(
+        glm::dot(o.axis[0], r.direction),
+        glm::dot(o.axis[1], r.direction),
+        glm::dot(o.axis[2], r.direction)
+    );
+
+    Vec3 e(
+        glm::dot(o.axis[0], p),
+        glm::dot(o.axis[1], p),
+        glm::dot(o.axis[2], p)
+    );
+
+    float t[6] = {0, 0, 0, 0, 0, 0};
+    for (int i = 0; i < 3; i++) {
+        // It can work uncorrect
+        if (std::fabs(f[i] - 0) < epsilon) {
+            if (-e[i] - o.axis[0][i] > 0 || -e[i] + o.axis[0][i] < 0) {
+                return {};
+            }
+            f[i] = 0.00001f; // Avoid div by 0!
+        }
+        t[i * 2 + 0] = (e[i] + o.axis[0][i]) / f[i]; // min
+        t[i * 2 + 1] = (e[i] - o.axis[0][i]) / f[i]; // max
+    }
+
+    float tmin = fmaxf(
+        fmaxf(
+            fminf(t[0], t[1]),
+            fminf(t[2], t[3])),
+            fminf(t[4], t[5])
+    );
+
+    float tmax = fminf(
+        fminf(
+            fmaxf(t[0], t[1]),
+            fmaxf(t[2], t[3])),
+        fmaxf(t[4], t[5])
+        );
+
+    if (tmax < 0) {
+        return {};
+    }
+
+    if (tmin > tmax) {
+        return {};
+    }
+
+    if (tmin < 0.0f) {
+        return tmax;
+    }
+
+    return tmin;
 }
 
 Vec3 CollisionNormal(AABB a1, AABB a2, Transform tr1, Transform tr2, Vec3 velocity, float dt) {
@@ -677,30 +729,43 @@ Vec3 CollisionNormal(Mesh*, Mesh*, Transform, Transform, Vec3, float) {
 }
 
 Vec3 CollisionNormal(OBB, OBB,       Transform, Transform, Vec3, float) {
-    Logger::Info("error");
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
     return Vec3(0);
 }
+
 Vec3 CollisionNormal(AABB, OBB,      Transform, Transform, Vec3, float) {
-    Logger::Info("error");
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
     return Vec3(0);
 }
+
 Vec3 CollisionNormal(OBB, AABB,      Transform, Transform, Vec3, float) {
-    Logger::Info("error");
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
     return Vec3(0);
 }
+
 Vec3 CollisionNormal(Sphere, OBB,    Transform, Transform, Vec3, float) {
-    Logger::Info("error");
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
     return Vec3(0);
 }
+
 Vec3 CollisionNormal(OBB, Sphere,    Transform, Transform, Vec3, float) {
-    Logger::Info("error");
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
     return Vec3(0);
 }
+
 Vec3 CollisionNormal(OBB, Mesh*,     Transform, Transform, Vec3, float) {
-    Logger::Info("error");
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
     return Vec3(0);
 }
+
 Vec3 CollisionNormal(Mesh*, OBB,     Transform, Transform, Vec3, float) {
-    Logger::Info("error");
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
     return Vec3(0);
 }

@@ -207,7 +207,7 @@ OBB OBB::Transformed(Transform transform) {
     };
 }
 
-Interval OBB::GetInterval(Vec3 axis) {
+Interval OBB::GetInterval(Vec3 axisPar) {
     Vec3 vertex[8];
 
     vertex[0] = center + axis[0] * halfWidth[0]
@@ -228,9 +228,9 @@ Interval OBB::GetInterval(Vec3 axis) {
         - axis[1] * halfWidth[1] + axis[2] * halfWidth[2];
 
     Interval result;
-    result.min = result.max = glm::dot(axis, vertex[0]);
-    for (int i = 1; i < 8; ++i) {
-        float projection = glm::dot(axis, vertex[i]);
+    result.min = result.max = glm::dot(axisPar, vertex[0]);
+    for (int i = 1; i < 8; i++) {
+        float projection = glm::dot(axisPar, vertex[i]);
         result.min = (projection < result.min) ?
             projection : result.min;
         result.max = (projection > result.max) ?
