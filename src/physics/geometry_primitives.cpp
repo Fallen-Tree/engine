@@ -35,7 +35,7 @@ Interval AABB::GetInterval(Vec3 axis) {
         Vec3(a.x, i.y, a.z),
         Vec3(a.x, i.y, i.z)
     };
-    
+
     Interval result;
     result.min = result.max = glm::dot(axis, vertex[0]);
     for (int i = 1; i < 8; ++i) {
@@ -237,7 +237,7 @@ Interval OBB::GetInterval(Vec3 axisPar) {
             projection : result.max;
     }
 
-    return result; 
+    return result;
 }
 
 Vec3 OBB::ClosestPoint(Vec3 point) {
@@ -250,7 +250,7 @@ Vec3 OBB::ClosestPoint(Vec3 point) {
 
         const float halfwidth = halfWidth[i];
         if (dist > halfwidth) dist = halfwidth;
-        if (dist < -halfwidth) dist = -halfwidth; 
+        if (dist < -halfwidth) dist = -halfwidth;
 
         res += dist * axis[i];
     }
@@ -259,5 +259,5 @@ Vec3 OBB::ClosestPoint(Vec3 point) {
 }
 
 float OBB::Distance2(Vec3 point) {
-    return glm::dot(ClosestPoint(point) - point, ClosestPoint(point) - point); 
+    return glm::dot(ClosestPoint(point) - point, ClosestPoint(point) - point);
 }
