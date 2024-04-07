@@ -88,12 +88,14 @@ void SkeletalAnimationsManager::Update(float dt) {
         if (m_Looped) {
             m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
         } else {
-            m_CurrentTime = 0.0f;
-            for (int i = 0; i < MAX_BONES; i++) {
-                m_FinalBoneMatrices.push_back(glm::mat4(1.0f));
+            if (m_CurrentTime >= m_CurrentAnimation->GetDuration()) {
+                m_CurrentTime = 0.0f;
+                for (int i = 0; i < MAX_BONES; i++) {
+                    m_FinalBoneMatrices[i] = glm::mat4(1.0f);
+                }
+                m_CurrentAnimationIndex = -1;
+                return;
             }
-            m_CurrentAnimationIndex = -1;
-            return;
         }
         CalculateBoneTransform(&(m_Animations[m_CurrentAnimationIndex]->GetRootNode()), glm::mat4(1.0f));
     }
