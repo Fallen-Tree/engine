@@ -116,11 +116,10 @@ void SkeletalAnimationsManager::CalculateBoneTransform(
     }
 
     glm::mat4 globalTransformation = parentTransform * nodeTransform;
-    auto boneInfoMap = m_CurrentAnimation->GetBoneIDMap();
-    if (boneInfoMap.find(nodeName) != boneInfoMap.end()) {
-        auto boneInfo = boneInfoMap[nodeName];
-        int index = boneInfo.id;
-        glm::mat4 offset = boneInfo.offset;
+    auto boneInfo = m_CurrentAnimation->FindBoneInfo(nodeName);
+    if (boneInfo != nullptr) {
+        int index = boneInfo->id;
+        glm::mat4 offset = boneInfo->offset;
         assert(index < MAX_BONES);
         m_FinalBoneMatrices[index] = globalTransformation * offset;
     }

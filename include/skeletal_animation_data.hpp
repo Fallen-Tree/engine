@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <utility>
 #include <glm/glm.hpp>
 #include "model.hpp"
 #include "bone.hpp"
@@ -29,20 +30,45 @@ class SkeletalAnimationData {
             return;
         }
 
-        if (animationIndex >= scene->mNumAnimations) {
-            Logger::Error("Too big animation index, can't load animation: %s ", animationPath.c_str());
-            return;
-        }
-        auto animation = scene->mAnimations[animationIndex];
-        m_Name +=  animationPath + ":" + scene->mAnimations[animationIndex]->mName.C_Str();
-        m_Duration = static_cast<float>(animation->mDuration);
-        m_TicksPerSecond = static_cast<float>(animation->mTicksPerSecond);
-
-        ReadHeirarchyData(m_RootNode, scene->mRootNode);
-        ReadMissingBones(animation, *model);
+        ConstructorHelper(animationPath, scene, animationIndex, model);
     }
 
     SkeletalAnimationData(const std::string& animationPath, const aiScene* scene,
+                                                unsigned int animationIndex, Model* model) {
+        ConstructorHelper(animationPath, scene, animationIndex, model);
+    }
+
+    Bone *FindBone(const std::string& name) {
+        if (m_LastBoneIndex >= m_Bones.size()) {
+            m_LastBoneIndex = 0;
+        }
+        if (m_Bones[m_LastBoneIndex].GetBoneID() == -1) {
+            m_LastBoneIndex++;
+            return nullptr;
+        }
+
+        assert(m_Bones[m_LastBoneIndex].GetBoneName() == name);
+        return &m_Bones[m_LastBoneIndex++];
+    }
+
+    BoneInfo *FindBoneInfo(const std::string& name) {
+        if (m_LastBoneInfoIndex >= m_BonesInfos.size()) {
+            m_LastBoneInfoIndex = 0;
+        }
+        assert(m_BonesInfos[m_LastBoneInfoIndex].first == name);
+        return m_BonesInfos[m_LastBoneInfoIndex++].second;
+    }
+
+    inline float GetTicksPerSecond() { return m_TicksPerSecond; }
+
+    inline float GetDuration() { return m_Duration;}
+
+    inline const AssimpNodeData& GetRootNode() { return m_RootNode; }
+
+    inline const std::string& GetName() { return m_Name; }
+
+ private:
+    void ConstructorHelper(const std::string& animationPath, const aiScene* scene,
                                                 unsigned int animationIndex, Model* model) {
         if (animationIndex >= scene->mNumAnimations) {
             Logger::Error("Too big animation index, can't load animation");
@@ -55,34 +81,35 @@ class SkeletalAnimationData {
 
         ReadHeirarchyData(m_RootNode, scene->mRootNode);
         ReadMissingBones(animation, *model);
+
+        std::vector<Bone> newBones;
+        ReorderBones(m_RootNode, newBones);
+        m_Bones = newBones;
     }
 
-    ~SkeletalAnimationData() {
-        for (auto it = m_Bones.begin(); it != m_Bones.end(); it++) {
-            delete it->second;
+    void ReorderBones(const AssimpNodeData& node, std::vector<Bone> &newBones) {
+        bool flag = 0;
+        for (int i = 0; i < m_Bones.size(); i++) {
+            if (m_Bones[i].GetBoneName() == node.name) {
+                newBones.push_back(m_Bones[i]);
+                flag = 1;
+                break;
+            }
         }
-    }
-
-    Bone *FindBone(const std::string& name) {
-        if (m_Bones.find(name) == m_Bones.end()) {
-            return nullptr;
+        if (!flag) {
+            newBones.push_back(Bone());
         }
 
-        return m_Bones[name];
+        if (m_BoneInfoMap.find(node.name) == m_BoneInfoMap.end()) {
+            m_BonesInfos.push_back(make_pair(node.name, nullptr));
+        } else {
+            m_BonesInfos.push_back(make_pair(node.name, &m_BoneInfoMap[node.name]));
+        }
+
+        for (int j = 0; j < node.children.size(); j++)
+            ReorderBones(node.children[j], newBones);
     }
 
-
-    inline float GetTicksPerSecond() { return m_TicksPerSecond; }
-
-    inline float GetDuration() { return m_Duration;}
-
-    inline const AssimpNodeData& GetRootNode() { return m_RootNode; }
-
-    inline const std::string& GetName() { return m_Name; }
-
-    inline const std::map<std::string, BoneInfo>& GetBoneIDMap() { return m_BoneInfoMap; }
-
- private:
     void ReadMissingBones(const aiAnimation* animation, Model& model) {
         int size = animation->mNumChannels;
 
@@ -98,7 +125,7 @@ class SkeletalAnimationData {
                 boneInfoMap[boneName].id = boneCount;
                 boneCount++;
             }
-            m_Bones[boneName] = (new Bone(channel->mNodeName.data,
+            m_Bones.push_back(Bone(channel->mNodeName.data,
                 boneInfoMap[channel->mNodeName.data].id, channel));
         }
 
@@ -123,6 +150,9 @@ class SkeletalAnimationData {
     float m_TicksPerSecond;
     std::string m_Name;
     std::map<std::string, BoneInfo> m_BoneInfoMap;
-    std::map<std::string, Bone*> m_Bones;
+    std::vector<std::pair<std::string, BoneInfo*> > m_BonesInfos;
+    std::vector<Bone> m_Bones;
+    int m_LastBoneIndex = 0;
+    int m_LastBoneInfoIndex = 0;
     AssimpNodeData m_RootNode;
 };

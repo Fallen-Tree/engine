@@ -25,7 +25,7 @@ struct KeyScale {
 };
 
 class Bone {
-  private:
+ private:
     std::vector<KeyPosition> m_Positions;
     std::vector<KeyRotation> m_Rotations;
     std::vector<KeyScale> m_Scales;
@@ -38,10 +38,12 @@ class Bone {
 
     glm::mat4 m_LocalTransform;
     std::string m_Name;
-    int m_ID;
+    int m_ID = -1;
     float m_LastAnimationTime;
 
  public:
+    Bone() = default;
+
     Bone(const std::string& name, int ID, const aiNodeAnim* channel) {
         m_NumPositions = channel->mNumPositionKeys;
         m_Name = name;
