@@ -20,6 +20,12 @@ Model* Model::loadFromFile(std::string path) {
     return newModel;
 }
 
+Model* Model::loadFromFile(std::string path, ShaderProgram *shader) {
+    Model* newModel = loadFromFile(path);
+    newModel->shader = shader;
+    return newModel;
+}
+
 void Model::processNode(aiNode *node, const aiScene *scene) {
     // process all the node's meshes (if any)
     for (unsigned int i = 0; i < node->mNumMeshes; i++) {
@@ -89,5 +95,14 @@ Model *Model::fromMesh(Mesh *mesh, Material material) {
     std::vector<RenderMesh> meshes;
     meshes.push_back(*(new RenderMesh(mesh, material)));
     newModel->meshes = meshes;
+    return newModel;
+}
+
+Model *Model::fromMesh(Mesh *mesh, Material material, ShaderProgram *shader) {
+    Model *newModel = new Model();
+    std::vector<RenderMesh> meshes;
+    meshes.push_back(*(new RenderMesh(mesh, material)));
+    newModel->meshes = meshes;
+    newModel->shader = shader;
     return newModel;
 }

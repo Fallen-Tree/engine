@@ -14,15 +14,24 @@
 
 class SkeletalAnimationsManager {
  public:
-    SkeletalAnimationsManager() {
-        m_CurrentAnimation = nullptr;
-        m_CurrentTime = 0.0f;
-    }
+    SkeletalAnimationsManager() = default;
+
+    explicit SkeletalAnimationsManager(const std::string& animationPath, Model* model);
     explicit SkeletalAnimationsManager(SkeletalAnimationData* animation);
 
-    void UpdateAnimation(float dt);
+    void AddAnimation(SkeletalAnimationData* animation);
+    void AddAnimation(const std::string& animationPath, Model* model);
 
-    void PlayAnimation(SkeletalAnimationData* pAnimation);
+    std::string GetAnimationsInfo();
+
+    void PlayImmediately(int id, bool looped);
+    bool IsPlaying();
+
+    void StopImmediately();
+    void Stop();
+
+    // Engine functions
+    void Update(float dt);
 
     const std::vector<glm::mat4> &GetFinalBoneMatrices();
 
@@ -30,8 +39,10 @@ class SkeletalAnimationsManager {
     void CalculateBoneTransform(const AssimpNodeData* node, glm::mat4 parentTransform);
 
     std::vector<glm::mat4> m_FinalBoneMatrices;
-    SkeletalAnimationData* m_CurrentAnimation;
+    std::vector<SkeletalAnimationData*> m_Animations;
+    int m_CurrentAnimationIndex;
     float m_CurrentTime;
+    bool m_Looped;
 };
 
 

@@ -17,6 +17,22 @@ AABB Collider::GetDefaultAABB(Mesh* m) {
     return AABB{min, max};
 }
 
+
+AABB Collider::GetDefaultAABB(Model* model) {
+    Vec3 min = {1e12, 1e12, 1e12};
+    Vec3 max = {-1e12, -1e12, -1e12};
+
+    for (auto &m : model->meshes) {
+        int len = m.getLenArrPoints();
+        Vertex* cur = m.getPoints();
+        for (int i = 0; i < len; i ++) {
+            min = glm::min(min, cur[i].Position);
+            max = glm::max(max, cur[i].Position);
+        }
+    }
+    return AABB{min, max};
+}
+
 template<typename U>
 bool CollideShifted(Ray lhs, U rhs, Transform rhsTransform) {
     return CollidePrimitive(lhs, rhs.Transformed(rhsTransform));

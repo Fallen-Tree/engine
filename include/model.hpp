@@ -32,6 +32,10 @@ class Model {
     static Model *loadFromFile(std::string);
     static Model *fromMesh(Mesh *mesh, Material material);
 
+    static Model *loadFromFile(std::string, ShaderProgram*);
+    static Model *fromMesh(Mesh *mesh, Material material, ShaderProgram*);
+
+
     auto& GetBoneInfoMap() { return m_BoneInfoMap; }
     int& GetBoneCount() { return m_BoneCounter; }
 

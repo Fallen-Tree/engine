@@ -43,29 +43,66 @@ int main() {
     ShaderProgram *skeletalShaderProgram = new ShaderProgram(skeletalVShader, fShader);
 
     {
-        /* PIGEON */
+        // /* PIGEON */
         Model *pigeonModel = Model::loadFromFile("pigeon/scene.gltf");
-        // Написать что локально нельзя
-        auto pigeonAnimation = new SkeletalAnimationData("pigeon/scene.gltf", pigeonModel);
         pigeonModel->shader = skeletalShaderProgram;
+        auto pigeonAnimation = new SkeletalAnimationData("pigeon/scene.gltf", 0, pigeonModel);
 
         auto pigeonObj = engine.NewObject();
         pigeonObj.AddTransform(Vec3(0.f, -10.f, -10.f), Vec3(10.f), Mat4(1.0));
         pigeonObj.AddModel(*pigeonModel);
-        pigeonObj.AddSkeletalAnimationsManager(pigeonAnimation);
+        pigeonObj.AddSkeletalAnimationsManager(pigeonAnimation).PlayImmediately(0, 1);
     }
 
     {
         /* Wolf */
-        Model *wolfModel = Model::loadFromFile("Wolf_dae.dae");
-        auto wolfAnimation = new SkeletalAnimationData("Wolf_dae.dae", wolfModel);
-        wolfModel->shader = skeletalShaderProgram;
+        Model *wolfModel = Model::loadFromFile("Wolf/Wolf-Blender-2.82a.gltf", skeletalShaderProgram);
+        wolfModel->meshes.pop_back();  // Delete Fur
+        wolfModel->meshes.erase(wolfModel->meshes.begin() + 1);  // Delete floor
 
         auto wolfObj = engine.NewObject();
         wolfObj.AddTransform(Vec3(5.f, -10.f, -10.f), Vec3(10.f), Mat4(1.0));
         wolfObj.AddModel(*wolfModel);
-        wolfObj.AddSkeletalAnimationsManager(wolfAnimation);
+        wolfObj.AddSkeletalAnimationsManager("Wolf/Wolf-Blender-2.82a.gltf", wolfModel);
+
+        class WolfBehaviour : public Behaviour {
+         public:
+            void Update(float dt) override {
+                left -= dt;
+                if (left < 0) {
+                    self.GetSkeletalAnimationsManager()->Stop();
+                }
+                if (!self.GetSkeletalAnimationsManager()->IsPlaying()) {
+                    left = delay;
+                    self.GetSkeletalAnimationsManager()->PlayImmediately(cur, 1);
+                    cur++;
+                    cur %= 5;
+                }
+            }
+
+            float delay = 4.0f;
+            float left = delay;
+            int cur = 0;
+        };
+
+        wolfObj.AddBehaviour<WolfBehaviour>();
     }
+
+    {
+        /* XBot */
+        Model *pigeonModel = Model::loadFromFile("XBot/XBot.dae", skeletalShaderProgram);
+
+        auto pigeonAnimation1 = new SkeletalAnimationData("XBot/Praying.dae", 0, pigeonModel);
+
+        auto pigeonObj = engine.NewObject();
+        pigeonObj.AddTransform(Vec3(-6.f, -10.f, -10.f), Vec3(5.f), Mat4(1.0));
+        pigeonObj.AddModel(*pigeonModel);
+        auto& animManager = pigeonObj.AddSkeletalAnimationsManager(pigeonAnimation1);
+        animManager.AddAnimation("XBot/Hip Hop Dancing.dae", pigeonModel);
+        Logger::Info("%s", animManager.GetAnimationsInfo().c_str());
+        animManager.PlayImmediately(1, 1);
+    }
+
 
     {
         Model * model = Model::loadFromFile(catSource);
@@ -85,10 +122,8 @@ int main() {
         4.f,
         Texture("wall.png", "wallspecular.png")
     };
-    Model *sphereModel = Model::fromMesh(Mesh::GetSphere(), material);
-    Model *cubeModel = Model::fromMesh(Mesh::GetCube(), material);
-    sphereModel->shader = standartShaderProgram;
-    cubeModel->shader = standartShaderProgram;
+    Model *sphereModel = Model::fromMesh(Mesh::GetSphere(), material, standartShaderProgram);
+    Model *cubeModel = Model::fromMesh(Mesh::GetCube(), material, standartShaderProgram);
 
     auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model) {
         auto obj = engine.NewObject();

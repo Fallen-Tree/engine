@@ -25,17 +25,21 @@ struct KeyScale {
 };
 
 class Bone {
- private:
+  private:
     std::vector<KeyPosition> m_Positions;
     std::vector<KeyRotation> m_Rotations;
     std::vector<KeyScale> m_Scales;
     int m_NumPositions;
+    int m_LastPositionIndex;
     int m_NumRotations;
+    int m_LastRotationIndex;
     int m_NumScalings;
+    int m_LastScalingIndex;
 
     glm::mat4 m_LocalTransform;
     std::string m_Name;
     int m_ID;
+    float m_LastAnimationTime;
 
  public:
     Bone(const std::string& name, int ID, const aiNodeAnim* channel) {
@@ -44,6 +48,7 @@ class Bone {
         m_ID = ID;
         m_LocalTransform = glm::mat4(1.0f);
 
+        m_LastPositionIndex = 0;
         for (int positionIndex = 0; positionIndex < m_NumPositions; ++positionIndex) {
             aiVector3D aiPosition = channel->mPositionKeys[positionIndex].mValue;
             float timeStamp = static_cast<float>(channel->mPositionKeys[positionIndex].mTime);
@@ -53,6 +58,7 @@ class Bone {
             m_Positions.push_back(data);
         }
 
+        m_LastRotationIndex = 0;
         m_NumRotations = channel->mNumRotationKeys;
         for (int rotationIndex = 0; rotationIndex < m_NumRotations; ++rotationIndex) {
             aiQuaternion aiOrientation = channel->mRotationKeys[rotationIndex].mValue;
@@ -63,6 +69,7 @@ class Bone {
             m_Rotations.push_back(data);
         }
 
+        m_LastScalingIndex = 0;
         m_NumScalings = channel->mNumScalingKeys;
         for (int keyIndex = 0; keyIndex < m_NumScalings; ++keyIndex) {
             aiVector3D scale = channel->mScalingKeys[keyIndex].mValue;
@@ -78,9 +85,16 @@ class Bone {
     the animation and prepares the local transformation matrix by combining all keys 
     tranformations*/
     void Update(float animationTime) {
+        if (animationTime < m_LastAnimationTime) {
+            m_LastPositionIndex = 0;
+            m_LastRotationIndex = 0;
+            m_LastScalingIndex = 0;
+        }
+
         glm::mat4 translation = InterpolatePosition(animationTime);
         glm::mat4 rotation = InterpolateRotation(animationTime);
         glm::mat4 scale = InterpolateScaling(animationTime);
+        m_LastAnimationTime = animationTime;
         m_LocalTransform = translation * rotation * scale;
     }
 
@@ -92,10 +106,10 @@ class Bone {
     /* Gets the current index on mKeyPositions to interpolate to based on 
     the current animation time*/
     int GetPositionIndex(float animationTime) {
-        for (int index = 0; index < m_NumPositions - 1; ++index) {
-            if (animationTime < m_Positions[index + 1].timeStamp)
-                return index;
-            }
+        for (; m_LastPositionIndex < m_NumPositions - 1; ++m_LastPositionIndex) {
+            if (animationTime < m_Positions[m_LastPositionIndex + 1].timeStamp)
+                return m_LastPositionIndex;
+        }
         Logger::Error("SKELETAL ANIM: Can't find current timeStamp");
         assert(0);
         return -1;
@@ -104,21 +118,22 @@ class Bone {
     /* Gets the current index on mKeyRotations to interpolate to based on the 
     current animation time*/
     int GetRotationIndex(float animationTime) {
-        for (int index = 0; index < m_NumRotations - 1; ++index) {
-            if (animationTime < m_Rotations[index + 1].timeStamp)
-                return index;
+        for (; m_LastRotationIndex < m_NumRotations - 1; ++m_LastRotationIndex) {
+            if (animationTime < m_Rotations[m_LastRotationIndex + 1].timeStamp)
+                return m_LastRotationIndex;
         }
         Logger::Error("SKELETAL ANIM: Can't find current timeStamp");
         assert(0);
         return -1;
     }
 
+
     /* Gets the current index on mKeyScalings to interpolate to based on the 
     current animation time */
     int GetScaleIndex(float animationTime) {
-        for (int index = 0; index < m_NumScalings - 1; ++index) {
-            if (animationTime < m_Scales[index + 1].timeStamp)
-                return index;
+         for (; m_LastScalingIndex < m_NumScalings - 1; ++m_LastScalingIndex) {
+            if (animationTime < m_Scales[m_LastScalingIndex + 1].timeStamp)
+                return m_LastScalingIndex;
         }
         Logger::Error("SKELETAL ANIM: Can't find current timeStamp");
         assert(0);

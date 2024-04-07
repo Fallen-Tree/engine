@@ -20,7 +20,7 @@ class SkeletalAnimationData {
  public:
     SkeletalAnimationData() = default;
 
-    SkeletalAnimationData(const std::string& animationPath, Model* model) {
+    SkeletalAnimationData(const std::string& animationPath, unsigned int animationIndex, Model* model) {
         Assimp::Importer importer;
         std::string finalPath = GetResourcePath(Resource::MODEL, animationPath);
         const aiScene* scene = importer.ReadFile(finalPath, aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -28,7 +28,28 @@ class SkeletalAnimationData {
             Logger::Error("ERROR::ASSIMP::%s", importer.GetErrorString());
             return;
         }
-        auto animation = scene->mAnimations[0];
+
+        if (animationIndex >= scene->mNumAnimations) {
+            Logger::Error("Too big animation index, can't load animation: %s ", animationPath.c_str());
+            return;
+        }
+        auto animation = scene->mAnimations[animationIndex];
+        m_Name +=  animationPath + ":" + scene->mAnimations[animationIndex]->mName.C_Str();
+        m_Duration = static_cast<float>(animation->mDuration);
+        m_TicksPerSecond = static_cast<float>(animation->mTicksPerSecond);
+
+        ReadHeirarchyData(m_RootNode, scene->mRootNode);
+        ReadMissingBones(animation, *model);
+    }
+
+    SkeletalAnimationData(const std::string& animationPath, const aiScene* scene,
+                                                unsigned int animationIndex, Model* model) {
+        if (animationIndex >= scene->mNumAnimations) {
+            Logger::Error("Too big animation index, can't load animation");
+            return;
+        }
+        auto animation = scene->mAnimations[animationIndex];
+        m_Name = animationPath + ":" + scene->mAnimations[animationIndex]->mName.C_Str();
         m_Duration = static_cast<float>(animation->mDuration);
         m_TicksPerSecond = static_cast<float>(animation->mTicksPerSecond);
 
@@ -37,21 +58,17 @@ class SkeletalAnimationData {
     }
 
     ~SkeletalAnimationData() {
+        for (auto it = m_Bones.begin(); it != m_Bones.end(); it++) {
+            delete it->second;
+        }
     }
 
-    Bone* FindBone(const std::string& name) {
-        auto iter = std::find_if(m_Bones.begin(), m_Bones.end(),
-            [&](const Bone& Bone) {
-                return Bone.GetBoneName() == name;
-            });
-
-        for (int i = 0; i < m_Bones.size(); i++) {
-            if (m_Bones[i].GetBoneName() == name) {
-                return &m_Bones[i];
-            }
+    Bone *FindBone(const std::string& name) {
+        if (m_Bones.find(name) == m_Bones.end()) {
+            return nullptr;
         }
 
-        return nullptr;
+        return m_Bones[name];
     }
 
 
@@ -60,6 +77,8 @@ class SkeletalAnimationData {
     inline float GetDuration() { return m_Duration;}
 
     inline const AssimpNodeData& GetRootNode() { return m_RootNode; }
+
+    inline const std::string& GetName() { return m_Name; }
 
     inline const std::map<std::string, BoneInfo>& GetBoneIDMap() { return m_BoneInfoMap; }
 
@@ -79,7 +98,7 @@ class SkeletalAnimationData {
                 boneInfoMap[boneName].id = boneCount;
                 boneCount++;
             }
-            m_Bones.push_back(Bone(channel->mNodeName.data,
+            m_Bones[boneName] = (new Bone(channel->mNodeName.data,
                 boneInfoMap[channel->mNodeName.data].id, channel));
         }
 
@@ -102,7 +121,8 @@ class SkeletalAnimationData {
 
     float m_Duration;
     float m_TicksPerSecond;
+    std::string m_Name;
     std::map<std::string, BoneInfo> m_BoneInfoMap;
-    std::vector<Bone> m_Bones;
+    std::map<std::string, Bone*> m_Bones;
     AssimpNodeData m_RootNode;
 };
