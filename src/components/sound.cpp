@@ -14,7 +14,7 @@ Sound::Sound(SoundType type, std::string path, bool looped) {
         sample = BASS_SampleLoad(false, path.c_str(), 0, 0, 10, loop);
     } else {
         sample = BASS_SampleLoad(false, path.c_str(), 0, 0, 10,
-            BASS_SAMPLE_3D | BASS_SAMPLE_MUTEMAX | loop);
+            BASS_SAMPLE_MONO | BASS_SAMPLE_3D | BASS_SAMPLE_MUTEMAX | loop);
     }
 
     if (!sample) {
