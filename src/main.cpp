@@ -39,14 +39,12 @@ int main() {
 
     ShaderProgram *shaderProgram = new ShaderProgram(vShader, fShader);
 
-    // init a model
-    Model * model = Model::loadFromFile(catSource);
+    // Shiba inu (ETO FIASKO BRATAN)
+    Model *model = Model::loadFromFile("ShibaInu.fbx");
     model->shader = shaderProgram;
-    Material cat_material = {
-        4.f,
-        Texture("/Cat_diffuse.png", "/Cat_specular.png")
-    };
-    model->setMaterial(cat_material);
+    auto dog = engine.NewObject();
+    dog.AddModel(*model);
+    dog.AddTransform(Transform(Vec3(2, -5, 0.0), Vec3(1.f), glm::radians(-90.f), Vec3(1.0f, 0.f, 0.f)));
 
     Material material = {
         4.f,

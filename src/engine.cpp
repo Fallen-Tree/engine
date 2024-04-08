@@ -564,8 +564,15 @@ void Engine::Render(int scr_width, int scr_height) {
             shader->SetInt("lenArrSpotL", m_SpotLights.GetSize());
             // send inf about texture
             mesh.material.texture.bind();
-            shader->SetInt("material.duffuse", 0);
-            shader->SetInt("material.specular", 1);
+            if (mesh.material.texture.countComponents() == 0) {
+                shader->SetInt("useTextures", 0);
+                shader->SetVec3("material.diffuseColor", mesh.material.diffuseColor);
+                shader->SetVec3("material.specularColor", mesh.material.specularColor);
+            } else {
+                shader->SetInt("useTextures", 1);
+                shader->SetInt("material.duffuse", 0);
+                shader->SetInt("material.specular", 1);
+            }
             // Note: currently we set the projection matrix each frame,
             // but since the projection matrix rarely changes it's
             // often best practice to set it outside the main loop only once.
