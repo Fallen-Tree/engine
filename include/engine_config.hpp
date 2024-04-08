@@ -37,8 +37,8 @@
 
 // rigid body
 
-#define TORQUE_RATIO                10
+#define DAMPING                     0.98f
 // value in [0,1]
-// the more higher the smoother 
+// the more higher the smoother
 // used in LimitTorque
-#define TORQUE_SMOTHNESS            0.5f 
+#define TORQUE_SMOTHNESS            0.5f

@@ -68,23 +68,23 @@ void RigidBody::LinearCalculation(Transform *transform, float dt) {
 }
 
 void RigidBody::AngularCalculation(Transform *transform, float dt) {
-    if (m_Torque == Vec3(0))
-        return;
     Mat3 rotation = transform->GetRotation();
     Mat3 Iinverse = rotation * ibodyInverse * glm::transpose(rotation);
-    Vec3 L = m_Torque * dt;
-    Vec3 omega = Iinverse * L;
-    auto angle = omega * angularUnlock;
+    angularVelocity += Iinverse * m_Torque * dt;
+    angularVelocity *= DAMPING;
+    auto angle = angularVelocity * angularUnlock;
     transform->Rotate(angle.x, angle.y, angle.z);
 }
 
 void RigidBody::ApplyTorque(Vec3 force, Vec3 r) {
-    m_Torque += glm::cross(force, r) * static_cast<float>(TORQUE_RATIO);
+    /* m_Torque += glm::cross(force, r) * static_cast<float>(TORQUE_RATIO); */
+    m_Torque += glm::cross(force, r);
 }
 
 void RigidBody::LimitTorque(Vec3 force, Vec3 r) {
-    Vec3 torque = glm::cross(force, r) * static_cast<float>(TORQUE_RATIO);
-    m_Torque = TORQUE_SMOTHNESS * m_Torque + (1 - TORQUE_SMOTHNESS) * torque;
+    /* Vec3 torque = glm::cross(force, r) * static_cast<float>(TORQUE_RATIO); */
+    /* m_Torque = TORQUE_SMOTHNESS * m_Torque + (1 - TORQUE_SMOTHNESS) * torque; */
+    m_Torque = glm::cross(force, r);
 }
 
 Vec3 CalculateFrictionDirection(Vec3 normal, Vec3 velocity) {
