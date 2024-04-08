@@ -5,6 +5,7 @@
 
 #include "classes.cpp"
 #include "pool.cpp"
+#include "fp_controller.cpp"
 
 // Made this global for easier usage inside functions
 Engine *engine;
@@ -45,10 +46,10 @@ void createUI() {
 
 void createLights() {
     engine->NewObject().AddPointLight(
-        Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
-        Vec3(1.0f, 1.0f, 1.0f), Vec3(-0.2, -0.5, -1.2),
-        1.f, 0.09f, 0.032f);
-
+        Vec3(0.2f, 0.2f, 0.2f), Vec3(1.0f, 1.0f, 1.0f),
+        Vec3(0.2f, 0.2f, 0.2f), Vec3(0.0, 0.0, 0.0),
+        1.f, 0.0f, 0.0f);
+    /*
     engine->NewObject().AddPointLight(
         Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
         Vec3(1.0f, 1.0f, 1.0f), Vec3(2.3f, -3.3f, -4.0f),
@@ -58,16 +59,23 @@ void createLights() {
         Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
         Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0f,  0.0f, -3.0f),
         1.f, 0.09f, 0.032f);
-    
+
     engine->NewObject().AddDirLight(
         Vec3(0.05f, 0.05f, 0.05f), Vec3(0.4f, 0.4f, 0.4f),
         Vec3(0.5f, 0.5f, 0.5f),  Vec3(-0.2f, -1.0f, -0.3f));
-
+    */
     engine->NewObject().AddSpotLight(Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
         Vec3(1.0f, 1.0f, 1.0f), Vec3(1.0f, 1.0f, 1.0f),
         1.0f, 0.09f, 0.032f, Vec3(0),
         glm::cos(glm::radians(12.5f)),
         glm::cos(glm::radians(15.0f)));
+    /*
+    engine->NewObject().AddSpotLight(Vec3(0.0f, 0.0f, 0.0f), Vec3(0.5f, 0.5f, 0.5f),
+        Vec3(0.3f, 0.3f, .3f), Vec3(1.0f, 1.0f, 1.0f),
+        1.0f, 0.09f, 0.032f, Vec3(0),
+        glm::cos(glm::radians(10.0f)),
+        glm::cos(glm::radians(20.0f)));
+    */
 }
 
 void addCat() {
@@ -88,7 +96,7 @@ void addCat() {
 }
 
 void buildRoom() {
-    Model *chair = Model::loadFromFile("Chair.obj");
+    /*Model *chair = Model::loadFromFile("Chair.obj");
     // chair->setMaterial({ 4.f, Texture("Chair_BaseColor.png") });
     Transform *chTransform = new Transform(Vec3(20, -6, 5), Vec3(0.4), Mat4(1.0));
     Object chairObj = newModel(chTransform, chair);
@@ -101,13 +109,31 @@ void buildRoom() {
     // bar->setMaterial({4.f, Texture("Bar_A_BaseColor.png")});
     Transform *barTransform = new Transform(Vec3(5, -8, -1), Vec3(2), Mat4(1.0));
     Object barObj = newModel(barTransform, bar);
+*/
+
+    Model *wall = Model::loadFromFile("huge_cube.obj");
+    wall->setMaterial({4.f, Texture("stone_wall.png")});
+    newModel(new Transform(Vec3(0, 0, 0), Vec3(20), Mat4(1.0)), wall);
+
+    Model *cc = Model::loadFromFile("CompanionCube/Portal_Companion_Cube.obj");
+    newModel(new Transform(Vec3(8, 0, 0), Vec3(1), Mat4(1.0)), cc);
+
+    Model *plant1 = Model::loadFromFile("HousePlant/Houseplant.obj");
+    newModel(new Transform(Vec3(10, -2, 0), Vec3(1), Mat4(1.0)), plant1);
+
+    Model *plant2 = Model::loadFromFile("Orchid/Orchid.obj");
+    newModel(new Transform(Vec3(14, -2, 0), Vec3(0.3), Mat4(1.0)), plant2);
+
+    Model *keg = Model::loadFromFile("Prop_Barrel_1.obj");
+    newModel(new Transform(Vec3(14, -2, 4), Vec3(1), Mat4(1.0)), keg);
+
 }
 
 void poolTable() {
 
     float balls_y = 2;
     std::vector<Vec3> coordinates {
-        Vec3(-2, balls_y, -0.2f),
+    /*    Vec3(-2, balls_y, -0.2f),
         Vec3(-2.5f, balls_y, -0.5f),
         Vec3(-2.5f, balls_y, 0.1f),
         Vec3(-3.f, balls_y, -0.8f),
@@ -122,7 +148,7 @@ void poolTable() {
         Vec3(-4, balls_y, -0.2f),
         Vec3(-4, balls_y, 0.4f),
         Vec3(-4, balls_y, 1.f),
-
+    */
         Vec3(2, balls_y, -0.2f),
     };
 
@@ -130,7 +156,7 @@ void poolTable() {
     std::vector<MovingBall*> balls;
     for (int i = 0; i < ballsCount; i++) {
         Vec3 pos = coordinates[i];
-        auto newBall = MovingBall::New(pos, 0.2f, std::to_string(i % 16 + 1) + ".png");
+        auto newBall = MovingBall::New(pos, 0.2f, "pool/" + std::to_string(i % 16 + 1) + ".png");
         balls.push_back(reinterpret_cast<MovingBall*>(newBall.GetBehaviour()));
     }
 
@@ -143,7 +169,7 @@ int main() {
     // Logger::SetLoggingLevel(WARN);
     init();
 
-    //buildRoom();
+    buildRoom();
     poolTable();
     // addCat();
     createUI();

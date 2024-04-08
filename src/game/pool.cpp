@@ -17,7 +17,7 @@ class MovingBall : public Behaviour {
      std::string diffuseSource, float mass = 1.0) {
         Transform *transform = new Transform(position, Vec3(radius), Mat4(1.0));
 
-        if (ball_model == nullptr) ball_model = Model::loadFromFile("shar_1200.obj");
+        if (ball_model == nullptr) ball_model = Model::loadFromFile("pool/shar_1200.obj");
         Model *model = ball_model;
         Material sphereMaterial = {4.f, Texture(diffuseSource)};
         model->setMaterial(sphereMaterial);
@@ -68,7 +68,7 @@ class Hole : public TriggerArea {
 class Cue : public Behaviour {
  public:
     static Object New(std::vector<MovingBall *> objects, Camera *camera) {
-        Model *model = Model::loadFromFile("/cue.obj");
+        Model *model = Model::loadFromFile("pool/cue.obj");
         Material material = {
             4.f,
             Texture("/kiy.png"),
@@ -180,10 +180,10 @@ class Table : public Behaviour {
     static Object New(Vec3 position, Vec3 scale) {
         Transform *transform = new Transform(position, scale, Mat4(1.0));
 
-        Model *model = Model::loadFromFile("/stol_1.obj");
+        Model *model = Model::loadFromFile("pool/stol_1.obj");
         Material material = Material{
             4.f,
-            Texture("/stol.png"),
+            Texture("pool/stol.png"),
         };
         model->setMaterial(material);
 
@@ -199,7 +199,7 @@ class Table : public Behaviour {
             Vec3{-width, h0, -length},
             Vec3{width, h, length},
         }};
-        float floor_friction = 0.5f;
+        float floor_friction = 0.1f;
         float floor_bounciness = 0.05f;
         float walls_bounciness = 0.9f;
         Object obj = newStaticBody<Table>(transform, model, col, floor_bounciness, floor_friction);
