@@ -22,6 +22,7 @@ add_library(ENGINE STATIC
             src/text/font.cpp
             src/components/animation/animation.cpp
             src/components/animation/skeletal_animations_manager.cpp
+            src/components/animation/skeletal_animation_data.cpp
             src/physics/geometry_primitives.cpp
             src/physics/collisions.cpp
             src/components/rigid_body.cpp
