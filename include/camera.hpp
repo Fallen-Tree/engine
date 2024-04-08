@@ -7,15 +7,6 @@
 #include "engine_config.hpp"
 #include "user_config.hpp"
 
-// Defines several possible options for camera movement.
-// Used as abstraction to stay away from window-system specific input methods
-enum Camera_Movement {
-    FORWARD,
-    BACKWARD,
-    LEFT,
-    RIGHT
-};
-
 class Camera {
  public:
     // constructor with vectors
@@ -24,6 +15,7 @@ class Camera {
             float nearPlane = DFL_NEAR_PLANE, float farPlane = DFL_FAR_PLANE);
 
     void SetTransform(Transform transform, Vec3 up = Vec3(0.0f, 1.0f, 0.0f));
+    void SetPosition(Vec3 position);
 
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
     Mat4 GetViewMatrix();
@@ -32,26 +24,13 @@ class Camera {
     Ray GetRayThroughScreenPoint(Vec2 pos);
 
     float GetZoom();
+    void SetZoom(float zoom);
 
     Vec3 GetPosition();
     Vec3 GetFront();
 
     void SetScreenSize(Vec2);
     Vec2 GetScreenSize();
-
-    // processes input received from any keyboard-like input system.
-    // Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
-    void ProcessKeyboard(Camera_Movement direction, float deltaTime);
-
-
-    // processes input received from a mouse input system.
-    // Expects the offset value in both the x and y direction.
-    void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true);
-
-
-    // processes input received from a mouse scroll-wheel event.
-    // Only requires input on the vertical wheel-axis
-    void ProcessMouseScroll(float yoffset);
 
     void Update(Input * input, float deltaTime);
 
@@ -66,7 +45,6 @@ class Camera {
     Vec3 m_WorldUp;
 
     // camera options
-    float m_MovementSpeed;
     float m_MouseSensitivity;
     float m_Zoom;
 

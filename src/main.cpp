@@ -15,6 +15,98 @@ const char *benchSource = "bench.obj";
 const char *vertexShaderSource = "standart.vshader";
 const char *fragmentShaderSource = "standart.fshader";
 
+class CameraController : public Behaviour {
+ private:
+    enum MovementMode {Walk, Fly};
+    Camera * m_Camera;
+    float m_FlySpeed = 8;
+    float m_WalkSpeed = 15;
+    float m_MouseSensitivity = SENSIVITY;
+    MovementMode m_MovementMode = Fly;
+
+    void ProcessKeyboard(float deltaTime) {
+        if (s_Input->IsKeyPressed(Key::Space)) {
+            if (m_MovementMode == Fly) {
+                m_MovementMode = Walk;
+            } else {
+                m_MovementMode = Fly;
+            }
+        }
+
+        Vec3 front = m_Camera->GetFront();
+        if (m_MovementMode == Walk) {
+            front.y = 0;
+        }
+        front = glm::normalize(front);
+        Vec3 right = glm::normalize(glm::cross(front, Vec3(0, 1, 0)));
+
+        Vec3 direction = Vec3(0);
+
+        if (s_Input->IsKeyDown(Key::W))
+            direction += front;
+        if (s_Input->IsKeyDown(Key::S))
+            direction -= front;
+        if (s_Input->IsKeyDown(Key::A))
+            direction -= right;
+        if (s_Input->IsKeyDown(Key::D))
+            direction += right;
+        float moveSpeed;
+        if (m_MovementMode == Walk)
+            moveSpeed = m_WalkSpeed;
+        else /*m_MovementMode == Fly*/
+            moveSpeed = m_FlySpeed;
+        Transform *tr = self.GetTransform();
+        tr->Translate(direction * moveSpeed * deltaTime);
+    }
+
+    void ProcessMouseMovement() {
+        float xOffset = s_Input->OffsetX();
+        float yOffset = s_Input->OffsetY();
+
+        xOffset *= m_MouseSensitivity;
+        yOffset *= m_MouseSensitivity;
+ 
+        Transform *tr = self.GetTransform();
+
+        tr->Rotate(0, xOffset, 0);
+        tr->RotateGlobal(-yOffset, 0, 0);
+
+        // to update front vector
+        m_Camera->SetTransform(*self.GetTransform());
+ 
+        Vec3 front = m_Camera->GetFront();
+        if (abs(glm::dot(front, Vec3(0, 1, 0))) > MAX_DOT) {
+            tr->RotateGlobal(yOffset, 0, 0);
+        }
+    }
+
+    void ProcessMouseScroll() {
+        float scrollOffset = s_Input->ScrollOfsset();
+        float zoom = m_Camera->GetZoom();
+        zoom -= static_cast<float>(scrollOffset);
+        if (zoom < MIN_FOV) zoom = MIN_FOV;
+        if (zoom > MAX_FOV) zoom = MAX_FOV;
+        m_Camera->SetZoom(zoom);
+    }
+
+ public:
+    void Update(float deltaTime) {
+        if (m_Camera == nullptr) return;
+
+        ProcessMouseMovement();
+
+        ProcessMouseScroll();
+
+        ProcessKeyboard(deltaTime);
+
+        m_Camera->SetTransform(*self.GetTransform());
+    }
+
+    explicit CameraController(Camera * camera) {
+        m_Camera = camera;
+    }
+};
+
 class MovingSphere : public Behaviour {
  public:
     void Update(float dt) override {
@@ -148,5 +240,8 @@ int main() {
         glm::cos(glm::radians(12.5f)),
         glm::cos(glm::radians(15.0f)));
 
+    Object control = engine.NewObject();
+    control.AddBehaviour<CameraController>(engine.camera);
+    control.AddTransform(STARTING_POSITION, Vec3(1), Mat4(1));
     engine.Run();
 }

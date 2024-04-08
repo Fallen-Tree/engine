@@ -18,7 +18,6 @@ Camera::Camera(Vec3 translation, Vec3 up,
     m_Transform  = Transform(translation, scale, rotation);
     this->m_WorldUp = up;
     this->m_Front = STARTING_POSITION;
-    this->m_MovementSpeed = DFL_SPEED;
     this->m_MouseSensitivity = SENSIVITY;
     this->m_Zoom = DFL_ZOOM;
     m_NearPlane = nPlane;
@@ -31,6 +30,11 @@ void Camera::SetTransform(Transform transform, Vec3 up) {
     this->m_WorldUp = up;
     this->m_Front = STARTING_POSITION;
     this->m_Zoom = DFL_ZOOM;
+    UpdateCameraVectors();
+}
+
+void Camera::SetPosition(Vec3 pos) {
+    m_Transform.SetTranslation(pos);
     UpdateCameraVectors();
 }
 
@@ -74,6 +78,10 @@ float Camera::GetZoom() {
     return this->m_Zoom;
 }
 
+void Camera::SetZoom(float zoom) {
+    this->m_Zoom = zoom;
+}
+
 Vec3 Camera::GetPosition() {
     return m_Transform.GetTranslation();
 }
@@ -90,45 +98,6 @@ Vec2 Camera::GetScreenSize() {
     return m_ScreenSize;
 }
 
-// processes input received from any keyboard-like input system. Accepts
-// input parameter in the form of camera defined ENUM (to abstract it from
-// windowing systems)
-void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime) {
-    float velocity = m_MovementSpeed * deltaTime;
-    Vec3 newTranslation = m_Transform.GetTranslation();
-    if (direction == FORWARD)  newTranslation += this->m_Front * velocity;
-    if (direction == BACKWARD) newTranslation -= this->m_Front * velocity;
-    if (direction == LEFT)     newTranslation -= this->m_Right * velocity;
-    if (direction == RIGHT)    newTranslation += this->m_Right * velocity;
-    m_Transform.SetTranslation(newTranslation);
-}
-
-// processes input received from a mouse input system. Expects the offset
-// value in both the x and y direction.
-void Camera::ProcessMouseMovement(float xoffset, float yoffset,
-        GLboolean constrainPitch) {
-    xoffset *= m_MouseSensitivity;
-    yoffset *= m_MouseSensitivity;
-
-    m_Transform.Rotate(0, xoffset, 0);
-    m_Transform.RotateGlobal(-yoffset, 0, 0);
-
-    Vec3 nextFront = NewFront(m_Transform.GetRotation());
-    if (constrainPitch && abs(glm::dot(nextFront, m_WorldUp)) > MAX_DOT) {
-        m_Transform.RotateGlobal(yoffset, 0, 0);
-    }
-
-    // update Front, Right and Up Vectors using the updated Euler angles
-    UpdateCameraVectors();
-}
-
-// processes input received from a mouse scroll-wheel event. Only requires
-// input on the vertical wheel-axis
-void Camera::ProcessMouseScroll(float yoffset) {
-    this->m_Zoom -= static_cast<float>(yoffset);
-    if (this->m_Zoom < MIN_FOV) this->m_Zoom = MIN_FOV;
-    if (this->m_Zoom > MAX_FOV) this->m_Zoom = MAX_FOV;
-}
 Vec3 NewFront(Mat4 rotation) {
     // normalize the vectors, because their length gets closer to 0 the more you look
     // up or down which results in slower movement.
@@ -145,25 +114,7 @@ void Camera::UpdateCameraVectors() {
 }
 
 void Camera::Update(Input * input, float deltaTime) {
-    float xOffset = input->OffsetX();
-    float yOffset = input->OffsetY();
-    if (xOffset != 0 || yOffset != 0) {
-        ProcessMouseMovement(xOffset, yOffset);
-    }
-
-    float scrollOffset = input->ScrollOfsset();
-    if (scrollOffset != 0)
-        ProcessMouseScroll(scrollOffset);
-
-    if (input->IsKeyDown(Key::W))
-        ProcessKeyboard(FORWARD, deltaTime);
-    if (input->IsKeyDown(Key::S))
-        ProcessKeyboard(BACKWARD, deltaTime);
-    if (input->IsKeyDown(Key::A))
-        ProcessKeyboard(LEFT, deltaTime);
-    if (input->IsKeyDown(Key::D))
-        ProcessKeyboard(RIGHT, deltaTime);
-
+    UpdateCameraVectors();
     // Set Sounds Listener position
     Vec3 pos = m_Transform.GetTranslation();
     BASS_3DVECTOR bpos = {pos.x, pos.y, pos.z};
