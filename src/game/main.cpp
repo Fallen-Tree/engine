@@ -5,7 +5,7 @@
 
 #include "classes.cpp"
 #include "pool.cpp"
-#include "fp_controller.cpp"
+#include "player_controller.cpp"
 
 // Made this global for easier usage inside functions
 Engine *engine;
@@ -124,9 +124,8 @@ void buildRoom() {
     Model *plant2 = Model::loadFromFile("Orchid/Orchid.obj");
     newModel(new Transform(Vec3(14, -2, 0), Vec3(0.3), Mat4(1.0)), plant2);
 
-    Model *keg = Model::loadFromFile("Prop_Barrel_1.obj");
-    newModel(new Transform(Vec3(14, -2, 4), Vec3(1), Mat4(1.0)), keg);
-
+    //Model *dog = Model::loadFromFile("ShibaInu.fbx");
+    //newModel(new Transform(Vec3(14, -2, 4), Vec3(1), Mat4(1.0)), dog);
 }
 
 void poolTable() {
@@ -174,6 +173,10 @@ int main() {
     // addCat();
     createUI();
     createLights();
+
+    Object player = engine->NewObject();
+    player.AddBehaviour<PlayerController>(engine->camera);
+    player.AddTransform(Vec3(0), Vec3(1), Mat4(1));
 
     engine->Run();
 }
