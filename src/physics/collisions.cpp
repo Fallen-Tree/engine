@@ -723,7 +723,7 @@ Vec3 CollisionNormal(Mesh*, Mesh*, Transform, Transform, Vec3, float) {
     return Vec3(0);
 }
 
-// TODO: make this operation with OBB
+// TODO(solloballon): make this operation with OBB
 Vec3 CollisionNormal(OBB, OBB,       Transform, Transform, Vec3, float) {
     Logger::Warn(
             "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
