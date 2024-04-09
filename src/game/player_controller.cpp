@@ -42,7 +42,7 @@ class PlayerController : public Behaviour {
         }
 
         Vec3 front = m_Camera->GetFront();
-        if (m_MovementMode == Walk) {
+        if (m_MovementMode != Fly) {
             front.y = 0;
         }
         front = glm::normalize(front);
@@ -58,6 +58,8 @@ class PlayerController : public Behaviour {
             direction -= right;
         if (s_Input->IsKeyDown(Key::D))
             direction += right;
+        if (direction != Vec3(0))
+            direction = glm::normalize(direction);
         float moveSpeed;
         if (m_MovementMode == Walk)
             moveSpeed = m_WalkSpeed;
@@ -71,7 +73,6 @@ class PlayerController : public Behaviour {
             cameraOffset += Vec3(0, -0.1, 0) * (glm::length(velocity) * camShakeDir) * deltaTime;
             if (glm::length(cameraOffset) > 0.08) camShakeDir = - camShakeDir;
             cameraOffset *= pow(0.05, deltaTime);
-            Logger::Info("%f", cameraOffset.y);
         } else {
             cameraOffset = Vec3(0);
         }

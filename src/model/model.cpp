@@ -92,6 +92,9 @@ RenderMesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
             }
         }
         mat->Get(AI_MATKEY_SHININESS, shininess);
+        if (shininess == 0.0f) {
+            shininess = 4.0f;
+        }
     }
     RenderMesh newMesh = RenderMesh(points, indices, Material{shininess, t, diffuseColor, specularColor});
     return newMesh;

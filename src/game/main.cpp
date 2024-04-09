@@ -44,22 +44,32 @@ void createUI() {
     // engine->NewObject().AddImage("hp_bar.png", 0.015f, 0.01f, 0.4f);
 }
 
+void AddLantern(Vec3 pos) {
+    Model *lantern = Model::loadFromFile("lantern/model.obj");
+    Transform * tr = new Transform(pos, Vec3(1.0f), Mat4(1.0f));
+    newModel(tr, lantern);
+    engine->NewObject().AddPointLight(
+        Vec3(0.3f, 0.3f, 0.3f), Vec3(1.0f, 1.0f, 1.0f),
+        Vec3(1.0f, 1.0f, 1.0f), pos,
+        1.f, 0.05f, 0.01f);
+}
+
 void createLights() {
     engine->NewObject().AddPointLight(
-        Vec3(0.2f, 0.2f, 0.2f), Vec3(1.0f, 1.0f, 1.0f),
-        Vec3(0.2f, 0.2f, 0.2f), Vec3(0.0, 0.0, 0.0),
-        1.f, 0.0f, 0.0f);
+        Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
+        Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0, 10.0, 0.0),
+        1.f, 0.0f, 0.01f);
+
+    engine->NewObject().AddPointLight(
+        Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
+        Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0f, 10.0f, -20.0f),
+        1.f, 0.0f, 0.01f);
+
+    engine->NewObject().AddPointLight(
+        Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
+        Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0f,  10.0f, 20.0f),
+        1.f, 0.0f, 0.01f);
     /*
-    engine->NewObject().AddPointLight(
-        Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
-        Vec3(1.0f, 1.0f, 1.0f), Vec3(2.3f, -3.3f, -4.0f),
-        1.f, 0.09f, 0.032f);
-
-    engine->NewObject().AddPointLight(
-        Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
-        Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0f,  0.0f, -3.0f),
-        1.f, 0.09f, 0.032f);
-
     engine->NewObject().AddDirLight(
         Vec3(0.05f, 0.05f, 0.05f), Vec3(0.4f, 0.4f, 0.4f),
         Vec3(0.5f, 0.5f, 0.5f),  Vec3(-0.2f, -1.0f, -0.3f));
@@ -96,40 +106,99 @@ void addCat() {
 }
 
 void buildRoom() {
-    /*Model *chair = Model::loadFromFile("Chair.obj");
-    // chair->setMaterial({ 4.f, Texture("Chair_BaseColor.png") });
-    Transform *chTransform = new Transform(Vec3(20, -6, 5), Vec3(0.4), Mat4(1.0));
-    Object chairObj = newModel(chTransform, chair);
+    float floor_y = -6.0f;
 
-    Model *table = Model::loadFromFile("Table Round Small.glb");
-    Transform *tableTransform = new Transform(Vec3(20, -6, 10), Vec3(1), Mat4(1.0));
-    Object tableObj = newModel(tableTransform, table);
+    float wall_scale = 4.0f;
+    int walls_cnt = 2;
+    Vec3 wall_y = Vec3(0, floor_y, 0);
+    Model *w2 = Model::loadFromFile("wall.fbx");
+    for (int i = -walls_cnt; i <= walls_cnt; ++i) {
+        newModel(
+            new Transform(Vec3(i, 0, -walls_cnt) * 4.0f * wall_scale + wall_y,
+                Vec3(wall_scale), Mat4(1.0)), w2);
+        newModel(
+            new Transform(Vec3(i, 0, walls_cnt) * 4.0f * wall_scale + wall_y,
+                Vec3(wall_scale), Mat4(1.0)), w2)
+            .GetTransform()->Rotate(0, glm::radians(180.0f), 0);
+        newModel(
+            new Transform(Vec3(-walls_cnt, 0, i) * 4.0f * wall_scale + wall_y,
+                Vec3(wall_scale), Mat4(1.0)), w2)
+            .GetTransform()->Rotate(0, glm::radians(90.0f), 0);
+        newModel(
+            new Transform(Vec3(walls_cnt, 0, i) * 4.0f * wall_scale + wall_y,
+                Vec3(wall_scale), Mat4(1.0)), w2)
+            .GetTransform()->Rotate(0, glm::radians(-90.0f), 0);
+    }
 
-    Model *bar = Model::loadFromFile("bar/Bar.obj");
-    // bar->setMaterial({4.f, Texture("Bar_A_BaseColor.png")});
-    Transform *barTransform = new Transform(Vec3(5, -8, -1), Vec3(2), Mat4(1.0));
-    Object barObj = newModel(barTransform, bar);
-*/
+    Model *floor = Model::loadFromFile("Floor_Modular.fbx");
+    int floor_cnt = 4;
 
-    Model *wall = Model::loadFromFile("huge_cube.obj");
-    wall->setMaterial({4.f, Texture("stone_wall.png")});
-    newModel(new Transform(Vec3(0, 0, 0), Vec3(20), Mat4(1.0)), wall);
+    float floor_scale = 4.5f;
+    for (int i = -floor_cnt; i <= floor_cnt; ++i) {
+        for (int j = -floor_cnt; j <= floor_cnt; ++j) {
+        Vec3 floor_color;
+        if ((i + j) & 1) {
+            floor_color = Vec3(0.65f, 0.5f, 0.5f);
+        } else {
+            floor_color = Vec3(0.5f, 0.5f, 0.65f);
+        }
+        floor->meshes[0].material.diffuseColor = floor_color;
+        newModel(
+            new Transform(Vec3(i, 0, j) * 2.0f * floor_scale + Vec3(0, floor_y - floor_scale * 0.125f, 0),
+                Vec3(floor_scale), Mat4(1.0)), floor)
+            .GetTransform()->Rotate(glm::radians(-90.f), 0, 0);
+        }
+    }
 
+    Model *ceil = Model::loadFromFile("floor/model.obj");
+
+    int ceil_cnt = 2;
+
+    float ceil_scale = 5.0f;
+    float ceil_y = floor_y + 20.0f;
+    for (int i = -ceil_cnt; i <= ceil_cnt; ++i) {
+        for (int j = -ceil_cnt; j <= ceil_cnt; ++j) {
+        newModel(new Transform(Vec3(i, 0, j) * 3.5f * ceil_scale + Vec3(0, ceil_y + (i & 1) * 0.01f, 0),
+                Vec3(ceil_scale), Mat4(1.0)), ceil)
+            .GetTransform()->Rotate(glm::radians(180.f), 0, 0);
+        }
+    }
+
+    for (int i = -1; i <= 1; ++i) {
+        for (int j = -1; j <= 1; ++j) {
+            AddLantern(Vec3(i * 25, 12, j * 25));
+        }
+    }
+
+    float cc_scale = 1.5f;
     Model *cc = Model::loadFromFile("CompanionCube/Portal_Companion_Cube.obj");
-    newModel(new Transform(Vec3(8, 0, 0), Vec3(1), Mat4(1.0)), cc);
+    newModel(new Transform(Vec3(8, floor_y + cc_scale, 0), Vec3(cc_scale), Mat4(1.0)), cc);
 
     Model *plant1 = Model::loadFromFile("HousePlant/Houseplant.obj");
-    newModel(new Transform(Vec3(10, -2, 0), Vec3(1), Mat4(1.0)), plant1);
+    newModel(new Transform(Vec3(10, floor_y, 0), Vec3(1), Mat4(1.0)), plant1);
 
     Model *plant2 = Model::loadFromFile("Orchid/Orchid.obj");
-    newModel(new Transform(Vec3(14, -2, 0), Vec3(0.3), Mat4(1.0)), plant2);
+    newModel(new Transform(Vec3(14, floor_y, 0), Vec3(0.3), Mat4(1.0)), plant2);
 
-    //Model *dog = Model::loadFromFile("ShibaInu.fbx");
-    //newModel(new Transform(Vec3(14, -2, 4), Vec3(1), Mat4(1.0)), dog);
+    Model *dog = Model::loadFromFile("ShibaInu.fbx");
+    Object dogObj = newModel(new Transform(Vec3(14, floor_y, 4), Vec3(1), Mat4(1.0)), dog);
+    dogObj.GetTransform()->Rotate(glm::radians(-90.0f), 0, 0);
+
+    Model *chair = Model::loadFromFile("Chair.obj");
+    Transform *chTransform = new Transform(Vec3(20, floor_y, 5), Vec3(0.4), Mat4(1.0));
+    Object chairObj = newModel(chTransform, chair);
+
+    float table_y = 4.2f;
+
+    Model *table = Model::loadFromFile("Table_Small/Table_Small.obj");
+    newModel(new Transform(Vec3(20, floor_y, 14), Vec3(0.05), Mat4(1.0)), table);
+
+    Model *boombox = Model::loadFromFile("record player.fbx");
+    newModel(new Transform(Vec3(20, floor_y + table_y, 14), Vec3(1.0, 1.0, 0.25), Mat4(1.0)), boombox)
+        .GetTransform()->Rotate(glm::radians(-90.0f), 0, 0);
 }
 
 void poolTable() {
-
     float balls_y = 2;
     std::vector<Vec3> coordinates {
     /*    Vec3(-2, balls_y, -0.2f),
@@ -172,11 +241,11 @@ int main() {
     poolTable();
     // addCat();
     createUI();
-    createLights();
+    // createLights();
 
     Object player = engine->NewObject();
     player.AddBehaviour<PlayerController>(engine->camera);
-    player.AddTransform(Vec3(0), Vec3(1), Mat4(1));
+    player.AddTransform(Vec3(0, 1.5f, 0), Vec3(1), Mat4(1));
 
     engine->Run();
 }
