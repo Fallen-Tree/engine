@@ -131,14 +131,12 @@ int main() {
 
     ShaderProgram *shaderProgram = new ShaderProgram(vShader, fShader);
 
-    // init a model
-    Model * model = Model::loadFromFile(catSource);
+    // Shiba inu (ETO FIASKO BRATAN)
+    Model *model = Model::loadFromFile("ShibaInu.fbx");
     model->shader = shaderProgram;
-    Material cat_material = {
-        4.f,
-        Texture("/Cat_diffuse.png", "/Cat_specular.png")
-    };
-    model->setMaterial(cat_material);
+    auto dog = engine.NewObject();
+    dog.AddModel(*model);
+    dog.AddTransform(Transform(Vec3(2, -5, 0.0), Vec3(1.f), glm::radians(-90.f), Vec3(1.0f, 0.f, 0.f)));
 
     Material material = {
         4.f,
@@ -210,7 +208,7 @@ int main() {
         obj.AddBehaviour<FpsText>();
     }
 
-    engine.NewObject().AddSound(SOUND_FLAT, "georgian_disco.mp3").SetVolume(0.05f).Start();
+    engine.NewObject().AddSound(SoundType::SOUND_FLAT, "georgian_disco.mp3").SetVolume(0.05f).Start();
 
     engine.NewObject().AddImage("hp.png", 0.03f, 0.15f, 0.4f);
     engine.NewObject().AddImage("hp_bar.png", 0.015f, 0.01f, 0.4f);

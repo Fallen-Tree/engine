@@ -445,6 +445,22 @@ void Engine::updateObjects(float deltaTime) {
         m_RigidBodies.GetData(handle).Update(&m_Transforms.GetData(handle), deltaTime);
     }
 
+    // Update sound sources
+    for (int i = 0; i < m_Sounds.GetSize(); i++) {
+        ObjectHandle id = m_Sounds.GetFromInternal(i);
+        auto sound = m_Sounds.GetData(id);
+        if (sound.GetType() != SoundType::SOUND_3D)
+            continue;
+
+        if (!m_Transforms.HasData(id)) {
+            Logger::Warn("Be careful, 3D sound obj with id %d doesn't have transform", id);
+            continue;
+        }
+
+        auto transform = GetGlobalTransform(id);
+        sound.SetPosition(transform.GetTranslation());
+    }
+
     for (auto behaviour : m_Behaviours) {
         behaviour->Update(deltaTime);
     }
@@ -548,8 +564,15 @@ void Engine::Render(int scr_width, int scr_height) {
             shader->SetInt("lenArrSpotL", m_SpotLights.GetSize());
             // send inf about texture
             mesh.material.texture.bind();
-            shader->SetInt("material.duffuse", 0);
-            shader->SetInt("material.specular", 1);
+            if (mesh.material.texture.countComponents() == 0) {
+                shader->SetInt("useTextures", 0);
+                shader->SetVec3("material.diffuseColor", mesh.material.diffuseColor);
+                shader->SetVec3("material.specularColor", mesh.material.specularColor);
+            } else {
+                shader->SetInt("useTextures", 1);
+                shader->SetInt("material.duffuse", 0);
+                shader->SetInt("material.specular", 1);
+            }
             // Note: currently we set the projection matrix each frame,
             // but since the projection matrix rarely changes it's
             // often best practice to set it outside the main loop only once.
@@ -566,15 +589,6 @@ void Engine::Render(int scr_width, int scr_height) {
 
     for (auto &text : m_Texts) {
         text.RenderText();
-    }
-
-    for (int i = 0; i < m_Sounds.GetSize(); i++) {
-        ObjectHandle id = m_Sounds.GetFromInternal(i);
-        if (!m_Transforms.HasData(id)) continue;
-
-        auto transform = GetGlobalTransform(id);
-        auto sound = m_Sounds.GetData(id);
-        sound.SetPosition(transform.GetTranslation());
     }
 
     glfwSwapBuffers(m_Window);
