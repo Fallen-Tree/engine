@@ -607,8 +607,7 @@ std::optional<float> CollisionPrimitive(Ray r, OBB o) {
 
     float t[6] = {0, 0, 0, 0, 0, 0};
     for (int i = 0; i < 3; i++) {
-        // It can work uncorrect
-        if (std::fabs(f[i] - 0) < epsilon) {
+        if (std::fabs(f[i]) < epsilon) {
             if (-e[i] - o.axis[0][i] > 0 || -e[i] + o.axis[0][i] < 0) {
                 return {};
             }
