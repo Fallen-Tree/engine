@@ -24,10 +24,9 @@ AABB Collider::GetDefaultAABB(Model* model) {
 
     for (auto &m : model->meshes) {
         int len = m.getLenArrPoints();
-        Vertex* cur = m.getPoints();
-        for (int i = 0; i < len; i ++) {
-            min = glm::min(min, cur[i].Position);
-            max = glm::max(max, cur[i].Position);
+        for (auto &vertex : m.getVecPoints()) {
+            min = glm::min(min, vertex.Position);
+            max = glm::max(max, vertex.Position);
         }
     }
     return AABB{min, max};

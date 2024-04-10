@@ -35,7 +35,7 @@ class MovingRotating : public Behaviour {
     void Update(float dt) override {
         if (self.CollideAll().size() == 0) {
             self.GetTransform()->Translate(Vec3(-1, -1, -1) * dt);
-            self.GetTransform()->Rotate(0.01, Vec3(1));
+            self.GetTransform()->Rotate(0.01f, Vec3(1.f));
         }
     }
 };
@@ -45,8 +45,8 @@ class MovingRotating2 : public Behaviour {
     Vec3 speed;
     void Update(float dt) override {
         if (self.CollideAll().size() == 0) {
-            self.GetTransform()->Translate(Vec3(2, 0, 0) * dt);
-            self.GetTransform()->Rotate(0.05, Vec3(1, 0, 1));
+            self.GetTransform()->Translate(Vec3(2.f, 0.f, 0.f) * dt);
+            self.GetTransform()->Rotate(0.05f, Vec3(1.f, 0.f, 1.f));
         }
     }
 };
@@ -138,9 +138,10 @@ int main() {
 
     // Shiba inu (ETO FIASKO BRATAN)
     Model *model = Model::loadFromFile("ShibaInu.fbx");
-    model->shader = shaderProgram;
+    model->shader = standartShaderProgram;
     auto dog = engine.NewObject();
     dog.AddModel(*model);
+    // dog.AddSkeletalAnimationsManager("ShibaInu.fbx", model).PlayImmediately(14, 1);
     dog.AddTransform(Transform(Vec3(2, -5, 0.0), Vec3(1.f), glm::radians(-90.f), Vec3(1.0f, 0.f, 0.f)));
 
     Material material = {
@@ -158,11 +159,6 @@ int main() {
         obj.AddCollider(primitive);
         return obj;
     };
-
-    auto cat = engine.NewObject();
-    cat.AddModel(*model);
-    auto &t = cat.AddTransform(Vec3(0.f, -5.f, -8.f), Vec3(0.1f), Mat4(1.0));
-    cat.AddCollider(&model->meshes[0]);
 
     auto obb = setUpObj(
         Transform(Vec3(0, 0, 2.0), Vec3(1), 0.0f, Vec3(1)),

@@ -21,9 +21,6 @@ struct BoneInfo {
 
 class Model {
  public:
-    void processNode(aiNode *node, const aiScene *scene);
-    RenderMesh processMesh(aiMesh *mesh, const aiScene *scene);
-
     std::vector<RenderMesh> meshes;
     ShaderProgram* shader = nullptr;
 
@@ -40,6 +37,9 @@ class Model {
     int& GetBoneCount() { return m_BoneCounter; }
 
  private:
+    void processNode(aiNode *node, const aiScene *scene);
+    RenderMesh processMesh(aiMesh *mesh, const aiScene *scene);
+
     std::map<std::string, BoneInfo> m_BoneInfoMap;
     int m_BoneCounter = 0;
 

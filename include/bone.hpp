@@ -145,11 +145,7 @@ class Bone {
  private:
     /* Gets normalized value for Lerp & Slerp*/
     float GetScaleFactor(float lastTimeStamp, float nextTimeStamp, float animationTime) {
-        float scaleFactor = 0.0f;
-        float midWayLength = animationTime - lastTimeStamp;
-        float framesDiff = nextTimeStamp - lastTimeStamp;
-        scaleFactor = midWayLength / framesDiff;
-        return scaleFactor;
+        return (animationTime - lastTimeStamp) / (nextTimeStamp - lastTimeStamp);
     }
 
     /*figures out which position keys to interpolate b/w and performs the interpolation 

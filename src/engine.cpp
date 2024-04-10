@@ -511,7 +511,8 @@ void Engine::Render(int scr_width, int scr_height) {
 
         ShaderProgram* shader = model.shader;
         if (shader == nullptr) {
-            Logger::Error("No shader connected with Mesh!");
+            Logger::Warn("No shader connected with Model! Model will not be rendered.");
+            continue;
         }
         shader->Use();
 
@@ -577,8 +578,6 @@ void Engine::Render(int scr_width, int scr_height) {
             shader->SetFloat(str, m_SpotLights.entries[i].quadraticDistCoeff);
         }
         shader->SetInt("lenArrSpotL", m_SpotLights.GetSize());
-        shader->SetInt("material.duffuse", 0);
-        shader->SetInt("material.specular", 1);
         shader->SetMat4("projection", projection);
 
 
@@ -602,10 +601,6 @@ void Engine::Render(int scr_width, int scr_height) {
                 shader->SetInt("material.duffuse", 0);
                 shader->SetInt("material.specular", 1);
             }
-            // Note: currently we set the projection matrix each frame,
-            // but since the projection matrix rarely changes it's
-            // often best practice to set it outside the main loop only once.
-            shader->SetMat4("projection", projection);
 
             glBindVertexArray(mesh.VAO);
             glDrawElements(GL_TRIANGLES, mesh.getLenIndices(), GL_UNSIGNED_INT, 0);

@@ -91,7 +91,7 @@ RenderMesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
     }
 
     ExtractBoneWeightForVertices(vertices, mesh, scene);
-    return RenderMesh(vertices, indices, Material{shininess, t});
+    return RenderMesh(vertices, indices, Material{shininess, t, diffuseColor, specularColor});
 }
 
 void Model::setMaterial(Material material) {

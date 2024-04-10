@@ -43,11 +43,11 @@ std::vector<unsigned int>& Mesh::getVecIndices() {
 }
 
 int Mesh::getLenIndices() {
-    return static_cast<unsigned int>(indices.size());
+    return static_cast<int>(indices.size());
 }
 
 int Mesh::getLenArrPoints() {
-    return static_cast<unsigned int>(points.size());
+    return static_cast<int>(points.size());
 }
 
 
