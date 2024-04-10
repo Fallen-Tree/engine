@@ -9,8 +9,7 @@
 
 #include "bone.hpp"
 #include "skeletal_animation_data.hpp"
-
-#define MAX_BONES 100
+#include "engine_config.hpp"
 
 class SkeletalAnimationsManager {
  public:

@@ -107,20 +107,20 @@ int main() {
        wolfObj.AddBehaviour<WolfBehaviour>();
     }
 
-    {
-        /* XBot */
-        Model *pigeonModel = Model::loadFromFile("XBot/XBot.dae", skeletalShaderProgram);
+    // {
+    //     /* XBot */
+    //     Model *pigeonModel = Model::loadFromFile("XBot/XBot.dae", skeletalShaderProgram);
 
-        auto pigeonAnimation1 = new SkeletalAnimationData("XBot/Praying.dae", 0, pigeonModel);
+    //     auto pigeonAnimation1 = new SkeletalAnimationData("XBot/Praying.dae", 0, pigeonModel);
 
-        auto pigeonObj = engine.NewObject();
-        pigeonObj.AddTransform(Vec3(-6.f, -10.f, -10.f), Vec3(5.f), Mat4(1.0));
-        pigeonObj.AddModel(*pigeonModel);
-        auto& animManager = pigeonObj.AddSkeletalAnimationsManager(pigeonAnimation1);
-        animManager.AddAnimation("XBot/Hip Hop Dancing.dae", pigeonModel);
-        Logger::Info("%s", animManager.GetAnimationsInfo().c_str());
-        animManager.PlayImmediately(1, 1);
-    }
+    //     auto pigeonObj = engine.NewObject();
+    //     pigeonObj.AddTransform(Vec3(-6.f, -10.f, -10.f), Vec3(5.f), Mat4(1.0));
+    //     pigeonObj.AddModel(*pigeonModel);
+    //     auto& animManager = pigeonObj.AddSkeletalAnimationsManager(pigeonAnimation1);
+    //     animManager.AddAnimation("XBot/Hip Hop Dancing.dae", pigeonModel);
+    //     Logger::Info("%s", animManager.GetAnimationsInfo().c_str());
+    //     animManager.PlayImmediately(1, 1);
+    // }
 
 
     {

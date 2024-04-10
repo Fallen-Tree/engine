@@ -125,6 +125,7 @@ void Model::ExtractBoneWeightForVertices(std::vector<Vertex> &vertices, aiMesh* 
         if (m_BoneInfoMap.find(boneName) == m_BoneInfoMap.end()) {
             BoneInfo newBoneInfo;
             newBoneInfo.id = m_BoneCounter;
+            assert(m_BoneCounter < MAX_BONES);
             newBoneInfo.offset = AssimpGLMHelpers::ConvertMatrixToGLMFormat(
                 mesh->mBones[boneIndex]->mOffsetMatrix);
             m_BoneInfoMap[boneName] = newBoneInfo;
@@ -155,6 +156,7 @@ void Model::SetVertexBoneDataToDefault(Vertex *vertex) {
 }
 
 void Model::SetVertexBoneData(Vertex *vertex, int boneID, float weight) {
+    if (weight < 0.0000001f) return;
     for (int i = 0; i < MAX_BONE_INFLUENCE; ++i) {
         if (vertex->m_BoneIDs[i] < 0) {
             vertex->m_Weights[i] = weight;
