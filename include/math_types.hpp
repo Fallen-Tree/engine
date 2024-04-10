@@ -1,6 +1,11 @@
 #pragma once
 #include <glm/glm.hpp>
 
+template <typename T>
+bool isCloseToZero(T x) {
+    return std::abs(x) < std::numeric_limits<T>::epsilon();
+}
+
 typedef glm::fvec2 Vec2;
 typedef glm::ivec2 Vec2Int;
 typedef glm::fvec3 Vec3;

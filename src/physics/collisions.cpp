@@ -260,7 +260,25 @@ void CollidePrimitive(OBB a, OBB b, CollisionManifold *manifold) {
 void CollidePrimitive(Sphere a, OBB b, CollisionManifold *manifold) {
     Vec3 p = b.ClosestPoint(a.center);
     Vec3 v = p - a.center;
-    manifold->isCollide = glm::dot(v, v) <= a.radius * a.radius;
+    float distanceSq = glm::length(v);
+    manifold->isCollide = distanceSq <= a.radius * a.radius;
+    if (!manifold->isCollide)
+        return;
+    
+    if (isCloseToZero(distanceSq)) {
+        float mSq = glm::length(p - b.center);
+        if (isCloseToZero(mSq)) // here manifold can be strange
+            return;
+        // Closest point is at the center of the sphere
+        manifold->normal = Norm(p - b.center);
+    } else {
+        manifold->normal = Norm(a.center - p);
+    }
+
+    Vec3 outsidePoint = a.center - manifold->normal * a.radius;
+    float distance = glm::length(p - outsidePoint);
+    manifold->collisionPoint = p + (outsidePoint - p) * 0.5f;
+    manifold->penetrationDistance = distance * 0.5f;
 }
 
 void CollidePrimitive(OBB a, Sphere b, CollisionManifold *manifold) {
@@ -374,6 +392,16 @@ void CollidePrimitive(AABB aabb, Triangle tri, CollisionManifold *manifold) {
 void CollidePrimitive(Sphere s1, Sphere s2, CollisionManifold *manifold) {
     manifold->isCollide =  glm::length2(s1.center - s2.center)
         <= (s1.radius + s2.radius) * (s1.radius + s2.radius);
+    if (!manifold->isCollide)
+        return;
+    float r = s1.radius + s2.radius;
+    Vec3 d = s1.center - s2.center;
+    manifold->normal = Norm(d);
+    manifold->penetrationDistance = fabsf(glm::length(d) - r) * 0.5f;
+    // dtp - Distance to intersection point
+    float dtp = s1.radius - manifold->penetrationDistance;
+    Vec3 contact = s1.center + d * dtp;
+    manifold->collisionPoint = contact;
 }
 
 void CollidePrimitive(AABB aabb, Sphere s, CollisionManifold *manifold) {
