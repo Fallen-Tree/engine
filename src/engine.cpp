@@ -68,9 +68,9 @@ Engine::Engine() {
     m_SpotLights = ComponentArray<SpotLight>();
     m_ObjectCount = 0;
 
-    m_CollideCache = std::vector<std::vector<bool>>(MAX_OBJECT_COUNT);
+    m_CollideCache = std::vector<std::vector<CollisionManifold>>(MAX_OBJECT_COUNT);
     for (auto i = 0; i < MAX_OBJECT_COUNT; i++)
-        m_CollideCache[i] = std::vector<bool>(MAX_OBJECT_COUNT);
+        m_CollideCache[i] = std::vector<CollisionManifold>(MAX_OBJECT_COUNT);
 
     bool bassInit = BASS_Init(-1, 44100, 0, NULL, NULL);
     if (!bassInit) {
@@ -305,7 +305,7 @@ bool Engine::Collide(ObjectHandle a, ObjectHandle b) {
         Logger::Warn("Trying to get collision data on objects with no colliders");
         return false;
     }
-    return m_CollideCache[a][b];
+    return m_CollideCache[a][b].isCollide;
 }
 
 std::vector<Object> Engine::CollideAll(ObjectHandle a) {

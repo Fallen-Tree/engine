@@ -21,6 +21,7 @@
 #include "rigid_body.hpp"
 #include "pretty_print.hpp"
 #include "images.hpp"
+#include "manifold.hpp"
 
 extern Input *s_Input;
 
@@ -112,5 +113,5 @@ class Engine {
     // Collision cache
     // TODO(theblek): Make this a binary search tree
     // Or just an ordered array and do binary search. Should be fast enough.
-    std::vector<std::vector<bool>> m_CollideCache;
+    std::vector<std::vector<CollisionManifold>> m_CollideCache;
 };

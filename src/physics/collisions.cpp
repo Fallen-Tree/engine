@@ -8,8 +8,8 @@
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-bool CollidePrimitive(OBB obb, AABB aabb) {
-    return CollidePrimitive(aabb, obb);
+void CollidePrimitive(OBB obb, AABB aabb, CollisionManifold* manifold) {
+    CollidePrimitive(aabb, obb, manifold);
 }
 
 bool OverlapOnAxis(AABB aabb, OBB obb, Vec3 axis) {
@@ -18,7 +18,7 @@ bool OverlapOnAxis(AABB aabb, OBB obb, Vec3 axis) {
     return ((b.min <= a.max) && (a.min <= b.max));
 }
 
-bool CollidePrimitive(AABB aabb, OBB obb) {
+void CollidePrimitive(AABB aabb, OBB obb, CollisionManifold* manifold) {
     Vec3 test[15] = {
         Vec3(1, 0, 0),
         // AABB axis 1
@@ -40,11 +40,12 @@ bool CollidePrimitive(AABB aabb, OBB obb) {
 
     for (int i = 0; i < 15; i++) {
         if (!OverlapOnAxis(aabb, obb, test[i])) {
-            return false;  // Seperating axis found
+            return;  // Seperating axis found
         }
     }
 
-    return true;  // Seperating axis not found
+    manifold->isCollide = true;
+    return;  // Seperating axis not found
 }
 
 bool OverlapOnAxis(OBB obb, Triangle triangle, Vec3 axis) {
@@ -53,7 +54,7 @@ bool OverlapOnAxis(OBB obb, Triangle triangle, Vec3 axis) {
     return ((b.min <= a.max) && (a.min <= b.max));
 }
 
-bool CollidePrimitive(Triangle triangle, OBB obb) {
+void CollidePrimitive(Triangle triangle, OBB obb, CollisionManifold *manifold) {
     // Compute the edge vectors of the triangle (ABC)
     Vec3 f0 = triangle.b - triangle.a;
     Vec3 f1 = triangle.c - triangle.b;
@@ -77,15 +78,16 @@ bool CollidePrimitive(Triangle triangle, OBB obb) {
 
     for (int i = 0; i < 13; i++) {
         if (!OverlapOnAxis(obb, triangle, test[i])) {
-            return false;  // Separating axis found
+            return;  // Separating axis found
         }
     }
 
-    return true;  // Separating axis not found
+    manifold->isCollide = true;
+    return;  // Separating axis not found
 }
 
-bool CollidePrimitive(OBB obb, Triangle triangle) {
-    return CollidePrimitive(triangle, obb);
+void CollidePrimitive(OBB obb, Triangle triangle, CollisionManifold *manifold) {
+    CollidePrimitive(triangle, obb, manifold);
 }
 
 Mat3 RotationMatrix(OBB a, OBB b) {
@@ -98,8 +100,10 @@ Mat3 RotationMatrix(OBB a, OBB b) {
     return res;
 }
 
+// TODO(solloballon): do this shit
 bool CollidePrimitive(Ray, OBB) {
-    return true;
+    assert(false);
+    return false;
 }
 
 Mat3 AbsRotationMatrix(Mat3 rotationMat, float epsilon) {
@@ -112,7 +116,7 @@ Mat3 AbsRotationMatrix(Mat3 rotationMat, float epsilon) {
     return res;
 }
 
-bool CollidePrimitive(OBB a, OBB b) {
+void CollidePrimitive(OBB a, OBB b, CollisionManifold *manifold) {
     const float EPSILON = 0;
     Mat3 rotationMat = RotationMatrix(a, b);
     Mat3 absRotationMat = AbsRotationMatrix(rotationMat, EPSILON);
@@ -134,7 +138,7 @@ bool CollidePrimitive(OBB a, OBB b) {
             + b.halfWidth[1] * absRotationMat[i][1]
             + b.halfWidth[2] * absRotationMat[i][2];
         if (std::abs(translation[i]) > ra + rb)
-            return false;
+            return;
     }
 
     // Test axes L = B0, L = B1, L = B2
@@ -148,7 +152,7 @@ bool CollidePrimitive(OBB a, OBB b) {
                     + translation[1] * rotationMat[1][i]
                     + translation[2] * rotationMat[2][i])
                 > ra + rb)
-            return false;
+            return;
     }
 
     // Test axis L = A0 x B0
@@ -160,7 +164,7 @@ bool CollidePrimitive(OBB a, OBB b) {
                 translation[2] * rotationMat[1][0]
                 - translation[1] * rotationMat[2][0])
             > ra + rb)
-        return false;
+        return;
 
     // Test axis L = A0 x B1
     ra = a.halfWidth[1] * absRotationMat[2][1]
@@ -171,7 +175,7 @@ bool CollidePrimitive(OBB a, OBB b) {
                 translation[2] * rotationMat[1][1]
                 - translation[1] * rotationMat[2][1])
             > ra + rb)
-        return false;
+        return;
 
     // Test axis L = A0 x B2
     ra = a.halfWidth[1] * absRotationMat[2][2]
@@ -182,7 +186,7 @@ bool CollidePrimitive(OBB a, OBB b) {
                 translation[2] * rotationMat[1][2]
                 - translation[1] * rotationMat[2][2])
             > ra + rb)
-        return 0;
+        return;    
 
     // Test axis L = A1 x B0
     ra = a.halfWidth[0] * absRotationMat[2][0]
@@ -193,7 +197,7 @@ bool CollidePrimitive(OBB a, OBB b) {
                 translation[0] * rotationMat[2][0]
                 - translation[2] * rotationMat[0][0])
             > ra + rb)
-        return false;
+        return;
 
     // Test axis L = A1 x B1
     ra = a.halfWidth[0] * absRotationMat[2][1]
@@ -204,7 +208,7 @@ bool CollidePrimitive(OBB a, OBB b) {
                 translation[0] * rotationMat[2][1]
                 - translation[2] * rotationMat[0][1])
             > ra + rb)
-        return false;
+        return;
 
     // Test axis L = A1 x B2
     ra = a.halfWidth[0] * absRotationMat[2][2]
@@ -215,7 +219,7 @@ bool CollidePrimitive(OBB a, OBB b) {
                 translation[0] * rotationMat[2][2]
                 - translation[2] * rotationMat[0][2])
             > ra + rb)
-        return false;
+        return;
 
     // Test axis L = A2 x B0
     ra = a.halfWidth[0] * absRotationMat[1][0]
@@ -225,7 +229,7 @@ bool CollidePrimitive(OBB a, OBB b) {
     if (std::abs(translation[1] * rotationMat[0][0]
                 - translation[0] * rotationMat[1][0])
             > ra + rb)
-        return false;
+        return;
 
     // Test axis L = A2 x B1
     ra = a.halfWidth[0] * absRotationMat[1][1]
@@ -236,7 +240,7 @@ bool CollidePrimitive(OBB a, OBB b) {
                 translation[1] * rotationMat[0][1]
                 - translation[0] * rotationMat[1][1])
             > ra + rb)
-        return false;
+        return;
 
     // Test axis L = A2 x B2
     ra = a.halfWidth[0] * absRotationMat[1][2]
@@ -247,37 +251,38 @@ bool CollidePrimitive(OBB a, OBB b) {
                 translation[1] * rotationMat[0][2]
                 - translation[0] * rotationMat[1][2])
             > ra + rb)
-        return false;
+        return;
 
-    return true;
+    manifold->isCollide = true;
+    return;
 }
 
-bool CollidePrimitive(Sphere a, OBB b) {
+void CollidePrimitive(Sphere a, OBB b, CollisionManifold *manifold) {
     Vec3 p = b.ClosestPoint(a.center);
     Vec3 v = p - a.center;
-    return glm::dot(v, v) <= a.radius * a.radius;
+    manifold->isCollide = glm::dot(v, v) <= a.radius * a.radius;
 }
 
-bool CollidePrimitive(OBB a, Sphere b) {
-    return CollidePrimitive(b, a);
+void CollidePrimitive(OBB a, Sphere b, CollisionManifold *manifold) {
+    CollidePrimitive(b, a, manifold);
 }
 
-bool CollidePrimitive(Plane a, OBB b) {
-    return CollidePrimitive(b, a);
+void CollidePrimitive(Plane a, OBB b, CollisionManifold *manifold) {
+    CollidePrimitive(b, a, manifold);
 }
 
-bool CollidePrimitive(OBB a, Plane b) {
+void CollidePrimitive(OBB a, Plane b, CollisionManifold *manifold) {
     float r = a.halfWidth[0] + std::abs(glm::dot(b.normal, a.axis[0]))
         + a.halfWidth[1] + std::abs(glm::dot(b.normal, a.axis[1]))
         + a.halfWidth[2] + std::abs(glm::dot(b.normal, a.axis[2]));
-    return std::abs(glm::dot(b.normal, a.center)- b.d) <= r;
+    manifold->isCollide = std::abs(glm::dot(b.normal, a.center)- b.d) <= r;
 }
 
-bool CollidePrimitive(Plane p, AABB a) {
-    return CollidePrimitive(a, p);
+void CollidePrimitive(Plane p, AABB a, CollisionManifold *manifold) {
+    CollidePrimitive(a, p, manifold);
 }
 
-bool CollidePrimitive(AABB aabb, Plane plane) {
+void CollidePrimitive(AABB aabb, Plane plane, CollisionManifold *manifold) {
     Vec3 center = (aabb.min + aabb.max) / 2.0f;
     Vec3 extents = (aabb.max - aabb.min) / 2.0f;
 
@@ -286,20 +291,20 @@ bool CollidePrimitive(AABB aabb, Plane plane) {
         extents.z * glm::abs(plane.normal.z);
 
     float c_dist = glm::dot(center, plane.normal) + plane.d;
-    return glm::abs(c_dist) <= r;
+    manifold->isCollide = glm::abs(c_dist) <= r;
 }
 
-bool CollidePrimitive(AABB lhs, AABB rhs) {
-    return lhs.max.x >= rhs.min.x && rhs.max.x >= lhs.min.x &&
+void CollidePrimitive(AABB lhs, AABB rhs, CollisionManifold *manifold) {
+    manifold->isCollide = lhs.max.x >= rhs.min.x && rhs.max.x >= lhs.min.x &&
         lhs.max.y >= rhs.min.y && rhs.max.y >= lhs.min.y &&
         lhs.max.z >= rhs.min.z && rhs.max.z >= lhs.min.z;
 }
 
-bool CollidePrimitive(Triangle t, AABB a) {
-    return CollidePrimitive(a, t);
+void CollidePrimitive(Triangle t, AABB a, CollisionManifold *manifold) {
+    CollidePrimitive(a, t, manifold);
 }
 
-bool CollidePrimitive(AABB aabb, Triangle tri) {
+void CollidePrimitive(AABB aabb, Triangle tri, CollisionManifold *manifold) {
     Vec3 center = (aabb.min + aabb.max) / 2.0f;
     Vec3 length = (aabb.max - aabb.min) / 2.0f;
 
@@ -322,7 +327,7 @@ bool CollidePrimitive(AABB aabb, Triangle tri) {
         float p2 = -verts[(3 + i) % 3].y * edges[i].z + verts[(3 + i) % 3].z * edges[i].y;
         if (glm::max(p1, p2) < -r || glm::min(p1, p2) > r) {
             // Separating axis found
-            return false;
+            return;
         }
     }
 
@@ -333,7 +338,7 @@ bool CollidePrimitive(AABB aabb, Triangle tri) {
         float p2 = -verts[(3 + i) % 3].x * edges[i].z + verts[(3 + i) % 3].z * edges[i].x;
         if (glm::max(p1, p2) < -r || glm::min(p1, p2) > r) {
             // Separating axis found
-            return false;
+            return;
         }
     }
 
@@ -344,50 +349,51 @@ bool CollidePrimitive(AABB aabb, Triangle tri) {
         float p2 = -verts[(3 + i) % 3].x * edges[i].y + verts[(3 + i) % 3].y * edges[i].x;
         if (glm::max(p1, p2) < -r || glm::min(p1, p2) > r) {
             // Separating axis found
-            return false;
+            return;
         }
     }
 
     // testing triangle's AABB with given AABB
     if (glm::max(glm::max(verts[0].x, verts[1].x), verts[2].x) < -length.x ||
             glm::min(glm::min(verts[0].x, verts[1].x), verts[2].x) > length.x) {
-        return false;
+        return;
     }
     if (glm::max(glm::max(verts[0].y, verts[1].y), verts[2].y) < -length.y ||
             glm::min(glm::min(verts[0].y, verts[1].y), verts[2].y) > length.y) {
-        return false;
+        return;
     }
     if (glm::max(glm::max(verts[0].z, verts[1].z), verts[2].z) < -length.z ||
             glm::min(glm::min(verts[0].z, verts[1].z), verts[2].z) > length.z) {
-        return false;
+        return;
     }
 
     auto p = Plane(glm::cross(edges[0], edges[1]), verts[0]);
-    return CollidePrimitive(aabb, p);
+    return CollidePrimitive(aabb, p, manifold);
 }
 
-bool CollidePrimitive(Sphere s1, Sphere s2) {
-    return glm::length2(s1.center - s2.center) <= (s1.radius + s2.radius) * (s1.radius + s2.radius);
+void CollidePrimitive(Sphere s1, Sphere s2, CollisionManifold *manifold) {
+    manifold->isCollide =  glm::length2(s1.center - s2.center)
+        <= (s1.radius + s2.radius) * (s1.radius + s2.radius);
 }
 
-bool CollidePrimitive(AABB aabb, Sphere s) {
-    return CollidePrimitive(s, aabb);
+void CollidePrimitive(AABB aabb, Sphere s, CollisionManifold *manifold) {
+    return CollidePrimitive(s, aabb, manifold);
 }
 
-bool CollidePrimitive(Sphere s, AABB aabb) {
-    return aabb.Distance2(s.center) <= s.radius * s.radius;
+void CollidePrimitive(Sphere s, AABB aabb, CollisionManifold *manifold) {
+    manifold->isCollide = aabb.Distance2(s.center) <= s.radius * s.radius;
 }
 
-bool CollidePrimitive(Sphere, Triangle);
-bool CollidePrimitive(Triangle t, Sphere s) {
-    return CollidePrimitive(s, t);
+void CollidePrimitive(Sphere, Triangle, CollisionManifold *manifold);
+void CollidePrimitive(Triangle t, Sphere s, CollisionManifold *manifold) {
+    CollidePrimitive(s, t, manifold);
 }
 
-bool CollidePrimitive(Sphere s, Triangle t) {
-    return t.Distance2(s.center) <= s.radius * s.radius;
+void CollidePrimitive(Sphere s, Triangle t, CollisionManifold *manifold) {
+    manifold->isCollide = t.Distance2(s.center) <= s.radius * s.radius;
 }
 
-bool CollidePrimitive(Triangle t1, Triangle t2) {
+void CollidePrimitive(Triangle t1, Triangle t2, CollisionManifold *manifold) {
     Plane aPlane = Plane(t1);
     float sdistb[3] = {
         glm::dot(aPlane.normal, t2.a) + aPlane.d,
@@ -397,11 +403,11 @@ bool CollidePrimitive(Triangle t1, Triangle t2) {
 
     if (glm::abs(sdistb[0]) == 0 && glm::abs(sdistb[1]) == 0 && glm::abs(sdistb[2]) == 0) {
         Logger::Error("Coplanar case for triangle-triangle collision is not handled");
-        return false;
+        return;
     }
 
     if (sdistb[0] * sdistb[1] > 0 && sdistb[1] * sdistb[2] > 0) {
-        return false;
+        return;
     }
     Plane bPlane = Plane(t2);
     float sdista[3] = {
@@ -412,11 +418,11 @@ bool CollidePrimitive(Triangle t1, Triangle t2) {
 
     if (glm::abs(sdista[0]) == 0 && glm::abs(sdista[1]) == 0 && glm::abs(sdista[2]) == 0) {
         Logger::Error("Coplanar case for triangle-triangle collision is not handled");
-        return false;
+        return;
     }
 
     if (sdista[0] * sdista[1] > 0 && sdista[1] * sdista[2] > 0) {
-        return false;
+        return;
     }
 
     Vec3 intersectDir = glm::cross(aPlane.normal, bPlane.normal);
@@ -457,13 +463,13 @@ bool CollidePrimitive(Triangle t1, Triangle t2) {
     // VERY FUCKING BAD                  v
     auto [a1, a2] = findInterval(sdista, &t1.a);
     auto [a3, a4] = findInterval(sdistb, &t2.a);
-    return (glm::max(a1, a2) > a3 && a3 > glm::min(a1, a2))
+    manifold->isCollide = (glm::max(a1, a2) > a3 && a3 > glm::min(a1, a2))
         || (glm::max(a1, a2) > a4 && a4 > glm::min(a1, a2));
 }
 
 // There should be an overload CollidePrimitive(T, Triangle);
 template<typename T>
-bool CollideMeshAt(T t, Mesh *mesh, Transform transform) {
+void CollideMeshAt(T t, Mesh *mesh, Transform transform, CollisionManifold *manifold) {
     // WARNING: This makes assumptions about data layout
     Mat4 meshMat = glm::transpose(transform.GetTransformMatrix());
     int stride = 8;
@@ -479,18 +485,20 @@ bool CollideMeshAt(T t, Mesh *mesh, Transform transform) {
     };
     for (int i = 0; i < mesh->getLenIndices(); i+=3) {
         Triangle tri = Triangle(loadPos(i), loadPos(i + 1), loadPos(i + 2));
-        if (CollidePrimitive(t, tri)) {
-            return true;
+        CollidePrimitive(t, tri, manifold);
+        if (manifold->isCollide) {
+            return;
         }
     }
-    return false;
+    return;
 }
-template bool CollideMeshAt<AABB>(AABB, Mesh *, Transform);
-template bool CollideMeshAt<Sphere>(Sphere, Mesh *, Transform);
-template bool CollideMeshAt<Triangle>(Triangle, Mesh *, Transform);
-template bool CollideMeshAt<OBB>(OBB, Mesh *, Transform);
+template void CollideMeshAt<AABB>(AABB, Mesh *, Transform, CollisionManifold*);
+template void CollideMeshAt<Sphere>(Sphere, Mesh *, Transform, CollisionManifold*);
+template void CollideMeshAt<Triangle>(Triangle, Mesh *, Transform, CollisionManifold*);
+template void CollideMeshAt<OBB>(OBB, Mesh *, Transform, CollisionManifold*);
 
-bool CollideMeshes(Mesh *mesh, Transform transform, Mesh *mesh2, Transform transform2) {
+void CollideMeshes(Mesh *mesh, Transform transform, Mesh *mesh2,
+        Transform transform2, CollisionManifold *manifold) {
     // WARNING: This makes assumptions about data layout
     Mat4 meshMat = glm::transpose(transform.GetTransformMatrix());
     int stride = 8;
@@ -506,11 +514,12 @@ bool CollideMeshes(Mesh *mesh, Transform transform, Mesh *mesh2, Transform trans
     };
     for (int i = 0; i < mesh->getLenIndices(); i+=3) {
         Triangle tri = Triangle(loadPos(i), loadPos(i + 1), loadPos(i + 2));
-        if (CollideMeshAt(tri, mesh2, transform2)) {
-            return true;
+        CollideMeshAt(tri, mesh2, transform2, manifold);
+        if (manifold->isCollide) {
+            return;
         }
     }
-    return false;
+    return;
 }
 
 bool CollidePrimitive(Ray r, Sphere s) {

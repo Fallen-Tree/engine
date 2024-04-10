@@ -24,6 +24,7 @@ add_library(ENGINE STATIC
             src/animation/animation.cpp
             src/physics/geometry_primitives.cpp
             src/physics/collisions.cpp
+            src/physics/manifold.cpp
             src/components/rigid_body.cpp
             src/components/render_data.cpp
             src/components/collider.cpp
