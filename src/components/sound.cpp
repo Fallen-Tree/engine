@@ -10,11 +10,11 @@ Sound::Sound(SoundType type, std::string path, bool looped) {
     m_Type = type;
     m_Volume = 1.f;
 
-    if (type == SOUND_FLAT) {
+    if (type == SoundType::SOUND_FLAT) {
         sample = BASS_SampleLoad(false, path.c_str(), 0, 0, 10, loop);
     } else {
         sample = BASS_SampleLoad(false, path.c_str(), 0, 0, 10,
-            BASS_SAMPLE_3D | BASS_SAMPLE_MUTEMAX | loop);
+            BASS_SAMPLE_MONO | BASS_SAMPLE_3D | BASS_SAMPLE_MUTEMAX | loop);
     }
 
     if (!sample) {
@@ -42,7 +42,7 @@ float Sound::GetVolume() {
 
 Sound& Sound::SetPosition(Vec3 v) {
     BASS_3DVECTOR pos = {v.x, v.y, v.z};
-    if (m_Type == SOUND_3D) {
+    if (m_Type == SoundType::SOUND_3D) {
         BASS_ChannelSet3DPosition(m_Channel, &pos, NULL, NULL);
     }
     return *this;

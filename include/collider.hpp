@@ -7,7 +7,7 @@
 #include "model.hpp"
 
 struct Collider {
-    std::variant<AABB, Sphere, Mesh *> shape;
+    std::variant<AABB, Sphere, OBB, Mesh *> shape;
 
     static AABB GetDefaultAABB(Model*);
     static AABB GetDefaultAABB(Mesh*);

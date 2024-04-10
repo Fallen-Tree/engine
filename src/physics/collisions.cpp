@@ -8,6 +8,271 @@
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+bool CollidePrimitive(OBB obb, AABB aabb) {
+    return CollidePrimitive(aabb, obb);
+}
+
+bool OverlapOnAxis(AABB aabb, OBB obb, Vec3 axis) {
+    Interval a = aabb.GetInterval(axis);
+    Interval b = obb.GetInterval(axis);
+    return ((b.min <= a.max) && (a.min <= b.max));
+}
+
+bool CollidePrimitive(AABB aabb, OBB obb) {
+    Vec3 test[15] = {
+        Vec3(1, 0, 0),
+        // AABB axis 1
+        Vec3(0, 1, 0),
+        // AABB axis 2
+        Vec3(0, 0, 1),
+        // AABB axis 3
+        obb.axis[0],  // OBB axis 1
+        obb.axis[1],  // OBB axis 2
+        obb.axis[2]   // OBB axis 3
+        // We will fill out the remaining axis in the next step
+    };
+
+    for (int i = 0; i < 3; i++) {  // Fill out rest of axis
+        test[6 + i * 3 + 0] = glm::cross(test[i], test[0]);
+        test[6 + i * 3 + 1] = glm::cross(test[i], test[1]);
+        test[6 + i * 3 + 2] = glm::cross(test[i], test[2]);
+    }
+
+    for (int i = 0; i < 15; i++) {
+        if (!OverlapOnAxis(aabb, obb, test[i])) {
+            return false;  // Seperating axis found
+        }
+    }
+
+    return true;  // Seperating axis not found
+}
+
+bool OverlapOnAxis(OBB obb, Triangle triangle, Vec3 axis) {
+    Interval a = obb.GetInterval(axis);
+    Interval b = triangle.GetInterval(axis);
+    return ((b.min <= a.max) && (a.min <= b.max));
+}
+
+bool CollidePrimitive(Triangle triangle, OBB obb) {
+    // Compute the edge vectors of the triangle (ABC)
+    Vec3 f0 = triangle.b - triangle.a;
+    Vec3 f1 = triangle.c - triangle.b;
+    Vec3 f2 = triangle.a - triangle.c;
+
+    Vec3 test[13] = {
+        obb.axis[0],
+        obb.axis[1],
+        obb.axis[2],
+        triangle.normal,
+        glm::cross(obb.axis[0], f0),
+        glm::cross(obb.axis[0], f1),
+        glm::cross(obb.axis[0], f2),
+        glm::cross(obb.axis[1], f0),
+        glm::cross(obb.axis[1], f1),
+        glm::cross(obb.axis[1], f2),
+        glm::cross(obb.axis[2], f0),
+        glm::cross(obb.axis[2], f1),
+        glm::cross(obb.axis[2], f2)
+    };
+
+    for (int i = 0; i < 13; i++) {
+        if (!OverlapOnAxis(obb, triangle, test[i])) {
+            return false;  // Separating axis found
+        }
+    }
+
+    return true;  // Separating axis not found
+}
+
+bool CollidePrimitive(OBB obb, Triangle triangle) {
+    return CollidePrimitive(triangle, obb);
+}
+
+Mat3 RotationMatrix(OBB a, OBB b) {
+    Mat3 res;
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            res[i][j] = glm::dot(a.axis[i], b.axis[j]);
+        }
+    }
+    return res;
+}
+
+bool CollidePrimitive(Ray, OBB) {
+    return true;
+}
+
+Mat3 AbsRotationMatrix(Mat3 rotationMat, float epsilon) {
+    Mat3 res;
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            res[i][j] = std::abs(rotationMat[i][j]) + epsilon;
+        }
+    }
+    return res;
+}
+
+bool CollidePrimitive(OBB a, OBB b) {
+    const float EPSILON = 0;
+    Mat3 rotationMat = RotationMatrix(a, b);
+    Mat3 absRotationMat = AbsRotationMatrix(rotationMat, EPSILON);
+
+    Vec3 translation = b.center - a.center;
+    // Bring translation into a’s coordinate frame
+    translation = Vec3(
+            glm::dot(translation, a.axis[0]),
+            glm::dot(translation, a.axis[1]),
+            glm::dot(translation, a.axis[2]));
+
+    float ra;
+    float rb;
+
+    // Test axes L = A0, L = A1, L = A2
+    for (int i = 0; i < 3; i++) {
+        ra = a.halfWidth[i];
+        rb = b.halfWidth[0] * absRotationMat[i][0]
+            + b.halfWidth[1] * absRotationMat[i][1]
+            + b.halfWidth[2] * absRotationMat[i][2];
+        if (std::abs(translation[i]) > ra + rb)
+            return false;
+    }
+
+    // Test axes L = B0, L = B1, L = B2
+    for (int i = 0; i < 3; i++) {
+        ra = a.halfWidth[0] * absRotationMat[0][i]
+            + a.halfWidth[1] * absRotationMat[1][i]
+            + a.halfWidth[2] * absRotationMat[2][i];
+        rb = b.halfWidth[i];
+        if (std::abs(
+                    translation[0] * rotationMat[0][i]
+                    + translation[1] * rotationMat[1][i]
+                    + translation[2] * rotationMat[2][i])
+                > ra + rb)
+            return false;
+    }
+
+    // Test axis L = A0 x B0
+    ra = a.halfWidth[1] * absRotationMat[2][0]
+        + a.halfWidth[2] * absRotationMat[1][0];
+    rb = b.halfWidth[1] * absRotationMat[0][2]
+        + b.halfWidth[2] * absRotationMat[0][1];
+    if (std::abs(
+                translation[2] * rotationMat[1][0]
+                - translation[1] * rotationMat[2][0])
+            > ra + rb)
+        return false;
+
+    // Test axis L = A0 x B1
+    ra = a.halfWidth[1] * absRotationMat[2][1]
+        + a.halfWidth[2] * absRotationMat[1][1];
+    rb = b.halfWidth[0] * absRotationMat[0][2]
+        + b.halfWidth[2] * absRotationMat[0][0];
+    if (std::abs(
+                translation[2] * rotationMat[1][1]
+                - translation[1] * rotationMat[2][1])
+            > ra + rb)
+        return false;
+
+    // Test axis L = A0 x B2
+    ra = a.halfWidth[1] * absRotationMat[2][2]
+        + a.halfWidth[2] * absRotationMat[1][2];
+    rb = b.halfWidth[0] * absRotationMat[0][1]
+        + b.halfWidth[1] * absRotationMat[0][0];
+    if (std::abs(
+                translation[2] * rotationMat[1][2]
+                - translation[1] * rotationMat[2][2])
+            > ra + rb)
+        return 0;
+
+    // Test axis L = A1 x B0
+    ra = a.halfWidth[0] * absRotationMat[2][0]
+        + a.halfWidth[2] * absRotationMat[0][0];
+    rb = b.halfWidth[1] * absRotationMat[1][2]
+        + b.halfWidth[2] * absRotationMat[1][1];
+    if (std::abs(
+                translation[0] * rotationMat[2][0]
+                - translation[2] * rotationMat[0][0])
+            > ra + rb)
+        return false;
+
+    // Test axis L = A1 x B1
+    ra = a.halfWidth[0] * absRotationMat[2][1]
+        + a.halfWidth[2] * absRotationMat[0][1];
+    rb = b.halfWidth[0] * absRotationMat[1][2]
+        + b.halfWidth[2] * absRotationMat[1][0];
+    if (std::abs(
+                translation[0] * rotationMat[2][1]
+                - translation[2] * rotationMat[0][1])
+            > ra + rb)
+        return false;
+
+    // Test axis L = A1 x B2
+    ra = a.halfWidth[0] * absRotationMat[2][2]
+        + a.halfWidth[2] * absRotationMat[0][2];
+    rb = b.halfWidth[0] * absRotationMat[1][1]
+        + b.halfWidth[1] * absRotationMat[1][0];
+    if (std::abs(
+                translation[0] * rotationMat[2][2]
+                - translation[2] * rotationMat[0][2])
+            > ra + rb)
+        return false;
+
+    // Test axis L = A2 x B0
+    ra = a.halfWidth[0] * absRotationMat[1][0]
+        + a.halfWidth[1] * absRotationMat[0][0];
+    rb = b.halfWidth[1] * absRotationMat[2][2]
+        + b.halfWidth[2] * absRotationMat[2][1];
+    if (std::abs(translation[1] * rotationMat[0][0]
+                - translation[0] * rotationMat[1][0])
+            > ra + rb)
+        return false;
+
+    // Test axis L = A2 x B1
+    ra = a.halfWidth[0] * absRotationMat[1][1]
+        + a.halfWidth[1] * absRotationMat[0][1];
+    rb = b.halfWidth[0] * absRotationMat[2][2]
+        + b.halfWidth[2] * absRotationMat[2][0];
+    if (std::abs(
+                translation[1] * rotationMat[0][1]
+                - translation[0] * rotationMat[1][1])
+            > ra + rb)
+        return false;
+
+    // Test axis L = A2 x B2
+    ra = a.halfWidth[0] * absRotationMat[1][2]
+        + a.halfWidth[1] * absRotationMat[0][2];
+    rb = b.halfWidth[0] * absRotationMat[2][1]
+        + b.halfWidth[1] * absRotationMat[2][0];
+    if (std::abs(
+                translation[1] * rotationMat[0][2]
+                - translation[0] * rotationMat[1][2])
+            > ra + rb)
+        return false;
+
+    return true;
+}
+
+bool CollidePrimitive(Sphere a, OBB b) {
+    Vec3 p = b.ClosestPoint(a.center);
+    Vec3 v = p - a.center;
+    return glm::dot(v, v) <= a.radius * a.radius;
+}
+
+bool CollidePrimitive(OBB a, Sphere b) {
+    return CollidePrimitive(b, a);
+}
+
+bool CollidePrimitive(Plane a, OBB b) {
+    return CollidePrimitive(b, a);
+}
+
+bool CollidePrimitive(OBB a, Plane b) {
+    float r = a.halfWidth[0] + std::abs(glm::dot(b.normal, a.axis[0]))
+        + a.halfWidth[1] + std::abs(glm::dot(b.normal, a.axis[1]))
+        + a.halfWidth[2] + std::abs(glm::dot(b.normal, a.axis[2]));
+    return std::abs(glm::dot(b.normal, a.center)- b.d) <= r;
+}
+
 bool CollidePrimitive(Plane p, AABB a) {
     return CollidePrimitive(a, p);
 }
@@ -218,6 +483,7 @@ bool CollideMeshAt(T t, Mesh *mesh, Transform transform) {
 template bool CollideMeshAt<AABB>(AABB, Mesh *, Transform);
 template bool CollideMeshAt<Sphere>(Sphere, Mesh *, Transform);
 template bool CollideMeshAt<Triangle>(Triangle, Mesh *, Transform);
+template bool CollideMeshAt<OBB>(OBB, Mesh *, Transform);
 
 bool CollideMeshes(Mesh *mesh, Transform transform, Mesh *mesh2, Transform transform2) {
     // WARNING: This makes assumptions about data layout
@@ -315,6 +581,59 @@ std::optional<float> CollisionPrimitive(Ray r, Sphere s) {
     return x;
 }
 
+std::optional<float> CollisionPrimitive(Ray r, OBB o) {
+    const float epsilon = 0.000001;
+    Vec3 p = o.center - r.origin;
+
+    Vec3 f(
+        glm::dot(o.axis[0], r.direction),
+        glm::dot(o.axis[1], r.direction),
+        glm::dot(o.axis[2], r.direction));
+
+    Vec3 e(
+        glm::dot(o.axis[0], p),
+        glm::dot(o.axis[1], p),
+        glm::dot(o.axis[2], p));
+
+    float t[6] = {0, 0, 0, 0, 0, 0};
+    for (int i = 0; i < 3; i++) {
+        if (std::fabs(f[i]) < epsilon) {
+            if (-e[i] - o.axis[0][i] > 0 || -e[i] + o.axis[0][i] < 0) {
+                return {};
+            }
+            f[i] = 0.00001f;  // Avoid div by 0!
+        }
+        t[i * 2 + 0] = (e[i] + o.axis[0][i]) / f[i];  // min
+        t[i * 2 + 1] = (e[i] - o.axis[0][i]) / f[i];  // max
+    }
+
+    float tmin = fmaxf(
+        fmaxf(
+            fminf(t[0], t[1]),
+            fminf(t[2], t[3])),
+            fminf(t[4], t[5]));
+
+    float tmax = fminf(
+        fminf(
+            fmaxf(t[0], t[1]),
+            fmaxf(t[2], t[3])),
+        fmaxf(t[4], t[5]));
+
+    if (tmax < 0) {
+        return {};
+    }
+
+    if (tmin > tmax) {
+        return {};
+    }
+
+    if (tmin < 0.0f) {
+        return tmax;
+    }
+
+    return tmin;
+}
+
 Vec3 CollisionNormal(AABB a1, AABB a2, Transform tr1, Transform tr2, Vec3 velocity, float dt) {
     const float epsilon = 0.1;
     auto transformed1 = a1.Transformed(tr1).PrevState(velocity, dt);
@@ -391,5 +710,48 @@ Vec3 CollisionNormal(Mesh*, Sphere, Transform, Transform, Vec3, float) {
 Vec3 CollisionNormal(Mesh*, Mesh*, Transform, Transform, Vec3, float) {
     Logger::Warn(
             "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
+    return Vec3(0);
+}
+
+// TODO(solloballon): make this operation with OBB
+Vec3 CollisionNormal(OBB, OBB,       Transform, Transform, Vec3, float) {
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
+    return Vec3(0);
+}
+
+Vec3 CollisionNormal(AABB, OBB,      Transform, Transform, Vec3, float) {
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
+    return Vec3(0);
+}
+
+Vec3 CollisionNormal(OBB, AABB,      Transform, Transform, Vec3, float) {
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
+    return Vec3(0);
+}
+
+Vec3 CollisionNormal(Sphere, OBB,    Transform, Transform, Vec3, float) {
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
+    return Vec3(0);
+}
+
+Vec3 CollisionNormal(OBB, Sphere,    Transform, Transform, Vec3, float) {
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
+    return Vec3(0);
+}
+
+Vec3 CollisionNormal(OBB, Mesh*,     Transform, Transform, Vec3, float) {
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
+    return Vec3(0);
+}
+
+Vec3 CollisionNormal(Mesh*, OBB,     Transform, Transform, Vec3, float) {
+    Logger::Warn(
+            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
     return Vec3(0);
 }

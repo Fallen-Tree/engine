@@ -6,6 +6,7 @@
 #include <string>
 
 #include "path_resolver.hpp"
+#include "pretty_print.hpp"
 
 Model* Model::loadFromFile(std::string path) {
     Model* newModel = new Model();
@@ -62,10 +63,19 @@ RenderMesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
         for (unsigned int j = 0; j < face.mNumIndices; j++)
             indices.push_back(face.mIndices[j]);
     }
-    Texture t = Texture("default.png");
+    Texture t;
+    Vec3 diffuseColor, specularColor;
+
     float shininess = 1.0f;
     if (mesh->mMaterialIndex >= 0) {
         aiMaterial *mat = scene->mMaterials[mesh->mMaterialIndex];
+
+        aiColor3D color(0.f);
+        mat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
+        diffuseColor = Vec3(color.r, color.g, color.b);
+        mat->Get(AI_MATKEY_COLOR_SPECULAR, color);
+        specularColor = Vec3(color.r, color.g, color.b);
+
         if (mat->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
             aiString s;
             mat->GetTexture(aiTextureType_DIFFUSE, 0, &s);
