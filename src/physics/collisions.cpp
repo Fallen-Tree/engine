@@ -116,6 +116,71 @@ Mat3 AbsRotationMatrix(Mat3 rotationMat, float epsilon) {
     return res;
 }
 
+inline bool ClipToPlane(const Plane& plane,
+        const Line& line, Vec3 *outPoint) {
+    Vec3 ab = line.end - line.start;
+    float nAB = glm::dot(plane.normal, ab);
+    if (isCloseToZero(nAB)) {
+        return false;
+    }
+
+    float nA = glm::dot(plane.normal, line.start);
+    float t = (plane.d - nA) / nAB;
+
+    if (t >= 0.0f && t <= 1.0f) {
+        if (outPoint != 0) {
+            *outPoint = line.start + ab * t;
+        }
+        return true;
+    }
+
+    return false;
+}
+
+inline std::vector<Vec3> ClipEdgesToOBB(
+        const std::vector<Line>& edges, OBB& obb) {
+    std::vector<Vec3> result;
+    result.reserve(edges.size());
+    Vec3 intersection;
+
+    std::vector<Plane> planes = obb.GetPlanes();
+    for (int i = 0; i<planes.size(); ++i) {
+        for (int j = 0; j <edges.size(); ++j) {
+            if (ClipToPlane(planes[i], edges[j], &intersection)) {
+                if (obb.PointIn(intersection)) {
+                    result.push_back(intersection);
+
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+inline float PenetrationDepth(OBB& o1, OBB& o2,
+        const Vec3& axis, bool* outShouldFlip) {
+    Interval i1 = o1.GetInterval(Norm(axis));
+    Interval i2 = o2.GetInterval(Norm(axis));
+
+    if (!((i2.min <= i1.max) && (i1.min <= i2.max))) {
+        return 0.0f; // No penerattion
+    }
+
+    float len1 = i1.max - i1.min;
+    float len2 = i2.max - i2.min;
+    float min = fminf(i1.min, i2.min);
+    float max = fmaxf(i1.max, i2.max);
+    float length = max - min;
+
+    if (outShouldFlip != 0) {
+        *outShouldFlip = (i2.min < i1.min);
+    }
+
+    return (len1 + len2) - length;
+}
+        
+
 void CollidePrimitive(OBB a, OBB b, CollisionManifold *manifold) {
     const float EPSILON = 0;
     Mat3 rotationMat = RotationMatrix(a, b);

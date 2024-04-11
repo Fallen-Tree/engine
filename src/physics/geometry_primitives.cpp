@@ -212,6 +212,18 @@ OBB OBB::Transformed(Transform transform) {
     };
 }
 
+bool OBB::PointIn(Vec3 point) {
+    Vec3 dir = point - center;
+    for (int i = 0; i < 3; i++) {
+        float distance = glm::dot(dir, axis[i]);
+        if (distance > halfWidth[i] || distance < halfWidth[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 std::vector<Vec3> OBB::GetVertices() {
     std::vector<Vec3> v(8);
 

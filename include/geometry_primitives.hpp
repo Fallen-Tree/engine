@@ -78,6 +78,8 @@ struct OBB {
     std::vector<Line> GetEdges();
     std::vector<Plane> GetPlanes();
 
+    bool PointIn(Vec3);
+
     OBB Transformed(Transform);
 };
 
