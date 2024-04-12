@@ -12,7 +12,7 @@ class RenderMesh : public Mesh {
 
     void setMaterial(Material material);
 
-    RenderMesh(std::vector<float> points, std::vector<unsigned int> indices, Material material);
+    RenderMesh(std::vector<Vertex> points, std::vector<unsigned int> indices, Material material);
 
     RenderMesh(Mesh *mesh, Material material);
 };

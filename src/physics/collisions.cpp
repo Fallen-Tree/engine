@@ -466,15 +466,10 @@ template<typename T>
 bool CollideMeshAt(T t, Mesh *mesh, Transform transform) {
     // WARNING: This makes assumptions about data layout
     Mat4 meshMat = glm::transpose(transform.GetTransformMatrix());
-    int stride = 8;
     auto loadPos = [=](int i) {
         int id = mesh->getIndices()[i];
-        Vec4 res = Vec4 {
-            mesh->getPoints()[id * stride],
-            mesh->getPoints()[id * stride + 1],
-            mesh->getPoints()[id * stride + 2],
-            1.0
-        } * meshMat;
+        Vec4 res = Vec4 {mesh->getPoints()[id].Position, 1.0} * meshMat;
+
         return Vec3{ res.x / res.w, res.y / res.w, res.z / res.w };
     };
     for (int i = 0; i < mesh->getLenIndices(); i+=3) {
@@ -493,15 +488,10 @@ template bool CollideMeshAt<OBB>(OBB, Mesh *, Transform);
 bool CollideMeshes(Mesh *mesh, Transform transform, Mesh *mesh2, Transform transform2) {
     // WARNING: This makes assumptions about data layout
     Mat4 meshMat = glm::transpose(transform.GetTransformMatrix());
-    int stride = 8;
     auto loadPos = [=](int i) {
         int id = mesh->getIndices()[i];
-        Vec4 res = Vec4 {
-            mesh->getPoints()[id * stride],
-            mesh->getPoints()[id * stride + 1],
-            mesh->getPoints()[id * stride + 2],
-            1.0
-        } * meshMat;
+        Vec4 res = Vec4 {mesh->getPoints()[id].Position, 1.0} * meshMat;
+
         return Vec3{ res.x / res.w, res.y / res.w, res.z / res.w };
     };
     for (int i = 0; i < mesh->getLenIndices(); i+=3) {

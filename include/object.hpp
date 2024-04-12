@@ -22,6 +22,7 @@ class Object {
     Model *GetModel();
     Collider *GetCollider();
     Animation *GetAnimation();
+    SkeletalAnimationsManager *GetSkeletalAnimationsManager();
     Text *GetText();
     PointLight *GetPointLight();
     DirLight *GetDirLight();
@@ -51,6 +52,11 @@ class Object {
     template<typename ...Ts>
     Text &AddText(Ts... ts) {
         return m_Engine->AddText(m_Handle, Text{ts...});
+    }
+
+    template<typename ...Ts>
+    SkeletalAnimationsManager &AddSkeletalAnimationsManager(Ts... ts) {
+        return m_Engine->AddSkeletalAnimationsManager(m_Handle, SkeletalAnimationsManager{ts...});
     }
 
     template<typename ...Ts>

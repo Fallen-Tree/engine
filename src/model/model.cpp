@@ -21,6 +21,12 @@ Model* Model::loadFromFile(std::string path) {
     return newModel;
 }
 
+Model* Model::loadFromFile(std::string path, ShaderProgram *shader) {
+    Model* newModel = loadFromFile(path);
+    newModel->shader = shader;
+    return newModel;
+}
+
 void Model::processNode(aiNode *node, const aiScene *scene) {
     // process all the node's meshes (if any)
     for (unsigned int i = 0; i < node->mNumMeshes; i++) {
@@ -34,33 +40,23 @@ void Model::processNode(aiNode *node, const aiScene *scene) {
 }
 
 RenderMesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
-    std::vector<float> points;
+    std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
     for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
         // process vertex positions, normals and texture coordinates
-        Vec3 position;
-        position.x = mesh->mVertices[i].x;
-        position.y = mesh->mVertices[i].y;
-        position.z = mesh->mVertices[i].z;
-        Vec3 normal;
-        normal.x = mesh->mNormals[i].x;
-        normal.y = mesh->mNormals[i].y;
-        normal.z = mesh->mNormals[i].z;
-        Vec2 texture;
+        Vertex vertex;
+        SetVertexBoneDataToDefault(&vertex);
+        vertex.Position = {mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z};
+        vertex.Normal = {mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z};
         if (mesh->mTextureCoords[0]) {
-            texture.x = mesh->mTextureCoords[0][i].x;
-            texture.y = mesh->mTextureCoords[0][i].y;
+            vertex.TexCoords = {mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y};
+        } else {
+            vertex.TexCoords = {0.f, 0.f};
         }
-        points.push_back(position.x);
-        points.push_back(position.y);
-        points.push_back(position.z);
-        points.push_back(normal.x);
-        points.push_back(normal.y);
-        points.push_back(normal.z);
-        points.push_back(texture.x);
-        points.push_back(texture.y);
+        vertices.push_back(vertex);
     }
+
     // process indices
     for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
         aiFace face = mesh->mFaces[i];
@@ -93,8 +89,9 @@ RenderMesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
         }
         mat->Get(AI_MATKEY_SHININESS, shininess);
     }
-    RenderMesh newMesh = RenderMesh(points, indices, Material{shininess, t, diffuseColor, specularColor});
-    return newMesh;
+
+    ExtractBoneWeightForVertices(vertices, mesh, scene);
+    return RenderMesh(vertices, indices, Material{shininess, t, diffuseColor, specularColor});
 }
 
 void Model::setMaterial(Material material) {
@@ -109,4 +106,62 @@ Model *Model::fromMesh(Mesh *mesh, Material material) {
     meshes.push_back(*(new RenderMesh(mesh, material)));
     newModel->meshes = meshes;
     return newModel;
+}
+
+Model *Model::fromMesh(Mesh *mesh, Material material, ShaderProgram *shader) {
+    Model *newModel = new Model();
+    std::vector<RenderMesh> meshes;
+    meshes.push_back(*(new RenderMesh(mesh, material)));
+    newModel->meshes = meshes;
+    newModel->shader = shader;
+    return newModel;
+}
+
+
+void Model::ExtractBoneWeightForVertices(std::vector<Vertex> &vertices, aiMesh* mesh, const aiScene* scene) {
+    for (unsigned int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
+        int boneID = -1;
+        std::string boneName = mesh->mBones[boneIndex]->mName.C_Str();
+        if (m_BoneInfoMap.find(boneName) == m_BoneInfoMap.end()) {
+            BoneInfo newBoneInfo;
+            newBoneInfo.id = m_BoneCounter;
+            assert(m_BoneCounter < MAX_BONES);
+            newBoneInfo.offset = AssimpGLMHelpers::ConvertMatrixToGLMFormat(
+                mesh->mBones[boneIndex]->mOffsetMatrix);
+            m_BoneInfoMap[boneName] = newBoneInfo;
+            boneID = m_BoneCounter;
+            m_BoneCounter++;
+        } else {
+            boneID = m_BoneInfoMap[boneName].id;
+        }
+        assert(boneID != -1);
+        auto weights = mesh->mBones[boneIndex]->mWeights;
+        int numWeights = mesh->mBones[boneIndex]->mNumWeights;
+
+        for (int weightIndex = 0; weightIndex < numWeights; ++weightIndex) {
+            int vertexId = weights[weightIndex].mVertexId;
+            float weight = weights[weightIndex].mWeight;
+            assert(vertexId <= vertices.size());
+            SetVertexBoneData(&vertices[vertexId], boneID, weight);
+        }
+    }
+}
+
+
+void Model::SetVertexBoneDataToDefault(Vertex *vertex) {
+    for (int i = 0; i < MAX_BONE_INFLUENCE; i++) {
+        vertex->m_BoneIDs[i] = -1;
+        vertex->m_Weights[i] = 0.0f;
+    }
+}
+
+void Model::SetVertexBoneData(Vertex *vertex, int boneID, float weight) {
+    if (weight < 0.0000001f) return;
+    for (int i = 0; i < MAX_BONE_INFLUENCE; ++i) {
+        if (vertex->m_BoneIDs[i] < 0) {
+            vertex->m_Weights[i] = weight;
+            vertex->m_BoneIDs[i] = boneID;
+            break;
+        }
+    }
 }

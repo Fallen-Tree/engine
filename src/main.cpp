@@ -12,7 +12,8 @@ const char *cubeSource = "cube2.obj";
 const char *catSource = "fish.obj";
 const char *benchSource = "bench.obj";
 
-const char *vertexShaderSource = "standart.vshader";
+const char *standartVertexShaderSource = "standart.vshader";
+const char *skeletalVertexShaderSource = "skeletal.vshader";
 const char *fragmentShaderSource = "standart.fshader";
 
 class MovingSphere : public Behaviour {
@@ -34,7 +35,7 @@ class MovingRotating : public Behaviour {
     void Update(float dt) override {
         if (self.CollideAll().size() == 0) {
             self.GetTransform()->Translate(Vec3(-1, -1, -1) * dt);
-            self.GetTransform()->Rotate(0.01, Vec3(1));
+            self.GetTransform()->Rotate(0.01f, Vec3(1.f));
         }
     }
 };
@@ -44,8 +45,8 @@ class MovingRotating2 : public Behaviour {
     Vec3 speed;
     void Update(float dt) override {
         if (self.CollideAll().size() == 0) {
-            self.GetTransform()->Translate(Vec3(2, 0, 0) * dt);
-            self.GetTransform()->Rotate(0.05, Vec3(1, 0, 1));
+            self.GetTransform()->Translate(Vec3(2.f, 0.f, 0.f) * dt);
+            self.GetTransform()->Rotate(0.05f, Vec3(1.f, 0.f, 1.f));
         }
     }
 };
@@ -53,26 +54,102 @@ class MovingRotating2 : public Behaviour {
 int main() {
     auto engine = Engine();
 
-    Shader vShader = Shader(VertexShader, vertexShaderSource);
+    Shader standartVShader = Shader(VertexShader, standartVertexShaderSource);
+    Shader skeletalVShader = Shader(VertexShader, skeletalVertexShaderSource);
     Shader fShader = Shader(FragmentShader, fragmentShaderSource);
 
-    ShaderProgram *shaderProgram = new ShaderProgram(vShader, fShader);
+    ShaderProgram *standartShaderProgram = new ShaderProgram(standartVShader, fShader);
+    ShaderProgram *skeletalShaderProgram = new ShaderProgram(skeletalVShader, fShader);
+
+    {
+        // /* PIGEON */
+        Model *pigeonModel = Model::loadFromFile("pigeon/scene.gltf");
+        pigeonModel->shader = skeletalShaderProgram;
+        auto pigeonAnimation = new SkeletalAnimationData("pigeon/scene.gltf", 0, pigeonModel);
+
+        auto pigeonObj = engine.NewObject();
+        pigeonObj.AddTransform(Vec3(0.f, -10.f, -10.f), Vec3(10.f), Mat4(1.0));
+        pigeonObj.AddModel(*pigeonModel);
+        pigeonObj.AddSkeletalAnimationsManager(pigeonAnimation).PlayImmediately(0, 0);
+    }
+
+    {
+        /* Wolf */
+        Model *wolfModel = Model::loadFromFile("Wolf/Wolf-Blender-2.82a.gltf", skeletalShaderProgram);
+        wolfModel->meshes.pop_back();  // Delete Fur
+        wolfModel->meshes.erase(wolfModel->meshes.begin() + 1);  // Delete floor
+
+        auto wolfObj = engine.NewObject();
+        wolfObj.AddTransform(Vec3(5.f, -10.f, -10.f), Vec3(10.f), Mat4(1.0));
+        wolfObj.AddModel(*wolfModel);
+        wolfObj.AddSkeletalAnimationsManager("Wolf/Wolf-Blender-2.82a.gltf", wolfModel).PlayImmediately(3, 1);
+
+        class WolfBehaviour : public Behaviour {
+         public:
+            void Update(float dt) override {
+                left -= dt;
+                if (left < 0) {
+                    self.GetSkeletalAnimationsManager()->Stop();
+                }
+                if (!self.GetSkeletalAnimationsManager()->IsPlaying()) {
+                    left = delay;
+                    self.GetSkeletalAnimationsManager()->PlayImmediately(cur, 1);
+                    cur++;
+                    cur %= 5;
+                }
+            }
+
+            float delay = 4.0f;
+            float left = delay;
+            int cur = 0;
+        };
+
+       wolfObj.AddBehaviour<WolfBehaviour>();
+    }
+
+    // {
+    //     /* XBot */
+    //     Model *pigeonModel = Model::loadFromFile("XBot/XBot.dae", skeletalShaderProgram);
+
+    //     auto pigeonAnimation1 = new SkeletalAnimationData("XBot/Praying.dae", 0, pigeonModel);
+
+    //     auto pigeonObj = engine.NewObject();
+    //     pigeonObj.AddTransform(Vec3(-6.f, -10.f, -10.f), Vec3(5.f), Mat4(1.0));
+    //     pigeonObj.AddModel(*pigeonModel);
+    //     auto& animManager = pigeonObj.AddSkeletalAnimationsManager(pigeonAnimation1);
+    //     animManager.AddAnimation("XBot/Hip Hop Dancing.dae", pigeonModel);
+    //     Logger::Info("%s", animManager.GetAnimationsInfo().c_str());
+    //     animManager.PlayImmediately(1, 1);
+    // }
+
+
+    {
+        Model * model = Model::loadFromFile(catSource);
+        model->shader = standartShaderProgram;
+        Material cat_material = {
+            4.f,
+            Texture("/Cat_diffuse.png", "/Cat_specular.png")
+        };
+        auto cat = engine.NewObject();
+        cat.AddModel(*model);
+        auto &t = cat.AddTransform(Vec3(0.f, -7.f, -5.f), Vec3(0.01f), Mat4(1.0));
+        t.RotateGlobal(1.67f, Vec3(-1.f, 0.f, 0.f));
+    }
 
     // Shiba inu (ETO FIASKO BRATAN)
     Model *model = Model::loadFromFile("ShibaInu.fbx");
-    model->shader = shaderProgram;
+    model->shader = standartShaderProgram;
     auto dog = engine.NewObject();
     dog.AddModel(*model);
+    // dog.AddSkeletalAnimationsManager("ShibaInu.fbx", model).PlayImmediately(14, 1);
     dog.AddTransform(Transform(Vec3(2, -5, 0.0), Vec3(1.f), glm::radians(-90.f), Vec3(1.0f, 0.f, 0.f)));
 
     Material material = {
         4.f,
         Texture("wall.png", "wallspecular.png")
     };
-    Model *sphereModel = Model::fromMesh(Mesh::GetSphere(), material);
-    Model *cubeModel = Model::fromMesh(Mesh::GetCube(), material);
-    sphereModel->shader = shaderProgram;
-    cubeModel->shader = shaderProgram;
+    Model *sphereModel = Model::fromMesh(Mesh::GetSphere(), material, standartShaderProgram);
+    Model *cubeModel = Model::fromMesh(Mesh::GetCube(), material, standartShaderProgram);
 
     auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model) {
         auto obj = engine.NewObject();
@@ -82,11 +159,6 @@ int main() {
         obj.AddCollider(primitive);
         return obj;
     };
-
-    auto cat = engine.NewObject();
-    cat.AddModel(*model);
-    auto &t = cat.AddTransform(Vec3(0.f, -5.f, -8.f), Vec3(0.1f), Mat4(1.0));
-    cat.AddCollider(&model->meshes[0]);
 
     auto obb = setUpObj(
         Transform(Vec3(0, 0, 2.0), Vec3(1), 0.0f, Vec3(1)),
@@ -145,6 +217,9 @@ int main() {
             Vec3(0, 0, 0),
     };
 */
+
+    // cat.AddChild(aabb);
+    // cat.AddBehaviour<Moving>();
 
     class FpsText : public Behaviour {
      public:

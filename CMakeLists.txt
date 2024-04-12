@@ -11,7 +11,6 @@ find_package(OpenGL REQUIRED)
 
 add_library(ENGINE STATIC 
             src/engine.cpp
-            src/animation/animation.cpp
             src/shaders/shaders.cpp
             src/model/mesh.cpp
             src/model/model.cpp
@@ -21,7 +20,9 @@ add_library(ENGINE STATIC
             src/logging/logger.cpp
             src/text/text.cpp
             src/text/font.cpp
-            src/animation/animation.cpp
+            src/components/animation/animation.cpp
+            src/components/animation/skeletal_animations_manager.cpp
+            src/components/animation/skeletal_animation_data.cpp
             src/physics/geometry_primitives.cpp
             src/physics/collisions.cpp
             src/components/rigid_body.cpp
@@ -44,6 +45,8 @@ SET(BUILD_SHARED_LIBS OFF)
 SET(ASSIMP_NO_EXPORT ON)
 SET(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF)
 SET(ASSIMP_BUILD_OBJ_IMPORTER ON)
+SET(ASSIMP_BUILD_COLLADA_IMPORTER ON)
+SET(ASSIMP_BUILD_GLTF_IMPORTER ON)
 SET(ASSIMP_BUILD_FBX_IMPORTER ON)
 SET(ASSIMP_WARNINGS_AS_ERRORS OFF)
 SET(ASSIMP_BUILD_SAMPLES OFF)
@@ -80,5 +83,9 @@ target_link_libraries(main PUBLIC ENGINE)
 add_custom_command(TARGET ENGINE PRE_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
                    ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/resources)
+
+add_custom_command(TARGET ENGINE PRE_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy_directory
+                   ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/Debug/resources)
 
 
