@@ -117,7 +117,7 @@ Mat3 AbsRotationMatrix(Mat3 rotationMat, float epsilon) {
 }
 
 inline bool ClipToPlane(const Plane& plane,
-        const Line& line, Vec3 *outPoint) {
+        const Line& line, Vec3* outPoint) {
     Vec3 ab = line.end - line.start;
     float nAB = glm::dot(plane.normal, ab);
     if (isCloseToZero(nAB)) {
@@ -144,8 +144,8 @@ inline std::vector<Vec3> ClipEdgesToOBB(
     Vec3 intersection;
 
     std::vector<Plane> planes = obb.GetPlanes();
-    for (int i = 0; i<planes.size(); ++i) {
-        for (int j = 0; j <edges.size(); ++j) {
+    for (int i = 0; i < planes.size(); i++) {
+        for (int j = 0; j <edges.size(); j++) {
             if (ClipToPlane(planes[i], edges[j], &intersection)) {
                 if (obb.PointIn(intersection)) {
                     result.push_back(intersection);
@@ -182,143 +182,65 @@ inline float PenetrationDepth(OBB& o1, OBB& o2,
         
 
 void CollidePrimitive(OBB a, OBB b, CollisionManifold *manifold) {
-    const float EPSILON = 0;
-    Mat3 rotationMat = RotationMatrix(a, b);
-    Mat3 absRotationMat = AbsRotationMatrix(rotationMat, EPSILON);
-
-    Vec3 translation = b.center - a.center;
-    // Bring translation into a’s coordinate frame
-    translation = Vec3(
-            glm::dot(translation, a.axis[0]),
-            glm::dot(translation, a.axis[1]),
-            glm::dot(translation, a.axis[2]));
-
-    float ra;
-    float rb;
-
-    // Test axes L = A0, L = A1, L = A2
-    for (int i = 0; i < 3; i++) {
-        ra = a.halfWidth[i];
-        rb = b.halfWidth[0] * absRotationMat[i][0]
-            + b.halfWidth[1] * absRotationMat[i][1]
-            + b.halfWidth[2] * absRotationMat[i][2];
-        if (std::abs(translation[i]) > ra + rb)
-            return;
+    Vec3 test[15] = { // Face axis
+        a.axis[0],
+        a.axis[1],
+        a.axis[2],
+        b.axis[0],
+        b.axis[1],
+        b.axis[2],
+    };
+    for (int i = 0; i < 3; i++) { // Fill out rest of axis
+        test[6 + i * 3 + 0] = glm::cross(test[i], test[0]);
+        test[6 + i * 3 + 1] = glm::cross(test[i], test[1]);
+        test[6 + i * 3 + 2] = glm::cross(test[i], test[2]);
     }
 
-    // Test axes L = B0, L = B1, L = B2
-    for (int i = 0; i < 3; i++) {
-        ra = a.halfWidth[0] * absRotationMat[0][i]
-            + a.halfWidth[1] * absRotationMat[1][i]
-            + a.halfWidth[2] * absRotationMat[2][i];
-        rb = b.halfWidth[i];
-        if (std::abs(
-                    translation[0] * rotationMat[0][i]
-                    + translation[1] * rotationMat[1][i]
-                    + translation[2] * rotationMat[2][i])
-                > ra + rb)
+    Vec3 *hitNormal = nullptr;
+    bool shouldFlip;
+
+    for (int i = 0; i < 15; i++) {
+        if (glm::length(test[i])< 0.001f) {
+            continue;
+        }
+        float depth = PenetrationDepth(a, b, test[i], &shouldFlip);
+        if (depth <= 0.0f) {
             return;
+        } else if (depth < manifold->penetrationDistance) {
+            if (shouldFlip) {
+                test[i] = test[i] * -1.0f;
+            }
+            manifold->penetrationDistance = depth;
+            hitNormal = &test[i];
+        }
     }
 
-    // Test axis L = A0 x B0
-    ra = a.halfWidth[1] * absRotationMat[2][0]
-        + a.halfWidth[2] * absRotationMat[1][0];
-    rb = b.halfWidth[1] * absRotationMat[0][2]
-        + b.halfWidth[2] * absRotationMat[0][1];
-    if (std::abs(
-                translation[2] * rotationMat[1][0]
-                - translation[1] * rotationMat[2][0])
-            > ra + rb)
+    if (hitNormal == nullptr) {
         return;
+    }
+    Vec3 axis = Norm(*hitNormal);
 
-    // Test axis L = A0 x B1
-    ra = a.halfWidth[1] * absRotationMat[2][1]
-        + a.halfWidth[2] * absRotationMat[1][1];
-    rb = b.halfWidth[0] * absRotationMat[0][2]
-        + b.halfWidth[2] * absRotationMat[0][0];
-    if (std::abs(
-                translation[2] * rotationMat[1][1]
-                - translation[1] * rotationMat[2][1])
-            > ra + rb)
-        return;
+    std::vector<Vec3> c1 = ClipEdgesToOBB(b.GetEdges(), a);
+    std::vector<Vec3> c2 = ClipEdgesToOBB(a.GetEdges(), b);
+    Vec3 p = Vec3(0);
+    for (auto i : c1) {
+        p += i;
+    }
+    for (auto i : c2) {
+        p += i;
+    }
+    p /= c1.size() + c2.size();
 
-    // Test axis L = A0 x B2
-    ra = a.halfWidth[1] * absRotationMat[2][2]
-        + a.halfWidth[2] * absRotationMat[1][2];
-    rb = b.halfWidth[0] * absRotationMat[0][1]
-        + b.halfWidth[1] * absRotationMat[0][0];
-    if (std::abs(
-                translation[2] * rotationMat[1][2]
-                - translation[1] * rotationMat[2][2])
-            > ra + rb)
-        return;    
-
-    // Test axis L = A1 x B0
-    ra = a.halfWidth[0] * absRotationMat[2][0]
-        + a.halfWidth[2] * absRotationMat[0][0];
-    rb = b.halfWidth[1] * absRotationMat[1][2]
-        + b.halfWidth[2] * absRotationMat[1][1];
-    if (std::abs(
-                translation[0] * rotationMat[2][0]
-                - translation[2] * rotationMat[0][0])
-            > ra + rb)
-        return;
-
-    // Test axis L = A1 x B1
-    ra = a.halfWidth[0] * absRotationMat[2][1]
-        + a.halfWidth[2] * absRotationMat[0][1];
-    rb = b.halfWidth[0] * absRotationMat[1][2]
-        + b.halfWidth[2] * absRotationMat[1][0];
-    if (std::abs(
-                translation[0] * rotationMat[2][1]
-                - translation[2] * rotationMat[0][1])
-            > ra + rb)
-        return;
-
-    // Test axis L = A1 x B2
-    ra = a.halfWidth[0] * absRotationMat[2][2]
-        + a.halfWidth[2] * absRotationMat[0][2];
-    rb = b.halfWidth[0] * absRotationMat[1][1]
-        + b.halfWidth[1] * absRotationMat[1][0];
-    if (std::abs(
-                translation[0] * rotationMat[2][2]
-                - translation[2] * rotationMat[0][2])
-            > ra + rb)
-        return;
-
-    // Test axis L = A2 x B0
-    ra = a.halfWidth[0] * absRotationMat[1][0]
-        + a.halfWidth[1] * absRotationMat[0][0];
-    rb = b.halfWidth[1] * absRotationMat[2][2]
-        + b.halfWidth[2] * absRotationMat[2][1];
-    if (std::abs(translation[1] * rotationMat[0][0]
-                - translation[0] * rotationMat[1][0])
-            > ra + rb)
-        return;
-
-    // Test axis L = A2 x B1
-    ra = a.halfWidth[0] * absRotationMat[1][1]
-        + a.halfWidth[1] * absRotationMat[0][1];
-    rb = b.halfWidth[0] * absRotationMat[2][2]
-        + b.halfWidth[2] * absRotationMat[2][0];
-    if (std::abs(
-                translation[1] * rotationMat[0][1]
-                - translation[0] * rotationMat[1][1])
-            > ra + rb)
-        return;
-
-    // Test axis L = A2 x B2
-    ra = a.halfWidth[0] * absRotationMat[1][2]
-        + a.halfWidth[1] * absRotationMat[0][2];
-    rb = b.halfWidth[0] * absRotationMat[2][1]
-        + b.halfWidth[1] * absRotationMat[2][0];
-    if (std::abs(
-                translation[1] * rotationMat[0][2]
-                - translation[0] * rotationMat[1][2])
-            > ra + rb)
-        return;
+    Interval i = a.GetInterval(axis);
+    float distance = (i.max - i.min) * 0.5f
+        - manifold->penetrationDistance * 0.5f;
+    Vec3 pointOnPlane = a.center + axis * distance;
+    manifold->collisionPoint += (axis *
+            glm::dot(axis, pointOnPlane - manifold->collisionPoint));
 
     manifold->isCollide = true;
+    manifold->normal = axis;
+    
     return;
 }
 

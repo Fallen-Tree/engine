@@ -225,7 +225,8 @@ bool OBB::PointIn(Vec3 point) {
 }
 
 std::vector<Vec3> OBB::GetVertices() {
-    std::vector<Vec3> v(8);
+    std::vector<Vec3> v;
+    v.resize(8);
 
     v[0] = center + axis[0] * halfWidth[0] + axis[1] * halfWidth[1]
         + axis[2] * halfWidth[2];
@@ -266,7 +267,8 @@ std::vector<Line> OBB::GetEdges() {
 }
 
 std::vector<Plane> OBB::GetPlanes() {
-    std::vector<Plane> result(6);
+    std::vector<Plane> result;
+    result.resize(6);
 
     result[0] = Plane(
             axis[0], glm::dot(axis[0], (center + axis[0] * halfWidth.x)));
