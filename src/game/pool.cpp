@@ -25,44 +25,15 @@ class MovingBall : public Behaviour {
         Collider *collider = new Collider{Sphere{Vec3(0.0), 1.0}};
         RigidBody *rb = new RigidBody(mass, IBodySphere(1, mass),
                 0.9f, Vec3(0, -mass * gravity, 0), 0.0001f);
-        return newDynamicBody<MovingBall>(transform, model, collider, rb);
+        Object ball = newDynamicBody<MovingBall>(transform, model, collider, rb);
+        return ball;
     }
 
     void Update(float dt) override {
         // Vec3 pos = self.GetTransform()->GetTranslation();
         // Logger::Info("ball pos: %f %f %f", pos.x, pos.y, pos.z);
+        // Logger::Info("name: %d", self.name);
     }
-};
-
-class Hole : public TriggerArea {
- public:
-    void OnCollision(Collider other) {
-        return;
-        // if getCollisions returns colliders then I need a function to get objects from it.
-        // Object obj = other.GetObject();
-
-        // check if some object is a ball and not a table or a player
-        // can be done with collision layers or with some info about objects.
-        // if (obj is ball) {
-        //     Consume(obj);
-        // }
-    }
-
-    void Consume(MovingBall *ball) {
-        // delete ball
-        // for now just move with animation
-        ball->self.GetRigidBody()->velocity = Vec3(0, 0, 0);
-        ball->self.GetTransform()->SetTranslation(self.GetTransform()->GetTranslation());
-        ball->self.AddAnimation();
-        auto newTrans = *ball->self.GetTransform();
-        newTrans.Translate(Vec3(0, -2, 0));
-        ball->self.GetAnimation()->addAnimation(newTrans, 2.f);
-        // add score
-        // how???
-    }
-
-    // i hate that i need to override Update even if it is empty
-    void Update(float dt) override {}
 };
 
 class Cue : public Behaviour {
@@ -163,21 +134,62 @@ class Cue : public Behaviour {
 
 class GameManager : public Behaviour {
  private:
-    int score = 0;
-    PublicText text;
-    void ShowScore() {
-        text.SetContent("Score: " + std::to_string(score));
+    PublicText *text;
+    void ShowScore(int score) {
+        text->SetContent("Score: " + std::to_string(score));
     }
 
  public:
+    int score = 0;
+
+    explicit GameManager(PublicText *text) {
+        this->text = text;
+    }
+
     void Update(float dt) override {
-        ShowScore();
+        ShowScore(score);
+    }
+};
+
+
+class Hole : public TriggerArea {
+ private:
+    GameManager *gameManager;
+
+ public:
+    static Object New(Vec3 pos, GameManager *gm) {
+        Object obj = engine->NewObject();
+        obj.AddTransform(Transform(pos, Vec3(1), Mat4(1)));
+        obj.AddCollider(Collider{AABB{Vec3(-0.25f), Vec3(0.25f)}});  // TO DO: replace with circle
+        obj.AddBehaviour<Hole>(gm);
+        return obj;
+    }
+
+    explicit Hole(GameManager *gm) {
+        this->gameManager = gm;
+    }
+
+    void OnCollision(Object other) override {
+        // Vec3 pos = self.GetTransform()->GetTranslation();
+        // Logger::Info("hole: %f %f %f", pos.x, pos.y, pos.z);
+        // check if some object is a ball and not a table or a player
+        // i haven't found any way better than check transform parameters
+        if (other.GetTransform()->GetScale().x < 1) {
+            Consume(other);
+        }
+    }
+
+    void Consume(Object ball) {
+        gameManager->score += 100;
+        // i don't know why but .Remove() crashing the engine :(
+        // ball.Remove();
+        ball.GetTransform()->Translate(Vec3(0, -100, 0));
     }
 };
 
 class Table : public Behaviour {
  public:
-    static Object New(Vec3 position, Vec3 scale) {
+    static Object New(Vec3 position, Vec3 scale, GameManager *gameManager) {
         Transform *transform = new Transform(position, scale, Mat4(1.0));
 
         Model *model = Model::loadFromFile("pool/stol_1.obj");
@@ -193,7 +205,7 @@ class Table : public Behaviour {
         float h = 0.85;
 
         float width = 0.9;
-        float length = 0.6;
+        float length = 0.45;
 
         Collider *col = new Collider{AABB {
             Vec3{-width, h0, -length},
@@ -204,18 +216,28 @@ class Table : public Behaviour {
         float walls_bounciness = 0.9f;
         Object obj = newStaticBody<Table>(transform, model, col, floor_bounciness, floor_friction);
 
-        float wall_height = 1;
+        float wall_height = 0.3;
         AABB walls[] = {
-            AABB {Vec3(width, h0, -length), Vec3(width + 1, h + wall_height, length)},
-            AABB {Vec3(-width - 1, h0, -length), Vec3(-width, h + wall_height, length)},
-            AABB {Vec3(-width, h0, length), Vec3(width, h + wall_height, length + 1)},
-            AABB {Vec3(-width, h0, -length - 1), Vec3(width, h + wall_height, -length)}
+            AABB {Vec3(width, h0, -length), Vec3(width + 0.01, h + wall_height, length)},
+            AABB {Vec3(-width - 0.01, h0, -length), Vec3(-width, h + wall_height, length)},
+            AABB {Vec3(-width, h0, length), Vec3(width, h + wall_height, length + 0.01)},
+            AABB {Vec3(-width, h0, -length - 0.01), Vec3(width, h + wall_height, -length)}
         };
         for (int i = 0; i < 4; ++i) {
             Collider *col = new Collider{walls[i]};
             newStaticBody(transform, col, walls_bounciness);
         }
-
+        float top_y = position.y + 0.9f * scale.y;
+        float table_w = scale.x * width * 2;
+        float table_l = scale.z * length * 2;
+        for (int i = 0; i <= 1; ++i) {
+            for (int j = 0; j <= 2; ++j) {
+                Vec3 pos = Vec3(table_w * (j - 1.0f) / 2.0f, top_y, table_l * (i - 0.5f));
+                Object hole = Hole::New(pos, gameManager);
+                // model to show holes position (but not holes scale)
+                // newModel(new Transform(pos, Vec3(0.1), Mat4(1)), Model::loadFromFile("cube.obj"));
+            }
+        }
         return obj;
     }
 

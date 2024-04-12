@@ -73,6 +73,10 @@ RigidBody *Object::GetRigidBody() {
     return m_Engine->GetRigidBody(m_Handle);
 }
 
+Sound *Object::GetSound() {
+    return m_Engine->GetSound(m_Handle);
+}
+
 bool Object::Collide(Object other) {
     return m_Engine->Collide(m_Handle, other.m_Handle);
 }

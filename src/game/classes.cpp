@@ -29,18 +29,38 @@ Object newModel(Transform *transform, Model *model) {
 
 template<typename T>
 Object newStaticBody(Transform *transform, Model *model, Collider *collider,
-        float bounciness = 0.0f, float friction = 0.0f) {
+        float bounciness = 0.2f, float friction = 0.5f) {
     Object obj = newModel<T>(transform, model);
     obj.AddCollider(*collider);
     obj.AddRigidBody(0.0f, Mat4(0), bounciness, Vec3(0), friction);
     return obj;
 }
 
-Object newStaticBody(Transform *transform, Collider *collider, float bounciness = 0.0f) {
+Object newStaticBody(Transform *transform, Model *model, Collider *collider,
+        float bounciness = 0.2f, float friction = 0.5f) {
+    Object obj = newModel(transform, model);
+    obj.AddCollider(*collider);
+    obj.AddRigidBody(0.0f, Mat4(0), bounciness, Vec3(0), friction);
+    return obj;
+}
+
+
+template<typename T>
+Object newStaticBody(Transform *transform, Collider *collider,
+        float bounciness = 0.2f, float friction = 0.5f) {
     Object obj = engine->NewObject();
     obj.AddTransform(*transform);
     obj.AddCollider(*collider);
-    obj.AddRigidBody(0.0f, Mat4(0), bounciness, Vec3(0), 0.0f);
+    obj.AddRigidBody(0.0f, Mat4(0), bounciness, Vec3(0), friction);
+    return obj;
+}
+
+Object newStaticBody(Transform *transform, Collider *collider,
+        float bounciness = 0.2f, float friction = 0.5f) {
+    Object obj = engine->NewObject();
+    obj.AddTransform(*transform);
+    obj.AddCollider(*collider);
+    obj.AddRigidBody(0.0f, Mat4(0), bounciness, Vec3(0), friction);
     return obj;
 }
 
@@ -53,24 +73,24 @@ Object newDynamicBody(Transform *transform, Model *model,
     return obj;
 }
 
+Object newDynamicBody(Transform *transform, Model *model,
+        Collider *collider, RigidBody *rigidBody) {
+    Object obj = newModel(transform, model);
+    obj.AddCollider(*collider);
+    obj.AddRigidBody(*rigidBody);
+    return obj;
+}
+
 class TriggerArea : public Behaviour {
  public:
-    static Object New(Transform *transform, Collider *collider) {
-        Object obj = engine->NewObject();
-        obj.AddTransform(*transform);
-        obj.AddCollider(*collider);
-        // mark collider as trigger
-        return obj;
-    }
-
-    virtual void OnCollision(Collider other);
+    virtual void OnCollision(Object other) = 0;
 
     void Update(float dt) override {
         // I need a function too get all colliders (or objects) intersecting with this object
-        // std::vector<Collider> colls = self.GetCollider()->getCollisions();
-        // for (auto col : colls) {
-        //     OnCollision(col);
-        // }
+        std::vector<Object> colls = self.CollideAll();
+        for (auto obj : colls) {
+            OnCollision(obj);
+        }
     }
 };
 

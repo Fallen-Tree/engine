@@ -20,18 +20,22 @@ class PlayerController : public Behaviour {
     Vec3 lastStandPosition;
     MovementMode m_MovementMode = Walk;
     int camShakeDir = 1;
+    float jump_power = 8;
     Vec3 cameraOffset = Vec3(0);
 
     void ProcessKeyboard(float deltaTime) {
         Transform *tr = self.GetTransform();
-
         if (s_Input->IsKeyPressed(Key::F)) {
             if (m_MovementMode == Fly) {
                 m_MovementMode = Walk;
+                self.GetRigidBody()->defaultForce = Vec3(0, -gravity, 0);
                 tr->SetTranslation(lastStandPosition);
+                tr->SetScale(Vec3(1.f));
             } else {
                 m_MovementMode = Fly;
+                self.GetRigidBody()->defaultForce = Vec3(0);
                 lastStandPosition = tr->GetTranslation();
+                tr->SetScale(Vec3(.1f));
             }
         }
         if (m_MovementMode != Fly) {
@@ -76,7 +80,13 @@ class PlayerController : public Behaviour {
         } else {
             cameraOffset = Vec3(0);
         }
-        tr->Translate(velocity * deltaTime);
+        if (m_MovementMode != Fly) {
+            velocity.y = self.GetRigidBody()->velocity.y;
+            if (s_Input->IsKeyPressed(Key::Space)) {  // add check if grounded
+                velocity += Vec3(0, jump_power, 0);
+            }
+        }
+        self.GetRigidBody()->velocity = velocity;
     }
 
 
@@ -86,7 +96,7 @@ class PlayerController : public Behaviour {
 
         xOffset *= m_MouseSensitivity;
         yOffset *= m_MouseSensitivity;
- 
+
         Transform *tr = self.GetTransform();
 
         tr->Rotate(0, xOffset, 0);
@@ -94,7 +104,7 @@ class PlayerController : public Behaviour {
 
         // to update front vector
         m_Camera->SetTransform(*self.GetTransform());
- 
+
         Vec3 front = m_Camera->GetFront();
         if (abs(glm::dot(front, Vec3(0, 1, 0))) > MAX_DOT) {
             tr->RotateGlobal(yOffset, 0, 0);
@@ -113,12 +123,96 @@ class PlayerController : public Behaviour {
         m_Camera->SetTransform(newCamTransform);
     }
 
+    std::vector<Object> m_InteractableObjects;
+    PublicText * m_HintText = nullptr;
+    Object holdObj;
+    Object eatSound;
+    bool hasHoldObj = false;
+    const float MAX_HIT_DIST = 15.0f;
+    const float holdDistance = 7.0f;
+    const float throwPower = 20.0f;
+    const int FOOD_NAME = 1;
+
+    void ProcessTargeting(float deltaTime) {
+        if (m_MovementMode == Fly) {
+            hasHoldObj = false;
+            return;
+        }
+        Ray ray = Ray(m_Camera->GetPosition(), m_Camera->GetPosition() + m_Camera->GetFront());
+        Object target;
+        bool has_target = false;
+        float closest = MAX_HIT_DIST;
+        for (int i = 0; i < m_InteractableObjects.size(); i++) {
+            Object obj = m_InteractableObjects[i];
+            auto hit = obj.GetCollider()->RaycastHit(*obj.GetTransform(), ray);
+            if (hit && *hit < closest) {
+                target = obj;
+                target.name = obj.name;
+                has_target = true;
+                closest = *hit;
+            }
+        }
+
+        if (hasHoldObj) {
+            // how to move to new line in this text?
+            m_HintText->SetContent("E to drop / Q to throw");
+        } else if (has_target) {
+            if (target.name == FOOD_NAME) {
+                m_HintText->SetContent("press E to eat");
+            } else {
+                m_HintText->SetContent("press E to grab");
+            }
+        } else {
+            m_HintText->SetContent("");
+        }
+
+        if (s_Input->IsKeyPressed(Key::E)) {
+            if (hasHoldObj) {
+                hasHoldObj = false;
+            } else {
+                if (has_target) {
+                    if (target.name == FOOD_NAME) {
+                        // delete food and apply shader
+                        // .Remove() crashing engine :(
+                        // target.Remove();
+                        target.GetTransform()->Translate(Vec3(0, -100, 0));
+                        eatSound.GetSound()->Start();
+                    } else {
+                        holdObj = target;
+                        hasHoldObj = true;
+                    }
+                }
+            }
+        }
+        if (s_Input->IsKeyPressed(Key::Q) && hasHoldObj) {
+            Vec3 throwVelocity = glm::normalize(m_Camera->GetFront()) * throwPower;
+            holdObj.GetRigidBody()->velocity = throwVelocity;
+            hasHoldObj = false;
+        }
+
+        if (hasHoldObj) {
+            Vec3 holdPos = self.GetTransform()->GetTranslation()
+                + glm::normalize(m_Camera->GetFront()) * holdDistance;
+            Vec3 objMidOffset = Vec3(0, 1, 0);
+            holdObj.GetTransform()->SetTranslation(holdPos - objMidOffset);
+            holdObj.GetRigidBody()->velocity = Vec3(0);
+        }
+    }
+
  public:
     void Update(float deltaTime) {
         ProcessMovement(deltaTime);
+        Vec3 pos = self.GetTransform()->GetTranslation();
+        ProcessTargeting(deltaTime);
     }
 
-    explicit PlayerController(Camera * camera) {
+    explicit PlayerController(Camera * camera,
+            std::vector<Object> interactableObjects,
+            PublicText * hintText) {
+        m_InteractableObjects = interactableObjects;
         m_Camera = camera;
+        m_HintText = hintText;
+        eatSound = engine->NewObject();
+        eatSound.AddSound(SoundType::SOUND_FLAT, "chew.wav").SetVolume(0.5f);
     }
 };

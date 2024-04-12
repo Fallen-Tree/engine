@@ -1,4 +1,6 @@
 #pragma once
+
+#include <string>
 #include "transform.hpp"
 #include "collider.hpp"
 #include "animation.hpp"
@@ -9,6 +11,8 @@
 
 class Object {
  public:
+    int name = 0;
+
     Object(const Object &) = default;
     Object(Object &&) = default;
     Object& operator=(const Object &);
@@ -28,6 +32,7 @@ class Object {
     SpotLight *GetSpotLight();
     Behaviour *GetBehaviour();
     RigidBody *GetRigidBody();
+    Sound *GetSound();
 
     template<typename ...Ts>
     Transform &AddTransform(Ts... ts) {

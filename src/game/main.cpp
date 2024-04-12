@@ -13,6 +13,8 @@ Engine *engine;
 // I'd like to move responsibility about default shader to engine
 ShaderProgram *defaultSP;
 
+std::vector<Object> interactableObjects(0);
+
 // Initializing global variables
 void init() {
     engine = new Engine();
@@ -37,8 +39,10 @@ void createUI() {
     auto ocraFont = new Font("OCRAEXT.TTF", 20);
     auto obj = engine->NewObject();
     obj.AddText(ocraFont, "", 0.85f, 0.95f, 1.f, Vec3(0, 0, 0));
-    // obj.AddText(ocraFont, "", 685.0f, 575.0f, 1.f, Vec3(0, 0, 0));
-    obj.AddBehaviour<FpsText>();
+    obj.AddBehaviour<FpsText>();\
+
+    auto pointer = engine->NewObject();
+    pointer.AddText(ocraFont, "+", 0.5f, 0.5f, 1.f, Vec3(1.f, 1.f, 1.f));
 
     // engine->NewObject().AddImage("hp.png", 0.03f, 0.15f, 0.4f);
     // engine->NewObject().AddImage("hp_bar.png", 0.015f, 0.01f, 0.4f);
@@ -88,23 +92,6 @@ void createLights() {
     */
 }
 
-void addCat() {
-    Model * model = Model::loadFromFile("cat.obj");
-    model->shader = defaultSP;
-    Material cat_material = {
-        4.f,
-        Texture("/Cat_diffuse.png", "/Cat_specular.png")
-    };
-    model->setMaterial(cat_material);
-    auto obj = engine->NewObject();
-    obj.AddModel(*model);
-    auto &t = obj.AddTransform(Vec3(0.f, -3.f, -8.f), Vec3(.1f, .1f, .1f), Mat4(1.0));
-    t.Rotate(1.67f, Vec3(-1.f, 0.f, 0.f));
-    obj.AddCollider(Collider::GetDefaultAABB(&model->meshes[0]));
-    // obj.AddRigidBody(100.f, Mat3(0), Vec3(0), 0.f, Vec3(0, -1000, 0),
-    //     Vec3(0), Vec3(1), 0.1f);
-}
-
 void buildRoom() {
     float floor_y = -6.0f;
 
@@ -129,6 +116,28 @@ void buildRoom() {
                 Vec3(wall_scale), Mat4(1.0)), w2)
             .GetTransform()->Rotate(0, glm::radians(-90.0f), 0);
     }
+
+    float walls_x = walls_cnt * wall_scale * 4.5f + 3.8f;
+    newStaticBody(new Transform(Vec3(0), Vec3(1), Mat4(1)), new Collider{AABB {
+            Vec3{-walls_x - 1, floor_y, -walls_x},
+            Vec3{-walls_x, floor_y + 20, walls_x},
+        }});
+    newStaticBody(new Transform(Vec3(0), Vec3(1), Mat4(1)), new Collider{AABB {
+            Vec3{-walls_x, floor_y, walls_x},
+            Vec3{walls_x, floor_y + 10, walls_x + 1},
+        }});
+    newStaticBody(new Transform(Vec3(0), Vec3(1), Mat4(1)), new Collider{AABB {
+            Vec3{walls_x, floor_y, -walls_x},
+            Vec3{walls_x + 1, floor_y + 10, walls_x},
+        }});
+    newStaticBody(new Transform(Vec3(0), Vec3(1), Mat4(1)), new Collider{AABB {
+            Vec3{-walls_x, floor_y, -walls_x - 1},
+            Vec3{walls_x, floor_y + 10, -walls_x},
+        }});
+    newStaticBody(new Transform(Vec3(0), Vec3(1), Mat4(1)), new Collider{AABB {
+            Vec3{-walls_x, floor_y - 1, -walls_x},
+            Vec3{walls_x, floor_y, walls_x},
+        }});
 
     Model *floor = Model::loadFromFile("Floor_Modular.fbx");
     int floor_cnt = 4;
@@ -172,7 +181,24 @@ void buildRoom() {
 
     float cc_scale = 1.5f;
     Model *cc = Model::loadFromFile("CompanionCube/Portal_Companion_Cube.obj");
-    newModel(new Transform(Vec3(8, floor_y + cc_scale, 0), Vec3(cc_scale), Mat4(1.0)), cc);
+    Object cube = newDynamicBody(
+        new Transform(Vec3(18, floor_y + cc_scale + 0.1f, 0), Vec3(cc_scale), Mat4(1.0)), cc,
+        new Collider{Collider::GetDefaultAABB(&cc->meshes[0])},
+        new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f));
+    interactableObjects.push_back(cube);
+
+    float chest_scale = 20.f;
+    float chest_y = floor_y + chest_scale * 0.1f;
+    Model *chest = Model::loadFromFile("Chest/model.obj");
+    for (int i = 0; i < 4; ++i) {
+        Object chestObj = newDynamicBody(
+            new Transform(Vec3(-20, chest_y, i * 5 - 10), Vec3(chest_scale), Mat4(1.0)),
+            chest,
+            new Collider{Collider::GetDefaultAABB(&chest->meshes[0])},
+            new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f));
+        chestObj.GetTransform()->Rotate(0, glm::radians(90.0f), 0);
+        interactableObjects.push_back(chestObj);
+    }
 
     Model *plant1 = Model::loadFromFile("HousePlant/Houseplant.obj");
     newModel(new Transform(Vec3(10, floor_y, 0), Vec3(1), Mat4(1.0)), plant1);
@@ -185,13 +211,45 @@ void buildRoom() {
     dogObj.GetTransform()->Rotate(glm::radians(-90.0f), 0, 0);
 
     Model *chair = Model::loadFromFile("Chair.obj");
-    Transform *chTransform = new Transform(Vec3(20, floor_y, 5), Vec3(0.4), Mat4(1.0));
-    Object chairObj = newModel(chTransform, chair);
+    for (int i = 0; i < 4; ++i) {
+        Transform *chTransform = new Transform(Vec3(5 * i, floor_y, -15), Vec3(0.4), Mat4(1.0));
+        Object chairObj = newDynamicBody(chTransform, chair,
+            new Collider{Collider::GetDefaultAABB(&chair->meshes[0])},
+            new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f));
+        interactableObjects.push_back(chairObj);
+    }
 
     float table_y = 4.2f;
 
     Model *table = Model::loadFromFile("Table_Small/Table_Small.obj");
-    newModel(new Transform(Vec3(20, floor_y, 14), Vec3(0.05), Mat4(1.0)), table);
+    newStaticBody(new Transform(Vec3(20, floor_y, 14), Vec3(0.05), Mat4(1.0)), table,
+        new Collider{Collider::GetDefaultAABB(&table->meshes[0])});
+
+    Model *table2 = Model::loadFromFile("Desk/desk.obj");
+    newStaticBody(new Transform(Vec3(20, floor_y, -30), Vec3(15.0), Mat4(1.0)), table2,
+        new Collider{Collider::GetDefaultAABB(&table2->meshes[0])});
+
+    Model *big_shelf = Model::loadFromFile("wooden bookshelf/model.obj");
+    newStaticBody(new Transform(Vec3(20, floor_y + 7, -walls_x + 3), Vec3(8.0), Mat4(1.0)), big_shelf,
+        new Collider{Collider::GetDefaultAABB(&big_shelf->meshes[0])}).
+        GetTransform()->Rotate(0, glm::radians(-90.0f), 0);
+
+    /*Model *small_shelf = Model::loadFromFile("shelf.obj");
+    newStaticBody(new Transform(Vec3(10, floor_y + 10, -walls_x + 3), Vec3(5.0), Mat4(1.0)), small_shelf,
+        new Collider{Collider::GetDefaultAABB(&small_shelf->meshes[0])});
+    */
+
+    Model *pizza = Model::loadFromFile("Pizza slice/Pizza_Slice_01.obj");
+    Object pizzaObj = newDynamicBody(
+        new Transform(Vec3(20, floor_y + table_y, 16), Vec3(0.1), Mat4(1.0)), pizza,
+        new Collider{Collider::GetDefaultAABB(&pizza->meshes[0])},
+        new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f));
+    pizzaObj.name = 1;
+    interactableObjects.push_back(pizzaObj);
+
+    Model *painting = Model::loadFromFile("Wall painting/Wall_Art_Classical_01.obj");
+    newModel(new Transform(Vec3(walls_x, floor_y + 8, 6), Vec3(0.5), Mat4(1.0)), painting)
+        .GetTransform()->Rotate(0, glm::radians(90.0f), 0);
 
     Model *boombox = Model::loadFromFile("record player.fbx");
     newModel(new Transform(Vec3(20, floor_y + table_y, 14), Vec3(1.0, 1.0, 0.25), Mat4(1.0)), boombox)
@@ -199,14 +257,14 @@ void buildRoom() {
 }
 
 void poolTable() {
-    float balls_y = 2;
+    float balls_y = -2.0f;
     std::vector<Vec3> coordinates {
-    /*    Vec3(-2, balls_y, -0.2f),
+        Vec3(-2, balls_y, -0.2f),
         Vec3(-2.5f, balls_y, -0.5f),
         Vec3(-2.5f, balls_y, 0.1f),
         Vec3(-3.f, balls_y, -0.8f),
         Vec3(-3.f, balls_y, -0.2f),
-        Vec3(-3.f, balls_y, 0.4f),
+    /*    Vec3(-3.f, balls_y, 0.4f),
         Vec3(-3.5f, balls_y, -1.1f),
         Vec3(-3.5f, balls_y, -0.5f),
         Vec3(-3.5f, balls_y, 0.1f),
@@ -228,7 +286,16 @@ void poolTable() {
         balls.push_back(reinterpret_cast<MovingBall*>(newBall.GetBehaviour()));
     }
 
-    Table::New(Vec3(0, -7, 0), Vec3(5));
+    auto ocraFont = new Font("OCRAEXT.TTF", 20);
+    auto scoreText = PublicText::New(ocraFont, "0", Vec2(0.02f, 0.95f), 1.f, Vec3(0, 0, 0));
+    Object gmObj = engine->NewObject();
+    gmObj.AddBehaviour<GameManager>(
+        reinterpret_cast<PublicText*>(scoreText.GetBehaviour()));
+    GameManager *gameManager = reinterpret_cast<GameManager*>(gmObj.GetBehaviour());
+
+    float table_y = -7;
+
+    Table::New(Vec3(0, table_y, 0), Vec3(5), gameManager);
 
     Cue::New(balls, engine->camera);
 }
@@ -239,13 +306,18 @@ int main() {
 
     buildRoom();
     poolTable();
-    // addCat();
     createUI();
-    // createLights();
 
+    auto ocraFont = new Font("OCRAEXT.TTF", 20);
+    auto hintText = reinterpret_cast<PublicText*>(
+        PublicText::New(ocraFont, "0", Vec2(0.53f, 0.5f), 1.f, Vec3(1))
+        .GetBehaviour());
     Object player = engine->NewObject();
-    player.AddBehaviour<PlayerController>(engine->camera);
-    player.AddTransform(Vec3(0, 1.5f, 0), Vec3(1), Mat4(1));
-
+    player.AddBehaviour<PlayerController>(engine->camera, interactableObjects, hintText);
+    player.AddTransform(Vec3(0.f, 1.5f, 14.f), Vec3(1), Mat4(1));
+    player.AddCollider(AABB{Vec3(-0.6, -7, -0.6f), Vec3(0.6f, 1, 0.6f)});
+    float player_mass = 1.0f;
+    player.AddRigidBody(player_mass, Mat4(0),
+                0.5f, Vec3(0, -gravity * player_mass, 0), 0.f);
     engine->Run();
 }
