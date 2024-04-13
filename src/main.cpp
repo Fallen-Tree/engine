@@ -81,15 +81,15 @@ int main() {
 
         obj.AddTransform(transform);
         obj.AddCollider(primitive);
-        obj.AddRigidBody(RigidBody(mass, IBodyOBB(Vec3(1), mass), speed, 0.3, Vec3(0),
-                    angUnlock, 0.2));
+        obj.AddRigidBody(RigidBody(mass, IBodyOBB(Vec3(1), mass), speed, 0.3,
+                    Vec3(0, -mass * 10, 0), angUnlock, 0.2));
         return obj;
     };
 
     auto cat = engine.NewObject();
     cat.AddModel(*model);
     auto &t = cat.AddTransform(Vec3(0.f, -5.f, -8.f), Vec3(0.1f), Mat4(1.0));
-    cat.AddCollider(&model->meshes[0]);
+    //cat.AddCollider(&model->meshes[0]);
 
 
     auto aabb = setUpObj(
@@ -103,18 +103,29 @@ int main() {
         0,
         Vec3(0));
 
-    /*
     auto obb = setUpObj(
-        Transform(Vec3(2, 0, 2.0), Vec3(2), 45.0f, Vec3(1, 0, 1)),
+        Transform(Vec3(2, 0, 2.0), Vec3(1), 45, Vec3(1, 0, 1)),
         OBB {
             Vec3(0, 0, 0),
             Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
             Vec3(0.5, 0.5, 0.5),
         },
         cubeModel,
-        Vec3(0, 0, 0),
+        Vec3(3, 0, 0),
         1,
         Vec3(1));
+
+    /*
+    auto aabb2 = setUpObj(
+        Transform(Vec3(-4, 0, 2.0), Vec3(1), 0.f, Vec3(1)),
+        AABB {
+            Vec3(-0.5),
+            Vec3(0.5)
+        },
+        cubeModel,
+        Vec3(1, 0, 0),
+        1,
+        Vec3(0));
 
     auto obb2 = setUpObj(
         Transform(Vec3(0, -1, 2.0), Vec3(2), 0.0f, Vec3(1)),

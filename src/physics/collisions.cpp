@@ -11,12 +11,35 @@
 
 void CollidePrimitive(OBB obb, AABB aabb, CollisionManifold* manifold) {
     CollidePrimitive(aabb, obb, manifold);
+    manifold->normal *= -1;
 }
 
 bool OverlapOnAxis(AABB aabb, OBB obb, Vec3 axis) {
     Interval a = aabb.GetInterval(axis);
     Interval b = obb.GetInterval(axis);
     return ((b.min <= a.max) && (a.min <= b.max));
+}
+
+inline float PenetrationDepth(OBB& o, AABB& a,
+        const Vec3& axis, bool* outShouldFlip) {
+    Interval i1 = o.GetInterval(Norm(axis));
+    Interval i2 = a.GetInterval(Norm(axis));
+
+    if (!((i2.min <= i1.max) && (i1.min <= i2.max))) {
+        return 0.0f; // No penerattion
+    }
+
+    float len1 = i1.max - i1.min;
+    float len2 = i2.max - i2.min;
+    float min = fminf(i1.min, i2.min);
+    float max = fmaxf(i1.max, i2.max);
+    float length = max - min;
+
+    if (outShouldFlip != 0) {
+        *outShouldFlip = (i2.min < i1.min);
+    }
+
+    return (len1 + len2) - length;
 }
 
 void CollidePrimitive(AABB aabb, OBB obb, CollisionManifold* manifold) {
@@ -39,13 +62,36 @@ void CollidePrimitive(AABB aabb, OBB obb, CollisionManifold* manifold) {
         test[6 + i * 3 + 2] = glm::cross(test[i], test[2]);
     }
 
+    Vec3 *hitNormal = nullptr;
+    bool shouldFlip;
+
     for (int i = 0; i < 15; i++) {
-        if (!OverlapOnAxis(aabb, obb, test[i])) {
-            return;  // Seperating axis found
+        if (glm::length(test[i]) < 0.001f) {
+            continue;
+        }
+        float depth = PenetrationDepth(obb, aabb, test[i], &shouldFlip);
+        if (depth <= 0.0f) {
+            return;
+        } else if (depth < manifold->penetrationDistance) {
+            if (shouldFlip) {
+                test[i] = test[i] * -1.0f;
+            }
+            manifold->penetrationDistance = depth;
+            hitNormal = &test[i];
         }
     }
 
+    if (hitNormal == nullptr) {
+        return;
+    }
+
+    Vec3 axis = Norm(*hitNormal);
+
+    // TODO(solloballon): find all collision point 
+    manifold->collisionPoint = obb.ClosestPoint((aabb.max + aabb.min) / 2.f);
+
     manifold->isCollide = true;
+    manifold->normal = axis;
     return;  // Seperating axis not found
 }
 
@@ -301,6 +347,13 @@ void CollidePrimitive(AABB lhs, AABB rhs, CollisionManifold *manifold) {
     manifold->isCollide = lhs.max.x >= rhs.min.x && rhs.max.x >= lhs.min.x &&
         lhs.max.y >= rhs.min.y && rhs.max.y >= lhs.min.y &&
         lhs.max.z >= rhs.min.z && rhs.max.z >= lhs.min.z;
+    
+    if (!manifold->isCollide)
+        return; // no colliding
+                //
+    for (int i = 0; i < 3; i++) { //  x, y, z axis
+    }
+
 }
 
 void CollidePrimitive(Triangle t, AABB a, CollisionManifold *manifold) {
