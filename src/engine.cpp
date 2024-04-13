@@ -415,8 +415,9 @@ void Engine::updateObjects(float deltaTime) {
                 auto t1 = GetGlobalTransform(handle);
                 auto t2 = GetGlobalTransform(handle2);
                 m_RigidBodies.GetData(handle).ResolveCollisions(
-                        t1, t2, &c1, &c2,
-                        &m_RigidBodies.GetData(handle2), deltaTime);
+                        &m_RigidBodies.GetData(handle2),
+                        m_CollideCache[handle][handle2],
+                        t1, t2, deltaTime);
             }
         }
     }

@@ -7,6 +7,7 @@
 
 //TODO:: make much more IBody getter
 Mat3 IBodySphere(float radius, float mass);
+Mat3 IBodyOBB(Vec3 halfWidth, float mass);
 
 class RigidBody {
 public:
@@ -35,24 +36,23 @@ public:
 
  void Update(Transform *tranform, float dt);
 
- void ResolveCollisions(Transform tranform, Transform otherTransform, 
-        Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody, 
-        float dt);
+ void ResolveCollisions(RigidBody *otherRigidBody, CollisionManifold manifold,
+         Transform transform, Transform otherTransform, float dt);
 
-void SetMass(float mass);
+ void SetMass(float mass);
 
-void SetIbodyInverse(Mat3 iBody);
+ void SetIbodyInverse(Mat3 iBody);
 
-void ApplyTorque(Vec3 force, Vec3 r);
+ void ApplyTorque(Vec3 force, Vec3 r);
 
 private:
  void LinearCalculation(Transform *transform, float dt);
 
  void AngularCalculation(Transform *transform, float dt);
 
- void ComputeForceTorque(Transform tranform, Transform otherTransform, 
-        Collider *collider, Collider *otherCollider, RigidBody *otherRigidBody, 
-        float dt);
+ void ComputeForceTorque(RigidBody* otherRigidBody,
+         CollisionManifold manifold, Transform tranform,
+         Transform otherTransform, float dt);
 
  void ComputeFriction(Vec3 normalForce, float friction, Vec3 r, float dt,
          Vec3 normal);

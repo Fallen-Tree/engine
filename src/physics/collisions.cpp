@@ -4,6 +4,7 @@
 #include "math_types.hpp"
 #include "collisions.hpp"
 #include "engine_config.hpp"
+#include "pretty_print.hpp"
 #include <glm/common.hpp>
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -149,7 +150,6 @@ inline std::vector<Vec3> ClipEdgesToOBB(
             if (ClipToPlane(planes[i], edges[j], &intersection)) {
                 if (obb.PointIn(intersection)) {
                     result.push_back(intersection);
-
                 }
             }
         }
@@ -200,7 +200,7 @@ void CollidePrimitive(OBB a, OBB b, CollisionManifold *manifold) {
     bool shouldFlip;
 
     for (int i = 0; i < 15; i++) {
-        if (glm::length(test[i])< 0.001f) {
+        if (glm::length(test[i]) < 0.001f) {
             continue;
         }
         float depth = PenetrationDepth(a, b, test[i], &shouldFlip);
@@ -224,12 +224,16 @@ void CollidePrimitive(OBB a, OBB b, CollisionManifold *manifold) {
     std::vector<Vec3> c2 = ClipEdgesToOBB(a.GetEdges(), b);
     Vec3 p = Vec3(0);
     for (auto i : c1) {
-        p += i;
+       Logger::Info("col point %s", ToString(i));
     }
     for (auto i : c2) {
         p += i;
+        Logger::Info("col point %s", ToString(i));
     }
-    p /= c1.size() + c2.size();
+    if (c1.size() == 0 && c2.size() == 0)
+        Logger::Info("here shiiit");
+    Logger::Info("point %s", p);
+    manifold->collisionPoint = p / (float)(c1.size() + c2.size());
 
     Interval i = a.GetInterval(axis);
     float distance = (i.max - i.min) * 0.5f
@@ -239,15 +243,14 @@ void CollidePrimitive(OBB a, OBB b, CollisionManifold *manifold) {
             glm::dot(axis, pointOnPlane - manifold->collisionPoint));
 
     manifold->isCollide = true;
-    manifold->normal = axis;
+    manifold->normal = -axis;
     
     return;
 }
 
 void CollidePrimitive(Sphere a, OBB b, CollisionManifold *manifold) {
     Vec3 p = b.ClosestPoint(a.center);
-    Vec3 v = p - a.center;
-    float distanceSq = glm::length(v);
+    float distanceSq = glm::length(p - a.center);
     manifold->isCollide = distanceSq <= a.radius * a.radius;
     if (!manifold->isCollide)
         return;
@@ -270,6 +273,7 @@ void CollidePrimitive(Sphere a, OBB b, CollisionManifold *manifold) {
 
 void CollidePrimitive(OBB a, Sphere b, CollisionManifold *manifold) {
     CollidePrimitive(b, a, manifold);
+    manifold->normal *= -1;
 }
 
 void CollidePrimitive(Plane a, OBB b, CollisionManifold *manifold) {
@@ -668,6 +672,7 @@ std::optional<float> CollisionPrimitive(Ray r, OBB o) {
     return tmin;
 }
 
+/*
 Vec3 CollisionNormal(AABB a1, AABB a2, Transform tr1, Transform tr2, Vec3 velocity, float dt) {
     const float epsilon = 0.1;
     auto transformed1 = a1.Transformed(tr1).PrevState(velocity, dt);
@@ -789,3 +794,4 @@ Vec3 CollisionNormal(Mesh*, OBB,     Transform, Transform, Vec3, float) {
             "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
     return Vec3(0);
 }
+*/

@@ -1,9 +1,8 @@
 #pragma once
 #include <glm/glm.hpp>
 
-template <typename T>
-bool isCloseToZero(T x) {
-    return std::abs(x) < std::numeric_limits<T>::epsilon();
+inline bool isCloseToZero(float x) {
+    return std::abs(x) <= FLT_EPSILON * std::max(1.f, x);
 }
 
 typedef glm::fvec2 Vec2;

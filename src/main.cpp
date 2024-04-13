@@ -74,12 +74,15 @@ int main() {
     sphereModel->shader = shaderProgram;
     cubeModel->shader = shaderProgram;
 
-    auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model) {
+    auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model,
+            Vec3 speed, float mass) {
         auto obj = engine.NewObject();
         obj.AddModel(*model);
 
         obj.AddTransform(transform);
         obj.AddCollider(primitive);
+        obj.AddRigidBody(RigidBody(mass, IBodyOBB(Vec3(1), mass), speed, 1, Vec3(0),
+                    Vec3(1), 1));
         return obj;
     };
 
@@ -89,26 +92,28 @@ int main() {
     cat.AddCollider(&model->meshes[0]);
 
     auto obb = setUpObj(
-        Transform(Vec3(0, 0, 2.0), Vec3(1), 0.0f, Vec3(1)),
+        Transform(Vec3(2, 0, 2.0), Vec3(2), 45.0f, Vec3(1, 0, 1)),
         OBB {
             Vec3(0, 0, 0),
             Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
             Vec3(0.5, 0.5, 0.5),
         },
-        cubeModel);
+        cubeModel,
+        Vec3(0, 0, 0),
+        1);
 
-    obb.AddBehaviour<MovingRotating>();
-
+    /*
     auto obb2 = setUpObj(
-        Transform(Vec3(-5, -3, 2.0), Vec3(2), 0.0f, Vec3(1)),
+        Transform(Vec3(0, -1, 2.0), Vec3(2), 0.0f, Vec3(1)),
         OBB {
             Vec3(0, 0, 0),
             Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
             Vec3(0.5, 0.5, 0.5),
         },
-        cubeModel);
+        cubeModel,
+        Vec3(0),
+        1);
 
-    obb2.AddBehaviour<MovingRotating2>();
 
     auto obb3 = setUpObj(
         Transform(Vec3(10, 13, 10.0), Vec3(2), 0.0f, Vec3(1)),
@@ -117,34 +122,34 @@ int main() {
             Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
             Vec3(0.5, 0.5, 0.5),
         },
-        cubeModel);
-
-    obb3.AddBehaviour<MovingRotating>();
+        cubeModel,
+        Vec3(0),
+        1);
+        */
 
     auto getSphereObj = [=, &engine](Transform transform, Vec3 speed, float mass) {
         auto obj = engine.NewObject();
         obj.AddTransform(transform);
         obj.AddModel(*sphereModel);
         obj.AddCollider(Sphere{ Vec3(0), 1.f });
-        obj.AddBehaviour<Moving>();
+        obj.AddRigidBody(RigidBody(mass, IBodySphere(transform.GetScale().x, mass), speed, 1, Vec3(0), Vec3(1), 1));
         return obj;
     };
 
-    /*
-    Object spheres[1] = {
+    Object spheres[2] = {
         getSphereObj(
-            Transform(Vec3(0, -1, 2.0), Vec3(1), 0.f, Vec3(1)),
-            Vec3(10, 0, 0),
-            4)
+            Transform(Vec3(-3, 0, 2.0), Vec3(1), 0.f, Vec3(1)),
+            Vec3(1, 0, 0),
+            10)/*,
         getSphereObj(
-            Transform(Vec3(0, -1, 2.0), Vec3(1), 0.f, Vec3(1)),
+            Transform(Vec3(5, -1, 2.0), Vec3(4), 0.f, Vec3(1)),
             Vec3(0, 0, 0),
             4.f),
         getSphereObj(
             Transform(Vec3(10, -1, 2.0), Vec3(1.0), 0, Vec3(1)),
             Vec3(0, 0, 0),
+            */
     };
-*/
 
     class FpsText : public Behaviour {
      public:
