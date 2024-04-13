@@ -14,12 +14,6 @@ void CollidePrimitive(OBB obb, AABB aabb, CollisionManifold* manifold) {
     manifold->normal *= -1;
 }
 
-bool OverlapOnAxis(AABB aabb, OBB obb, Vec3 axis) {
-    Interval a = aabb.GetInterval(axis);
-    Interval b = obb.GetInterval(axis);
-    return ((b.min <= a.max) && (a.min <= b.max));
-}
-
 inline float PenetrationDepth(OBB& o, AABB& a,
         const Vec3& axis, bool* outShouldFlip) {
     Interval i1 = o.GetInterval(Norm(axis));
@@ -137,30 +131,10 @@ void CollidePrimitive(OBB obb, Triangle triangle, CollisionManifold *manifold) {
     CollidePrimitive(triangle, obb, manifold);
 }
 
-Mat3 RotationMatrix(OBB a, OBB b) {
-    Mat3 res;
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            res[i][j] = glm::dot(a.axis[i], b.axis[j]);
-        }
-    }
-    return res;
-}
-
 // TODO(solloballon): do this shit
 bool CollidePrimitive(Ray, OBB) {
     assert(false);
     return false;
-}
-
-Mat3 AbsRotationMatrix(Mat3 rotationMat, float epsilon) {
-    Mat3 res;
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            res[i][j] = std::abs(rotationMat[i][j]) + epsilon;
-        }
-    }
-    return res;
 }
 
 inline bool ClipToPlane(const Plane& plane,
@@ -781,126 +755,3 @@ std::optional<float> CollisionPrimitive(Ray r, OBB o) {
     return tmin;
 }
 
-/*
-Vec3 CollisionNormal(AABB a1, AABB a2, Transform tr1, Transform tr2, Vec3 velocity, float dt) {
-    const float epsilon = 0.1;
-    auto transformed1 = a1.Transformed(tr1).PrevState(velocity, dt);
-    auto transformed2 = a2.Transformed(tr2);
-
-    if (transformed1.min.x + epsilon >= transformed2.max.x) {
-        return Vec3(1, 0, 0);
-    } else if (transformed1.max.x <= transformed2.min.x + epsilon) {
-        return Vec3(-1, 0, 0);
-    } else if (transformed1.min.y + epsilon >= transformed2.max.y) {
-        return Vec3(0, 1, 0);
-    } else if (transformed1.max.y <= transformed2.min.y + epsilon) {
-        return Vec3(0, -1, 0);
-    } else if (transformed1.min.z + epsilon >= transformed2.max.z) {
-        return Vec3(0, 0, 1);
-    } else if (transformed1.max.z <= transformed2.min.z + epsilon) {
-        return Vec3(0, 0, -1);
-    }
-
-    // the case if one object is inside other
-    return Norm(tr1.GetTranslation() - tr2.GetTranslation())
-        * static_cast<float>(EJECTION_RATIO);
-}
-
-Vec3 CollisionNormal(Sphere sph, AABB a, Transform tr1, Transform tr2,
-        Vec3 velocity, float dt) {
-    return -CollisionNormal(a, sph, tr2, tr1, velocity, dt);
-}
-
-Vec3 CollisionNormal(AABB a, Sphere sph, Transform tr1, Transform tr2,
-        Vec3 velocity, float dt) {
-    const float epsilon = 0.1;
-    auto transformed1 = a.Transformed(tr1).PrevState(velocity, dt);
-    auto transformed2 = sph.Transformed(tr2);
-
-    return Norm(
-        transformed1.ClosestPoint(transformed2.center)
-        - transformed2.center);
-}
-
-Vec3 CollisionNormal(Sphere sph1, Sphere sph2,
-        Transform tr1, Transform tr2, Vec3 vel, float dt) {
-    auto tranformed1 = sph1.Transformed(tr1).PrevState(vel, dt);
-    auto tranformed2 = sph2.Transformed(tr2);
-
-    return Norm(tranformed1.center - tranformed2.center);
-}
-
-// TODO(solloballon): make this operation with Model
-Vec3 CollisionNormal(AABB, Mesh*, Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
-    return Vec3(0);
-}
-
-Vec3 CollisionNormal(Mesh*, AABB, Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
-    return Vec3(0);
-}
-
-Vec3 CollisionNormal(Sphere, Mesh*, Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
-    return Vec3(0);
-}
-
-Vec3 CollisionNormal(Mesh*, Sphere, Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
-    return Vec3(0);
-}
-
-Vec3 CollisionNormal(Mesh*, Mesh*, Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
-    return Vec3(0);
-}
-
-// TODO(solloballon): make this operation with OBB
-Vec3 CollisionNormal(OBB, OBB,       Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
-    return Vec3(0);
-}
-
-Vec3 CollisionNormal(AABB, OBB,      Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
-    return Vec3(0);
-}
-
-Vec3 CollisionNormal(OBB, AABB,      Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
-    return Vec3(0);
-}
-
-Vec3 CollisionNormal(Sphere, OBB,    Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
-    return Vec3(0);
-}
-
-Vec3 CollisionNormal(OBB, Sphere,    Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
-    return Vec3(0);
-}
-
-Vec3 CollisionNormal(OBB, Mesh*,     Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
-    return Vec3(0);
-}
-
-Vec3 CollisionNormal(Mesh*, OBB,     Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
-    return Vec3(0);
-}
-*/
