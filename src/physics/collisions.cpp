@@ -180,7 +180,6 @@ inline float PenetrationDepth(OBB& o1, OBB& o2,
     return (len1 + len2) - length;
 }
         
-
 void CollidePrimitive(OBB a, OBB b, CollisionManifold *manifold) {
     Vec3 test[15] = { // Face axis
         a.axis[0],
@@ -222,17 +221,12 @@ void CollidePrimitive(OBB a, OBB b, CollisionManifold *manifold) {
 
     std::vector<Vec3> c1 = ClipEdgesToOBB(b.GetEdges(), a);
     std::vector<Vec3> c2 = ClipEdgesToOBB(a.GetEdges(), b);
+
     Vec3 p = Vec3(0);
-    for (auto i : c1) {
-       Logger::Info("col point %s", ToString(i));
-    }
-    for (auto i : c2) {
-        p += i;
-        Logger::Info("col point %s", ToString(i));
-    }
+    for (auto i : c1) p += i;
+    for (auto i : c2) p += i;
     if (c1.size() == 0 && c2.size() == 0)
-        Logger::Info("here shiiit");
-    Logger::Info("point %s", p);
+        Logger::Info("COLLISION::OBBVSOBB::POINTS_SIZE_IS_ZERO");
     manifold->collisionPoint = p / (float)(c1.size() + c2.size());
 
     Interval i = a.GetInterval(axis);
@@ -396,11 +390,31 @@ void CollidePrimitive(Sphere s1, Sphere s2, CollisionManifold *manifold) {
 }
 
 void CollidePrimitive(AABB aabb, Sphere s, CollisionManifold *manifold) {
-    return CollidePrimitive(s, aabb, manifold);
+    CollidePrimitive(s, aabb, manifold);
+    manifold->normal *= -1;
 }
 
 void CollidePrimitive(Sphere s, AABB aabb, CollisionManifold *manifold) {
+    auto distanceSq = aabb.Distance2(s.center);
+    Vec3 p = aabb.ClosestPoint(s.center);
+
     manifold->isCollide = aabb.Distance2(s.center) <= s.radius * s.radius;
+
+    if (isCloseToZero(distanceSq)) {
+        auto aabbCenter = (aabb.max + aabb.min) / 2.f;
+        float mSq = glm::length(p - aabbCenter);
+        if (isCloseToZero(mSq)) // here manifold can be strange
+            return;
+        // Closest point is at the center of the sphere
+        manifold->normal = Norm(p - aabbCenter);
+    } else {
+        manifold->normal = Norm(s.center - p);
+    }
+
+    Vec3 outsidePoint = s.center - manifold->normal * s.radius;
+    float distance = glm::length(p - outsidePoint);
+    manifold->collisionPoint = p + (outsidePoint - p) * 0.5f;
+    manifold->penetrationDistance = distance * 0.5f;
 }
 
 void CollidePrimitive(Sphere, Triangle, CollisionManifold *manifold);

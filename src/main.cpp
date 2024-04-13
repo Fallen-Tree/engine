@@ -75,14 +75,14 @@ int main() {
     cubeModel->shader = shaderProgram;
 
     auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model,
-            Vec3 speed, float mass) {
+            Vec3 speed, float mass, Vec3 angUnlock) {
         auto obj = engine.NewObject();
         obj.AddModel(*model);
 
         obj.AddTransform(transform);
         obj.AddCollider(primitive);
-        obj.AddRigidBody(RigidBody(mass, IBodyOBB(Vec3(1), mass), speed, 1, Vec3(0),
-                    Vec3(1), 1));
+        obj.AddRigidBody(RigidBody(mass, IBodyOBB(Vec3(1), mass), speed, 0.3, Vec3(0),
+                    angUnlock, 0.2));
         return obj;
     };
 
@@ -91,6 +91,19 @@ int main() {
     auto &t = cat.AddTransform(Vec3(0.f, -5.f, -8.f), Vec3(0.1f), Mat4(1.0));
     cat.AddCollider(&model->meshes[0]);
 
+
+    auto aabb = setUpObj(
+        Transform(Vec3(2, -30, 2.0), Vec3(50), 0.f, Vec3(1)),
+        AABB {
+            Vec3(-0.5),
+            Vec3(0.5)
+        },
+        cubeModel,
+        Vec3(0, 0, 0),
+        0,
+        Vec3(0));
+
+    /*
     auto obb = setUpObj(
         Transform(Vec3(2, 0, 2.0), Vec3(2), 45.0f, Vec3(1, 0, 1)),
         OBB {
@@ -100,9 +113,9 @@ int main() {
         },
         cubeModel,
         Vec3(0, 0, 0),
-        1);
+        1,
+        Vec3(1));
 
-    /*
     auto obb2 = setUpObj(
         Transform(Vec3(0, -1, 2.0), Vec3(2), 0.0f, Vec3(1)),
         OBB {
@@ -132,23 +145,25 @@ int main() {
         obj.AddTransform(transform);
         obj.AddModel(*sphereModel);
         obj.AddCollider(Sphere{ Vec3(0), 1.f });
-        obj.AddRigidBody(RigidBody(mass, IBodySphere(transform.GetScale().x, mass), speed, 1, Vec3(0), Vec3(1), 1));
+        obj.AddRigidBody(RigidBody(
+            mass, IBodySphere(transform.GetScale().x, mass),
+            speed, 0, Vec3(0, -mass, 0), Vec3(1), 0.1));
         return obj;
     };
 
-    Object spheres[2] = {
+    Object spheres[3] = {
         getSphereObj(
-            Transform(Vec3(-3, 0, 2.0), Vec3(1), 0.f, Vec3(1)),
-            Vec3(1, 0, 0),
-            10)/*,
+            Transform(Vec3(-10, 0, 2.0), Vec3(1), 0.f, Vec3(1)),
+            Vec3(3, 0, 0),
+            10),
         getSphereObj(
-            Transform(Vec3(5, -1, 2.0), Vec3(4), 0.f, Vec3(1)),
+            Transform(Vec3(5, 0, 2.0), Vec3(1), 0.f, Vec3(1)),
             Vec3(0, 0, 0),
             4.f),
         getSphereObj(
-            Transform(Vec3(10, -1, 2.0), Vec3(1.0), 0, Vec3(1)),
+            Transform(Vec3(10, 0, 2.0), Vec3(1.0), 0, Vec3(1)),
             Vec3(0, 0, 0),
-            */
+            10000)
     };
 
     class FpsText : public Behaviour {

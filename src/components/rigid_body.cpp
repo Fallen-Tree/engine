@@ -213,11 +213,9 @@ void RigidBody::ComputeForceTorque(RigidBody *otherRigidBody,
     Logger::Info("otherforce %s", ToString(otherRigidBody->m_ResForce));
 
     // Compute friction
-    /*
     auto friction = std::sqrt(kineticFriction * otherRigidBody->kineticFriction);
     ComputeFriction(normalForce, friction, r1, dt, normal);
     otherRigidBody->ComputeFriction(otherNormalForce, friction, r2, dt, -normal);
     Logger::Info("force %s", ToString(m_ResForce));
     Logger::Info("otherforce %s", ToString(otherRigidBody->m_ResForce));
-    */
 }
