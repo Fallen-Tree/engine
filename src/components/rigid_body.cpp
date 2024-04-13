@@ -91,9 +91,6 @@ void RigidBody::AngularCalculation(Transform *transform, float dt) {
 
 void RigidBody::ApplyTorque(Vec3 force, Vec3 r) {
     auto cross = glm::cross(force, r);
-    Logger::Info("force %0.10f %0.10f %0.10f", force.x, force.y, force.z);
-    Logger::Info("r %0.10f %0.10f %0.10f", r.x, r.y, r.z);
-    Logger::Info("cross %0.10f %0.10f %0.10f", cross.x, cross.y, cross.z);
     m_Torque += glm::cross(force, r) * static_cast<float>(TORQUE_RATIO);
 }
 
@@ -123,7 +120,8 @@ inline void RigidBody::ComputeFriction(Vec3 normalForce, float friction,
             + (projectionVel / (dt * massInverse)))
             < glm::length(frictionForce)) {
         m_ResForce -= m_ResForce * glm::abs(direction);
-        velocity -= velocity * glm::abs(direction);
+        m_ResForce -= Projection(m_ResForce, direction);
+        velocity -= Projection(velocity, direction);
         LimitTorque(frictionForce, r);
         return;
     }
@@ -163,24 +161,20 @@ void RigidBody::ComputeForceTorque(RigidBody *otherRigidBody,
     Vec3 rv = velocity - otherRigidBody->velocity;
 
     Vec3 normal = manifold.normal;
-    Logger::Info("normal %s", ToString(normal));
 
     float velAlongNormal = glm::dot(rv, normal);
 
+    if (velAlongNormal > 0)
+        return;
+
     Vec3 impulseForce = ImpulseForce(this, otherRigidBody, normal,
             velAlongNormal, dt);
-    Logger::Info("force %s", ToString(m_ResForce));
-    Logger::Info("otherforce %s", ToString(otherRigidBody->m_ResForce));
-    Logger::Info("impulse force %s", ToString(impulseForce));
 
     // Compute normal force
     Vec3 normalForce = -Projection(m_ResForce, normal);
     Vec3 otherNormalForce = -Projection(otherRigidBody->m_ResForce, normal);
     m_ResForce += normalForce;
     otherRigidBody->m_ResForce += otherNormalForce;
-    Logger::Info("force %s", ToString(m_ResForce));
-    Logger::Info("otherforce %s", ToString(otherRigidBody->m_ResForce));
-
 
     // If one of body is static (has infinity mass), then other body will stop
     if (massInverse == 0) {
@@ -192,9 +186,6 @@ void RigidBody::ComputeForceTorque(RigidBody *otherRigidBody,
     }
 
     // Compute lever of force
-    Logger::Info("point %s", ToString(manifold.collisionPoint));
-    Logger::Info("c1 %s", ToString(transform.GetTranslation()));
-    Logger::Info("c2 %s", ToString(otherTransform.GetTranslation()));
     auto r1 = manifold.collisionPoint - transform.GetTranslation();
     auto r2 = manifold.collisionPoint - otherTransform.GetTranslation();
 
@@ -205,17 +196,11 @@ void RigidBody::ComputeForceTorque(RigidBody *otherRigidBody,
 
         // Compute torque for impulse force
         ApplyTorque(impulseForce, r1);
-        Logger::Info("torque %s", ToString(m_Torque));
         otherRigidBody->ApplyTorque(-impulseForce, r2);
-        Logger::Info("torque %s", ToString(otherRigidBody->m_Torque));
     }
-    Logger::Info("force %s", ToString(m_ResForce));
-    Logger::Info("otherforce %s", ToString(otherRigidBody->m_ResForce));
 
     // Compute friction
     auto friction = std::sqrt(kineticFriction * otherRigidBody->kineticFriction);
     ComputeFriction(normalForce, friction, r1, dt, normal);
     otherRigidBody->ComputeFriction(otherNormalForce, friction, r2, dt, -normal);
-    Logger::Info("force %s", ToString(m_ResForce));
-    Logger::Info("otherforce %s", ToString(otherRigidBody->m_ResForce));
 }

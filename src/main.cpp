@@ -92,11 +92,11 @@ int main() {
     //cat.AddCollider(&model->meshes[0]);
 
 
-    auto aabb = setUpObj(
+    auto staticOBB = setUpObj(
         Transform(Vec3(2, -30, 2.0), Vec3(50), 0.f, Vec3(1)),
         AABB {
             Vec3(-0.5),
-            Vec3(0.5)
+            Vec3(0.5),
         },
         cubeModel,
         Vec3(0, 0, 0),
@@ -169,21 +169,21 @@ int main() {
         obj.AddCollider(Sphere{ Vec3(0), 1.f });
         obj.AddRigidBody(RigidBody(
             mass, IBodySphere(transform.GetScale().x, mass),
-            speed, 0, Vec3(0, -mass * 10, 0), Vec3(1), 0.01));
+            speed, 1, Vec3(0, -mass * 10, 0), Vec3(1), 0.01));
         return obj;
     };
 
     Object spheres[3] = {
         getSphereObj(
-            Transform(Vec3(-10, 0, 2.0), Vec3(1), 0.f, Vec3(1)),
-            Vec3(3, 0, 0),
+            Transform(Vec3(-10, 4, 2.0), Vec3(1), 0.f, Vec3(1)),
+            Vec3(0, 0, 0),
             10000),
         getSphereObj(
-            Transform(Vec3(5, 0, 2.0), Vec3(0.3), 0.f, Vec3(1)),
+            Transform(Vec3(5, 4, 2.0), Vec3(0.3), 0.f, Vec3(1)),
             Vec3(0, 0, 0),
             4.f),
         getSphereObj(
-            Transform(Vec3(10, 0, 2.0), Vec3(1.0), 0, Vec3(1)),
+            Transform(Vec3(10, 4, 2.0), Vec3(1.0), 0, Vec3(1)),
             Vec3(0, 0, 0),
             10000)
     };
