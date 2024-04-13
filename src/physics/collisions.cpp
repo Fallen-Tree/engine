@@ -192,7 +192,7 @@ inline std::vector<Vec3> ClipEdgesToOBB(
 
     std::vector<Plane> planes = obb.GetPlanes();
     for (int i = 0; i < planes.size(); i++) {
-        for (int j = 0; j <edges.size(); j++) {
+        for (int j = 0; j < edges.size(); j++) {
             if (ClipToPlane(planes[i], edges[j], &intersection)) {
                 if (obb.PointIn(intersection)) {
                     result.push_back(intersection);
@@ -343,17 +343,59 @@ void CollidePrimitive(AABB aabb, Plane plane, CollisionManifold *manifold) {
     manifold->isCollide = glm::abs(c_dist) <= r;
 }
 
-void CollidePrimitive(AABB lhs, AABB rhs, CollisionManifold *manifold) {
-    manifold->isCollide = lhs.max.x >= rhs.min.x && rhs.max.x >= lhs.min.x &&
-        lhs.max.y >= rhs.min.y && rhs.max.y >= lhs.min.y &&
-        lhs.max.z >= rhs.min.z && rhs.max.z >= lhs.min.z;
-    
-    if (!manifold->isCollide)
-        return; // no colliding
-                //
-    for (int i = 0; i < 3; i++) { //  x, y, z axis
+inline float PenetrationDepth(AABB& a1, AABB& a2,
+        const Vec3& axis, bool* outShouldFlip) {
+    Interval i1 = a1.GetInterval(axis);
+    Interval i2 = a2.GetInterval(axis);
+
+    if (!((i2.min <= i1.max) && (i1.min <= i2.max))) {
+        return 0.0f; // No penerattion
     }
 
+    float len1 = i1.max - i1.min;
+    float len2 = i2.max - i2.min;
+    float min = fminf(i1.min, i2.min);
+    float max = fmaxf(i1.max, i2.max);
+    float length = max - min;
+
+    if (outShouldFlip != 0) {
+        *outShouldFlip = (i2.min < i1.min);
+    }
+
+    return (len1 + len2) - length;
+}
+
+void CollidePrimitive(AABB a1, AABB a2, CollisionManifold *manifold) {
+    Vec3 test[3] {
+        Vec3(1, 0, 0),
+        Vec3(0, 1, 0),
+        Vec3(0, 0, 1),
+    };
+
+    Vec3 *hitNormal = nullptr;
+    bool shouldFlip;
+
+    for (int i = 0; i < 3; i++) {
+        float depth = PenetrationDepth(a1, a2, test[i], &shouldFlip);
+        if (depth <= 0.0f) {
+            return;
+        } else if (depth < manifold->penetrationDistance) {
+            if (shouldFlip) {
+                test[i] = test[i] * -1.0f;
+            }
+            manifold->penetrationDistance = depth;
+            hitNormal = &test[i];
+        }
+    }
+
+    if (hitNormal == nullptr) {
+        Logger::Info("here");
+        return;
+    }
+
+    manifold->collisionPoint = Vec3(0);
+    manifold->isCollide = true;
+    manifold->normal = -(*hitNormal);
 }
 
 void CollidePrimitive(Triangle t, AABB a, CollisionManifold *manifold) {
