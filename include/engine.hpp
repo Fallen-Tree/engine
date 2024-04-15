@@ -22,6 +22,8 @@
 #include "pretty_print.hpp"
 #include "images.hpp"
 #include "manifold.hpp"
+#include "skeletal_animations_manager.hpp"
+#include "skeletal_animation_data.hpp"
 
 extern Input *s_Input;
 
@@ -42,6 +44,7 @@ class Engine {
     RigidBody *GetRigidBody(ObjectHandle);
     Animation *GetAnimation(ObjectHandle);
     Text *GetText(ObjectHandle);
+    SkeletalAnimationsManager *GetSkeletalAnimationsManager(ObjectHandle);
     Image *GetImage(ObjectHandle);
     Sound *GetSound(ObjectHandle);
     PointLight *GetPointLight(ObjectHandle);
@@ -55,6 +58,7 @@ class Engine {
     RigidBody &AddRigidBody(ObjectHandle, RigidBody);
     Animation &AddAnimation(ObjectHandle, Animation);
     Text &AddText(ObjectHandle, Text);
+    SkeletalAnimationsManager &AddSkeletalAnimationsManager(ObjectHandle, SkeletalAnimationsManager);
     Image &AddImage(ObjectHandle, Image);
     Sound &AddSound(ObjectHandle, Sound);
     PointLight &AddPointLight(ObjectHandle, PointLight);
@@ -97,6 +101,7 @@ class Engine {
     ComponentArray<Animation> m_Animations;
     ComponentArray<Image> m_Images;
     ComponentArray<Text> m_Texts;
+    ComponentArray<SkeletalAnimationsManager> m_SkeletalAnimationsManagers;
     ComponentArray<Sound> m_Sounds;
 
     ComponentArray<PointLight> m_PointLights;

@@ -49,6 +49,10 @@ Animation *Object::GetAnimation() {
     return m_Engine->GetAnimation(m_Handle);
 }
 
+SkeletalAnimationsManager *Object::GetSkeletalAnimationsManager() {
+    return m_Engine->GetSkeletalAnimationsManager(m_Handle);
+}
+
 Text *Object::GetText() {
     return m_Engine->GetText(m_Handle);
 }
