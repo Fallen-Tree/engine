@@ -20,7 +20,7 @@ inline float PenetrationDepth(OBB& o, AABB& a,
     Interval i2 = a.GetInterval(Norm(axis));
 
     if (!((i2.min <= i1.max) && (i1.min <= i2.max))) {
-        return 0.0f; // No penerattion
+        return 0.0f;  // No penerattion
     }
 
     float len1 = i1.max - i1.min;
@@ -81,7 +81,7 @@ void CollidePrimitive(AABB aabb, OBB obb, CollisionManifold* manifold) {
 
     Vec3 axis = Norm(*hitNormal);
 
-    // TODO(solloballon): find all collision point 
+    // TODO(solloballon): find all collision point
     manifold->collisionPoint = obb.ClosestPoint((aabb.max + aabb.min) / 2.f);
 
     manifold->isCollide = true;
@@ -184,7 +184,7 @@ inline float PenetrationDepth(OBB& o1, OBB& o2,
     Interval i2 = o2.GetInterval(Norm(axis));
 
     if (!((i2.min <= i1.max) && (i1.min <= i2.max))) {
-        return 0.0f; // No penerattion
+        return 0.0f;  // No penerattion
     }
 
     float len1 = i1.max - i1.min;
@@ -199,9 +199,9 @@ inline float PenetrationDepth(OBB& o1, OBB& o2,
 
     return (len1 + len2) - length;
 }
-        
+
 void CollidePrimitive(OBB a, OBB b, CollisionManifold *manifold) {
-    Vec3 test[15] = { // Face axis
+    Vec3 test[15] = {  // Face axis
         a.axis[0],
         a.axis[1],
         a.axis[2],
@@ -209,7 +209,7 @@ void CollidePrimitive(OBB a, OBB b, CollisionManifold *manifold) {
         b.axis[1],
         b.axis[2],
     };
-    for (int i = 0; i < 3; i++) { // Fill out rest of axis
+    for (int i = 0; i < 3; i++) {  // Fill out rest of axis
         test[6 + i * 3 + 0] = glm::cross(test[i], test[0]);
         test[6 + i * 3 + 1] = glm::cross(test[i], test[1]);
         test[6 + i * 3 + 2] = glm::cross(test[i], test[2]);
@@ -258,7 +258,7 @@ void CollidePrimitive(OBB a, OBB b, CollisionManifold *manifold) {
 
     manifold->isCollide = true;
     manifold->normal = -axis;
-    
+
     return;
 }
 
@@ -268,10 +268,10 @@ void CollidePrimitive(Sphere a, OBB b, CollisionManifold *manifold) {
     manifold->isCollide = distanceSq <= a.radius * a.radius;
     if (!manifold->isCollide)
         return;
-    
+
     if (isCloseToZero(distanceSq)) {
         float mSq = glm::length(p - b.center);
-        if (isCloseToZero(mSq)) // here manifold can be strange
+        if (isCloseToZero(mSq))  // here manifold can be strange
             return;
         // Closest point is at the center of the sphere
         manifold->normal = Norm(p - b.center);
@@ -323,7 +323,7 @@ inline float PenetrationDepth(AABB& a1, AABB& a2,
     Interval i2 = a2.GetInterval(axis);
 
     if (!((i2.min <= i1.max) && (i1.min <= i2.max))) {
-        return 0.0f; // No penerattion
+        return 0.0f;  // No penerattion
     }
 
     float len1 = i1.max - i1.min;
@@ -472,7 +472,7 @@ void CollidePrimitive(Sphere s, AABB aabb, CollisionManifold *manifold) {
     if (isCloseToZero(distanceSq)) {
         auto aabbCenter = (aabb.max + aabb.min) / 2.f;
         float mSq = glm::length(p - aabbCenter);
-        if (isCloseToZero(mSq)) // here manifold can be strange
+        if (isCloseToZero(mSq))  // here manifold can be strange
             return;
         // Closest point is at the center of the sphere
         manifold->normal = Norm(p - aabbCenter);

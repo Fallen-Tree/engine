@@ -253,9 +253,9 @@ std::vector<Line> OBB::GetEdges() {
     result.reserve(12);
     std::vector<Vec3> v = GetVertices();
 
-    int index[][2] = { // Indices of edge-vertices
-        {6,1}, {6,3}, {6,4}, {2,7}, {2,5}, {2,0},
-        {0,1}, {0,3}, {7,1}, {7,4}, {4,5}, {5,3}
+    int index[][2] = {  // Indices of edge-vertices
+        {6, 1}, {6, 3}, {6, 4}, {2, 7}, {2, 5}, {2, 0},
+        {0, 1}, {0, 3}, {7, 1}, {7, 4}, {4, 5}, {5, 3}
     };
     for (int j = 0; j < 12; ++j) {
         result.push_back(Line{

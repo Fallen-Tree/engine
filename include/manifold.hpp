@@ -1,5 +1,5 @@
 #pragma once
-
+#include <limits>
 #include "math_types.hpp"
 
 struct CollisionManifold {

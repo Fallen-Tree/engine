@@ -1,7 +1,7 @@
 #pragma once
+#include <vector>
 #include "transform.hpp"
 #include "math_types.hpp"
-#include <vector>
 
 struct Plane;
 struct Triangle;
@@ -67,8 +67,8 @@ struct Plane {
 
 struct OBB {
     Vec3 center;
-    Mat3 axis; // Local x-, y-, and z-axis
-    Vec3 halfWidth; // Positive halfwidth extents of OBB along each axis
+    Mat3 axis;  // Local x-, y-, and z-axis
+    Vec3 halfWidth;  // Positive halfwidth extents of OBB along each axis
 
     Interval GetInterval(Vec3 axisParametr);
     Vec3 ClosestPoint(Vec3);

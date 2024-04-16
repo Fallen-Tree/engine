@@ -5,7 +5,7 @@
 #include "collider.hpp"
 #include "collisions.hpp"
 
-//TODO:: make much more IBody getter
+// TODO(solloballon): make much more IBody getter
 Mat3 IBodySphere(float radius, float mass);
 Mat3 IBodyOBB(Vec3 halfWidth, float mass);
 
