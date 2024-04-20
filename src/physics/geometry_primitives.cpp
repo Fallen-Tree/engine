@@ -212,7 +212,7 @@ OBB OBB::Transformed(Transform transform) {
     };
 }
 
-bool OBB::PointIn(Vec3 point) {
+bool OBB::IsPointIn(Vec3 point) {
     Vec3 dir = point - center;
     for (int i = 0; i < 3; i++) {
         float distance = glm::dot(dir, axis[i]);

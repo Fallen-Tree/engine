@@ -317,7 +317,7 @@ bool Engine::Collide(ObjectHandle a, ObjectHandle b) {
         Logger::Warn("Trying to get collision data on objects with no colliders");
         return false;
     }
-    return m_CollideCache[a][b].isCollide;
+    return m_CollideCache[a][b].collide;
 }
 
 std::vector<Object> Engine::CollideAll(ObjectHandle a) {

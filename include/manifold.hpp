@@ -3,14 +3,14 @@
 #include "math_types.hpp"
 
 struct CollisionManifold {
-    bool isCollide = false;
-    Vec3 normal = Vec3(0);
+    bool collide = false;
+    Vec3 collisionNormal = Vec3(0);
     Vec3 collisionPoint;
-    float penetrationDistance = std::numeric_limits<float>::max();;
+    float penetrationDistance = std::numeric_limits<float>::max();
 };
 
 inline void ResetCollisionManifold(CollisionManifold* result) {
-    result->isCollide = false;
+    result->collide = false;
     result->penetrationDistance = 0;
-    result->normal = Vec3(0);
+    result->collisionNormal = Vec3(0);
 }

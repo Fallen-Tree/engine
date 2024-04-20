@@ -107,6 +107,21 @@ int main() {
        wolfObj.AddBehaviour<WolfBehaviour>();
     }
 
+    // {
+    //     /* XBot */
+    //     Model *pigeonModel = Model::loadFromFile("XBot/XBot.dae", skeletalShaderProgram);
+
+    //     auto pigeonAnimation1 = new SkeletalAnimationData("XBot/Praying.dae", 0, pigeonModel);
+
+    //     auto pigeonObj = engine.NewObject();
+    //     pigeonObj.AddTransform(Vec3(-6.f, -10.f, -10.f), Vec3(5.f), Mat4(1.0));
+    //     pigeonObj.AddModel(*pigeonModel);
+    //     auto& animManager = pigeonObj.AddSkeletalAnimationsManager(pigeonAnimation1);
+    //     animManager.AddAnimation("XBot/Hip Hop Dancing.dae", pigeonModel);
+    //     Logger::Info("%s", animManager.GetAnimationsInfo().c_str());
+    //     animManager.PlayImmediately(1, 1);
+    // }
+
 
     {
         Model * model = Model::loadFromFile(catSource);
@@ -126,6 +141,7 @@ int main() {
     model->shader = standartShaderProgram;
     auto dog = engine.NewObject();
     dog.AddModel(*model);
+    // dog.AddSkeletalAnimationsManager("ShibaInu.fbx", model).PlayImmediately(14, 1);
     dog.AddTransform(Transform(Vec3(2, -5, 0.0), Vec3(1.f), glm::radians(-90.f), Vec3(1.0f, 0.f, 0.f)));
 
     Material material = {
@@ -150,6 +166,7 @@ int main() {
     auto cat = engine.NewObject();
     cat.AddModel(*model);
     auto &t = cat.AddTransform(Vec3(0.f, -5.f, -8.f), Vec3(0.1f), Mat4(1.0));
+    //cat.AddCollider(&model->meshes[0]);
 
 
     auto staticAABB = setUpObj(
@@ -177,6 +194,53 @@ int main() {
         1,
         Vec3(1));
 
+    /*
+    auto aabb2 = setUpObj(
+        Transform(Vec3(-4, 0, 2.0), Vec3(1), 0.f, Vec3(1)),
+        AABB {
+            Vec3(-0.5),
+            Vec3(0.5)
+        },
+        cubeModel,
+        Vec3(3, 0, 0),
+        1,
+        Vec3(0));
+
+    auto aabb3 = setUpObj(
+        Transform(Vec3(0, 0, 2.0), Vec3(1), 0.f, Vec3(1)),
+        AABB {
+            Vec3(-0.5),
+            Vec3(0.5)
+        },
+        cubeModel,
+        Vec3(0, 0, 0),
+        1,
+        Vec3(0));
+
+    auto obb2 = setUpObj(
+        Transform(Vec3(0, -1, 2.0), Vec3(2), 0.0f, Vec3(1)),
+        OBB {
+            Vec3(0, 0, 0),
+            Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
+            Vec3(0.5, 0.5, 0.5),
+        },
+        cubeModel,
+        Vec3(0),
+        1);
+
+
+    auto obb3 = setUpObj(
+        Transform(Vec3(10, 13, 10.0), Vec3(2), 0.0f, Vec3(1)),
+        OBB {
+            Vec3(0, 0, 0),
+            Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
+            Vec3(0.5, 0.5, 0.5),
+        },
+        cubeModel,
+        Vec3(0),
+        1);
+        */
+
     auto getSphereObj = [=, &engine](Transform transform, Vec3 speed, float mass) {
         auto obj = engine.NewObject();
         obj.AddTransform(transform);
@@ -188,6 +252,25 @@ int main() {
         return obj;
     };
 
+    /*
+    Object spheres[3] = {
+        getSphereObj(
+            Transform(Vec3(-10, 4, 2.0), Vec3(1), 0.f, Vec3(1)),
+            Vec3(1, 0, 0),
+            1),
+        getSphereObj(
+            Transform(Vec3(5, 4, 2.0), Vec3(1), 0.f, Vec3(1)),
+            Vec3(0, 0, 0),
+            4.f),
+        getSphereObj(
+            Transform(Vec3(10, 4, 2.0), Vec3(1.0), 0, Vec3(1)),
+            Vec3(0, 0, 0),
+            10000)
+    };
+    */
+
+    // cat.AddChild(aabb);
+    // cat.AddBehaviour<Moving>();
 
     class FpsText : public Behaviour {
      public:

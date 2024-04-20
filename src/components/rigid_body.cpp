@@ -55,9 +55,9 @@ void RigidBody::ResolveCollisions(RigidBody *otherRigidBody,
         Transform globalTransform, Transform otherGlobalTransform,
         Transform& tr1, Transform& tr2, float dt) {
     if (massInverse != 0)
-        tr1.Translate(manifold.normal * manifold.penetrationDistance);
+        tr1.Translate(manifold.collisionNormal * manifold.penetrationDistance);
     if (otherRigidBody->massInverse != 0)
-        tr2.Translate(-manifold.normal * manifold.penetrationDistance);
+        tr2.Translate(-manifold.collisionNormal * manifold.penetrationDistance);
 
     ComputeForceTorque(otherRigidBody, manifold,
             globalTransform, otherGlobalTransform, dt);
@@ -168,7 +168,7 @@ void RigidBody::ComputeForceTorque(RigidBody *otherRigidBody,
 
     Vec3 rv = velocity - otherRigidBody->velocity;
 
-    Vec3 normal = manifold.normal;
+    Vec3 normal = manifold.collisionNormal;
 
     float velAlongNormal = glm::dot(rv, normal);
 
