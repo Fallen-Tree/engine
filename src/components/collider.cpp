@@ -32,32 +32,24 @@ bool CollideShifted(Ray lhs, Mesh* rhs, Transform rhsTransform) {
 template<typename T, typename U>
 CollisionManifold CollideShifted(T lhs, Transform lhsTransform,
         U rhs, Transform rhsTransform) {
-    CollisionManifold res;
-    CollidePrimitive(lhs.Transformed(lhsTransform),
-            rhs.Transformed(rhsTransform), &res);
-    return res;
+    return CollidePrimitive(lhs.Transformed(lhsTransform),
+            rhs.Transformed(rhsTransform));
 }
 
 template<typename T>
 CollisionManifold CollideShifted(T lhs, Transform lhsTransform,
         Mesh *rhs, Transform rhsTransform) {
-    CollisionManifold res;
-    CollideMeshAt(lhs.Transformed(lhsTransform), rhs, rhsTransform, &res);
-    return res;
+    return CollideMeshAt(lhs.Transformed(lhsTransform), rhs, rhsTransform);
 }
 
 template<typename U>
 CollisionManifold CollideShifted(Mesh *lhs, Transform lhsTransform,
         U rhs, Transform rhsTransform) {
-    CollisionManifold res;
-    CollideMeshAt(rhs.Transformed(rhsTransform), lhs, lhsTransform, &res);
-    return res;
+    return CollideMeshAt(rhs.Transformed(rhsTransform), lhs, lhsTransform);
 }
 
 CollisionManifold CollideShifted(Mesh *lhs, Transform lhsTransform, Mesh *rhs, Transform rhsTransform) {
-    CollisionManifold res;
-    CollideMeshes(lhs, lhsTransform, rhs, rhsTransform, &res);
-    return res;
+    return CollideMeshes(lhs, lhsTransform, rhs, rhsTransform);
 }
 
 CollisionManifold Collider::Collide(Transform self, Collider *other, Transform otherTransform) {

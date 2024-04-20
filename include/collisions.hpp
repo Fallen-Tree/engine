@@ -4,39 +4,39 @@
 #include "mesh.hpp"
 #include "manifold.hpp"
 
-void CollidePrimitive(AABB, AABB, CollisionManifold*);
-void CollidePrimitive(Sphere, Sphere, CollisionManifold*);
-void CollidePrimitive(Triangle, Triangle, CollisionManifold*);
-void CollidePrimitive(OBB, OBB, CollisionManifold*);
+CollisionManifold CollidePrimitive(AABB, AABB);
+CollisionManifold CollidePrimitive(Sphere, Sphere);
+CollisionManifold CollidePrimitive(Triangle, Triangle);
+CollisionManifold CollidePrimitive(OBB, OBB);
 
-void CollidePrimitive(AABB, Triangle, CollisionManifold*);
-void CollidePrimitive(Triangle, AABB, CollisionManifold*);
+CollisionManifold CollidePrimitive(AABB, Triangle);
+CollisionManifold CollidePrimitive(Triangle, AABB);
 
-void CollidePrimitive(Plane p, AABB a, CollisionManifold*);
-void CollidePrimitive(AABB p, Plane a, CollisionManifold*);
+CollisionManifold CollidePrimitive(Plane p, AABB a);
+CollisionManifold CollidePrimitive(AABB p, Plane a);
 
-void CollidePrimitive(AABB, Sphere, CollisionManifold*);
-void CollidePrimitive(Sphere, AABB, CollisionManifold*);
+CollisionManifold CollidePrimitive(AABB, Sphere);
+CollisionManifold CollidePrimitive(Sphere, AABB);
 
-void CollidePrimitive(Triangle, Sphere, CollisionManifold*);
-void CollidePrimitive(Sphere, Triangle, CollisionManifold*);
+CollisionManifold CollidePrimitive(Triangle, Sphere);
+CollisionManifold CollidePrimitive(Sphere, Triangle);
 
-void CollidePrimitive(Plane, OBB, CollisionManifold*);
-void CollidePrimitive(OBB, Plane, CollisionManifold*);
+CollisionManifold CollidePrimitive(Plane, OBB);
+CollisionManifold CollidePrimitive(OBB, Plane);
 
-void CollidePrimitive(Sphere, OBB, CollisionManifold*);
-void CollidePrimitive(OBB, Sphere, CollisionManifold*);
+CollisionManifold CollidePrimitive(Sphere, OBB);
+CollisionManifold CollidePrimitive(OBB, Sphere);
 
-void CollidePrimitive(Triangle, OBB, CollisionManifold*);
-void CollidePrimitive(OBB, Triangle, CollisionManifold*);
+CollisionManifold CollidePrimitive(Triangle, OBB);
+CollisionManifold CollidePrimitive(OBB, Triangle);
 
-void CollidePrimitive(AABB, OBB, CollisionManifold*);
-void CollidePrimitive(OBB, AABB, CollisionManifold*);
+CollisionManifold CollidePrimitive(AABB, OBB);
+CollisionManifold CollidePrimitive(OBB, AABB);
 
 template<typename T>
-void CollideMeshAt(T t, Mesh *mesh, Transform transform, CollisionManifold*);
-void CollideMeshes(Mesh *mesh, Transform transform, Mesh *mesh2,
-        Transform transform2, CollisionManifold*);
+CollisionManifold CollideMeshAt(T t, Mesh *mesh, Transform transform);
+CollisionManifold CollideMeshes(Mesh *mesh, Transform transform, Mesh *mesh2,
+        Transform transform2);
 
 bool CollidePrimitive(Ray, Sphere);
 bool CollidePrimitive(Ray, AABB);

@@ -9,9 +9,10 @@
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-void CollidePrimitive(OBB obb, AABB aabb, CollisionManifold* manifold) {
-    CollidePrimitive(aabb, obb, manifold);
-    manifold->collisionNormal *= -1;
+CollisionManifold CollidePrimitive(OBB obb, AABB aabb) {
+    auto res = CollidePrimitive(aabb, obb);
+    res.collisionNormal *= -1;
+    return res;
 }
 
 inline float PenetrationDepth(OBB& o, AABB& a,
@@ -36,7 +37,8 @@ inline float PenetrationDepth(OBB& o, AABB& a,
     return (len1 + len2) - length;
 }
 
-void CollidePrimitive(AABB aabb, OBB obb, CollisionManifold* manifold) {
+CollisionManifold CollidePrimitive(AABB aabb, OBB obb) {
+    CollisionManifold res;
     Vec3 test[15] = {
         Vec3(1, 0, 0),
         // AABB axis 1
@@ -65,28 +67,28 @@ void CollidePrimitive(AABB aabb, OBB obb, CollisionManifold* manifold) {
         }
         float depth = PenetrationDepth(obb, aabb, test[i], &shouldFlip);
         if (depth <= 0.0f) {
-            return;
-        } else if (depth < manifold->penetrationDistance) {
+            return res;
+        } else if (depth < res.penetrationDistance) {
             if (shouldFlip) {
                 test[i] = test[i] * -1.0f;
             }
-            manifold->penetrationDistance = depth;
+            res.penetrationDistance = depth;
             hitNormal = &test[i];
         }
     }
 
     if (hitNormal == nullptr) {
-        return;
+        return res;
     }
 
     Vec3 axis = Norm(*hitNormal);
 
     // TODO(solloballon): find all collision point
-    manifold->collisionPoint = obb.ClosestPoint((aabb.max + aabb.min) / 2.f);
+    res.collisionPoint = obb.ClosestPoint((aabb.max + aabb.min) / 2.f);
 
-    manifold->collide = true;
-    manifold->collisionNormal = axis;
-    return;  // Seperating axis not found
+    res.collide = true;
+    res.collisionNormal = axis;
+    return res;  // Seperating axis not found
 }
 
 bool OverlapOnAxis(OBB obb, Triangle triangle, Vec3 axis) {
@@ -95,7 +97,8 @@ bool OverlapOnAxis(OBB obb, Triangle triangle, Vec3 axis) {
     return ((b.min <= a.max) && (a.min <= b.max));
 }
 
-void CollidePrimitive(Triangle triangle, OBB obb, CollisionManifold *manifold) {
+CollisionManifold CollidePrimitive(Triangle triangle, OBB obb) {
+    CollisionManifold res;
     // Compute the edge vectors of the triangle (ABC)
     Vec3 f0 = triangle.b - triangle.a;
     Vec3 f1 = triangle.c - triangle.b;
@@ -119,16 +122,18 @@ void CollidePrimitive(Triangle triangle, OBB obb, CollisionManifold *manifold) {
 
     for (int i = 0; i < 13; i++) {
         if (!OverlapOnAxis(obb, triangle, test[i])) {
-            return;  // Separating axis found
+            return res;  // Separating axis found
         }
     }
 
-    manifold->collide = true;
-    return;  // Separating axis not found
+    res.collide = true;
+    return res;  // Separating axis not found
 }
 
-void CollidePrimitive(OBB obb, Triangle triangle, CollisionManifold *manifold) {
-    CollidePrimitive(triangle, obb, manifold);
+CollisionManifold CollidePrimitive(OBB obb, Triangle triangle) {
+    auto res = CollidePrimitive(triangle, obb);
+    res.collisionNormal *= 1;
+    return res;
 }
 
 // TODO(solloballon): do this shit
@@ -200,7 +205,8 @@ inline float PenetrationDepth(OBB& o1, OBB& o2,
     return (len1 + len2) - length;
 }
 
-void CollidePrimitive(OBB a, OBB b, CollisionManifold *manifold) {
+CollisionManifold CollidePrimitive(OBB a, OBB b) {
+    CollisionManifold res;
     Vec3 test[15] = {  // Face axis
         a.axis[0],
         a.axis[1],
@@ -224,18 +230,18 @@ void CollidePrimitive(OBB a, OBB b, CollisionManifold *manifold) {
         }
         float depth = PenetrationDepth(a, b, test[i], &shouldFlip);
         if (depth <= 0.0f) {
-            return;
-        } else if (depth < manifold->penetrationDistance) {
+            return res;
+        } else if (depth < res.penetrationDistance) {
             if (shouldFlip) {
                 test[i] = test[i] * -1.0f;
             }
-            manifold->penetrationDistance = depth;
+            res.penetrationDistance = depth;
             hitNormal = &test[i];
         }
     }
 
     if (hitNormal == nullptr) {
-        return;
+        return res;
     }
     Vec3 axis = Norm(*hitNormal);
 
@@ -247,65 +253,75 @@ void CollidePrimitive(OBB a, OBB b, CollisionManifold *manifold) {
     for (auto i : c2) p += i;
     if (c1.size() == 0 && c2.size() == 0)
         Logger::Info("COLLISION::OBBVSOBB::POINTS_SIZE_IS_ZERO");
-    manifold->collisionPoint = p / (float)(c1.size() + c2.size());
+    res.collisionPoint = p / (float)(c1.size() + c2.size());
 
     Interval i = a.GetInterval(axis);
     float distance = (i.max - i.min) * 0.5f
-        - manifold->penetrationDistance * 0.5f;
+        - res.penetrationDistance * 0.5f;
     Vec3 pointOnPlane = a.center + axis * distance;
-    manifold->collisionPoint += (axis *
-            glm::dot(axis, pointOnPlane - manifold->collisionPoint));
+    res.collisionPoint += (axis *
+            glm::dot(axis, pointOnPlane - res.collisionPoint));
 
-    manifold->collide = true;
-    manifold->collisionNormal = -axis;
+    res.collide = true;
+    res.collisionNormal = -axis;
 
-    return;
+    return res;
 }
 
-void CollidePrimitive(Sphere a, OBB b, CollisionManifold *manifold) {
+CollisionManifold CollidePrimitive(Sphere a, OBB b) {
+    CollisionManifold res;
     Vec3 p = b.ClosestPoint(a.center);
     float distanceSq = glm::length(p - a.center);
-    manifold->collide = distanceSq <= a.radius * a.radius;
-    if (!manifold->collide)
-        return;
+    res.collide = distanceSq <= a.radius * a.radius;
+    if (!res.collide)
+        return res;
 
     if (isCloseToZero(distanceSq)) {
         float mSq = glm::length(p - b.center);
         if (isCloseToZero(mSq))  // here manifold can be strange
-            return;
+            return res;
         // Closest point is at the center of the sphere
-        manifold->collisionNormal = Norm(p - b.center);
+        res.collisionNormal = Norm(p - b.center);
     } else {
-        manifold->collisionNormal = Norm(a.center - p);
+        res.collisionNormal = Norm(a.center - p);
     }
 
-    Vec3 outsidePoint = a.center - manifold->collisionNormal * a.radius;
+    Vec3 outsidePoint = a.center - res.collisionNormal * a.radius;
     float distance = glm::length(p - outsidePoint);
-    manifold->collisionPoint = p + (outsidePoint - p) * 0.5f;
-    manifold->penetrationDistance = distance * 0.5f;
+    res.collisionPoint = p + (outsidePoint - p) * 0.5f;
+    res.penetrationDistance = distance * 0.5f;
+    return res;
 }
 
-void CollidePrimitive(OBB a, Sphere b, CollisionManifold *manifold) {
-    CollidePrimitive(b, a, manifold);
-    manifold->collisionNormal *= -1;
+CollisionManifold CollidePrimitive(OBB a, Sphere b) {
+    auto res = CollidePrimitive(b, a);
+    res.collisionNormal *= -1;
+    return res;
 }
 
-void CollidePrimitive(Plane a, OBB b, CollisionManifold *manifold) {
-    CollidePrimitive(b, a, manifold);
+CollisionManifold CollidePrimitive(Plane a, OBB b) {
+    auto res = CollidePrimitive(b, a);
+    res.collisionNormal *= -1;
+    return res;
 }
 
-void CollidePrimitive(OBB a, Plane b, CollisionManifold *manifold) {
+CollisionManifold CollidePrimitive(OBB a, Plane b) {
+    CollisionManifold res;
     float r = a.halfWidth[0] + std::abs(glm::dot(b.normal, a.axis[0]))
         + a.halfWidth[1] + std::abs(glm::dot(b.normal, a.axis[1]))
         + a.halfWidth[2] + std::abs(glm::dot(b.normal, a.axis[2]));
-    manifold->collide = std::abs(glm::dot(b.normal, a.center)- b.d) <= r;
+    res.collide = std::abs(glm::dot(b.normal, a.center)- b.d) <= r;
+    return res;
 }
 
-void CollidePrimitive(Plane p, AABB a, CollisionManifold *manifold) {
-    CollidePrimitive(a, p, manifold);
+CollisionManifold CollidePrimitive(Plane p, AABB a) {
+    auto res = CollidePrimitive(a, p);
+    res.collisionNormal *= -1;
+    return res;
 }
 
-void CollidePrimitive(AABB aabb, Plane plane, CollisionManifold *manifold) {
+CollisionManifold CollidePrimitive(AABB aabb, Plane plane) {
+    CollisionManifold res;
     Vec3 center = (aabb.min + aabb.max) / 2.0f;
     Vec3 extents = (aabb.max - aabb.min) / 2.0f;
 
@@ -314,7 +330,8 @@ void CollidePrimitive(AABB aabb, Plane plane, CollisionManifold *manifold) {
         extents.z * glm::abs(plane.normal.z);
 
     float c_dist = glm::dot(center, plane.normal) + plane.d;
-    manifold->collide = glm::abs(c_dist) <= r;
+    res.collide = glm::abs(c_dist) <= r;
+    return res;
 }
 
 inline float PenetrationDepth(AABB& a1, AABB& a2,
@@ -339,7 +356,8 @@ inline float PenetrationDepth(AABB& a1, AABB& a2,
     return (len1 + len2) - length;
 }
 
-void CollidePrimitive(AABB a1, AABB a2, CollisionManifold *manifold) {
+CollisionManifold CollidePrimitive(AABB a1, AABB a2) {
+    CollisionManifold res;
     Vec3 test[3] {
         Vec3(1, 0, 0),
         Vec3(0, 1, 0),
@@ -352,30 +370,34 @@ void CollidePrimitive(AABB a1, AABB a2, CollisionManifold *manifold) {
     for (int i = 0; i < 3; i++) {
         float depth = PenetrationDepth(a1, a2, test[i], &shouldFlip);
         if (depth <= 0.0f) {
-            return;
-        } else if (depth < manifold->penetrationDistance) {
+            return res;
+        } else if (depth < res.penetrationDistance) {
             if (shouldFlip) {
                 test[i] = test[i] * -1.0f;
             }
-            manifold->penetrationDistance = depth;
+            res.penetrationDistance = depth;
             hitNormal = &test[i];
         }
     }
 
     if (hitNormal == nullptr) {
-        return;
+        return res;
     }
 
-    manifold->collisionPoint = Vec3(0);
-    manifold->collide = true;
-    manifold->collisionNormal = -(*hitNormal);
+    res.collisionPoint = Vec3(0);
+    res.collide = true;
+    res.collisionNormal = -(*hitNormal);
+    return res;
 }
 
-void CollidePrimitive(Triangle t, AABB a, CollisionManifold *manifold) {
-    CollidePrimitive(a, t, manifold);
+CollisionManifold CollidePrimitive(Triangle t, AABB a) {
+    auto res = CollidePrimitive(a, t);
+    res.collisionNormal *= -1;
+    return res;
 }
 
-void CollidePrimitive(AABB aabb, Triangle tri, CollisionManifold *manifold) {
+CollisionManifold CollidePrimitive(AABB aabb, Triangle tri) {
+    CollisionManifold res;
     Vec3 center = (aabb.min + aabb.max) / 2.0f;
     Vec3 length = (aabb.max - aabb.min) / 2.0f;
 
@@ -398,7 +420,7 @@ void CollidePrimitive(AABB aabb, Triangle tri, CollisionManifold *manifold) {
         float p2 = -verts[(3 + i) % 3].y * edges[i].z + verts[(3 + i) % 3].z * edges[i].y;
         if (glm::max(p1, p2) < -r || glm::min(p1, p2) > r) {
             // Separating axis found
-            return;
+            return res;
         }
     }
 
@@ -409,7 +431,7 @@ void CollidePrimitive(AABB aabb, Triangle tri, CollisionManifold *manifold) {
         float p2 = -verts[(3 + i) % 3].x * edges[i].z + verts[(3 + i) % 3].z * edges[i].x;
         if (glm::max(p1, p2) < -r || glm::min(p1, p2) > r) {
             // Separating axis found
-            return;
+            return res;
         }
     }
 
@@ -420,81 +442,91 @@ void CollidePrimitive(AABB aabb, Triangle tri, CollisionManifold *manifold) {
         float p2 = -verts[(3 + i) % 3].x * edges[i].y + verts[(3 + i) % 3].y * edges[i].x;
         if (glm::max(p1, p2) < -r || glm::min(p1, p2) > r) {
             // Separating axis found
-            return;
+            return res;
         }
     }
 
     // testing triangle's AABB with given AABB
     if (glm::max(glm::max(verts[0].x, verts[1].x), verts[2].x) < -length.x ||
             glm::min(glm::min(verts[0].x, verts[1].x), verts[2].x) > length.x) {
-        return;
+        return res;
     }
     if (glm::max(glm::max(verts[0].y, verts[1].y), verts[2].y) < -length.y ||
             glm::min(glm::min(verts[0].y, verts[1].y), verts[2].y) > length.y) {
-        return;
+        return res;
     }
     if (glm::max(glm::max(verts[0].z, verts[1].z), verts[2].z) < -length.z ||
             glm::min(glm::min(verts[0].z, verts[1].z), verts[2].z) > length.z) {
-        return;
+        return res;
     }
 
     auto p = Plane(glm::cross(edges[0], edges[1]), verts[0]);
-    return CollidePrimitive(aabb, p, manifold);
+    return CollidePrimitive(aabb, p);
 }
 
-void CollidePrimitive(Sphere s1, Sphere s2, CollisionManifold *manifold) {
-    manifold->collide =  glm::length2(s1.center - s2.center)
+CollisionManifold CollidePrimitive(Sphere s1, Sphere s2) {
+    CollisionManifold res;
+    res.collide =  glm::length2(s1.center - s2.center)
         <= (s1.radius + s2.radius) * (s1.radius + s2.radius);
-    if (!manifold->collide)
-        return;
+    if (!res.collide)
+        return res;
     float r = s1.radius + s2.radius;
     Vec3 d = s1.center - s2.center;
-    manifold->collisionNormal = Norm(d);
-    manifold->penetrationDistance = fabsf(glm::length(d) - r) * 0.5f;
+    res.collisionNormal = Norm(d);
+    res.penetrationDistance = fabsf(glm::length(d) - r) * 0.5f;
     // dtp - Distance to intersection point
-    float dtp = s1.radius - manifold->penetrationDistance;
+    float dtp = s1.radius - res.penetrationDistance;
     Vec3 contact = s1.center + d * dtp;
-    manifold->collisionPoint = contact;
+    res.collisionPoint = contact;
+    return res;
 }
 
-void CollidePrimitive(AABB aabb, Sphere s, CollisionManifold *manifold) {
-    CollidePrimitive(s, aabb, manifold);
-    manifold->collisionNormal *= -1;
+CollisionManifold CollidePrimitive(AABB aabb, Sphere s) {
+    auto res = CollidePrimitive(s, aabb);
+    res.collisionNormal *= -1;
+    return res;
 }
 
-void CollidePrimitive(Sphere s, AABB aabb, CollisionManifold *manifold) {
+CollisionManifold CollidePrimitive(Sphere s, AABB aabb) {
+    CollisionManifold res;
     auto distanceSq = aabb.Distance2(s.center);
     Vec3 p = aabb.ClosestPoint(s.center);
 
-    manifold->collide = distanceSq <= s.radius * s.radius;
+    res.collide = distanceSq <= s.radius * s.radius;
 
     if (isCloseToZero(distanceSq)) {
         auto aabbCenter = (aabb.max + aabb.min) / 2.f;
         float mSq = glm::length(p - aabbCenter);
         if (isCloseToZero(mSq))  // here manifold can be strange
-            return;
+            return res;
         // Closest point is at the center of the sphere
-        manifold->collisionNormal = Norm(p - aabbCenter);
+        res.collisionNormal = Norm(p - aabbCenter);
     } else {
-        manifold->collisionNormal = Norm(s.center - p);
+        res.collisionNormal = Norm(s.center - p);
     }
 
-    Vec3 outsidePoint = s.center - manifold->collisionNormal * s.radius;
+    Vec3 outsidePoint = s.center - res.collisionNormal * s.radius;
     float distance = glm::length(p - outsidePoint);
-    manifold->collisionPoint = p + (outsidePoint - p) * 0.5f;
-    manifold->penetrationDistance = distance * 0.5f;
+    res.collisionPoint = p + (outsidePoint - p) * 0.5f;
+    res.penetrationDistance = distance * 0.5f;
+    return res;
 }
 
-void CollidePrimitive(Sphere, Triangle, CollisionManifold *manifold);
-void CollidePrimitive(Triangle t, Sphere s, CollisionManifold *manifold) {
-    CollidePrimitive(s, t, manifold);
+CollisionManifold CollidePrimitive(Sphere, Triangle);
+CollisionManifold CollidePrimitive(Triangle t, Sphere s) {
+    auto res = CollidePrimitive(s, t);
+    res.collisionNormal *= -1;
+    return res;
 }
 
-void CollidePrimitive(Sphere s, Triangle t, CollisionManifold *manifold) {
-    manifold->collide = t.Distance2(s.center) <= s.radius * s.radius;
+CollisionManifold CollidePrimitive(Sphere s, Triangle t) {
+    CollisionManifold res;
+    res.collide = t.Distance2(s.center) <= s.radius * s.radius;
+    return res;
 }
 
-void CollidePrimitive(Triangle t1, Triangle t2, CollisionManifold *manifold) {
+CollisionManifold CollidePrimitive(Triangle t1, Triangle t2) {
+    CollisionManifold res;
     Plane aPlane = Plane(t1);
     float sdistb[3] = {
         glm::dot(aPlane.normal, t2.a) + aPlane.d,
@@ -504,11 +536,11 @@ void CollidePrimitive(Triangle t1, Triangle t2, CollisionManifold *manifold) {
 
     if (glm::abs(sdistb[0]) == 0 && glm::abs(sdistb[1]) == 0 && glm::abs(sdistb[2]) == 0) {
         Logger::Error("Coplanar case for triangle-triangle collision is not handled");
-        return;
+        return res;
     }
 
     if (sdistb[0] * sdistb[1] > 0 && sdistb[1] * sdistb[2] > 0) {
-        return;
+        return res;
     }
     Plane bPlane = Plane(t2);
     float sdista[3] = {
@@ -519,11 +551,11 @@ void CollidePrimitive(Triangle t1, Triangle t2, CollisionManifold *manifold) {
 
     if (glm::abs(sdista[0]) == 0 && glm::abs(sdista[1]) == 0 && glm::abs(sdista[2]) == 0) {
         Logger::Error("Coplanar case for triangle-triangle collision is not handled");
-        return;
+        return res;
     }
 
     if (sdista[0] * sdista[1] > 0 && sdista[1] * sdista[2] > 0) {
-        return;
+        return res;
     }
 
     Vec3 intersectDir = glm::cross(aPlane.normal, bPlane.normal);
@@ -564,13 +596,15 @@ void CollidePrimitive(Triangle t1, Triangle t2, CollisionManifold *manifold) {
     // VERY FUCKING BAD                  v
     auto [a1, a2] = findInterval(sdista, &t1.a);
     auto [a3, a4] = findInterval(sdistb, &t2.a);
-    manifold->collide = (glm::max(a1, a2) > a3 && a3 > glm::min(a1, a2))
+    res.collide = (glm::max(a1, a2) > a3 && a3 > glm::min(a1, a2))
         || (glm::max(a1, a2) > a4 && a4 > glm::min(a1, a2));
+    return res;
 }
 
 // There should be an overload CollidePrimitive(T, Triangle);
 template<typename T>
-void CollideMeshAt(T t, Mesh *mesh, Transform transform, CollisionManifold *manifold) {
+CollisionManifold CollideMeshAt(T t, Mesh *mesh, Transform transform) {
+    CollisionManifold res;
     // WARNING: This makes assumptions about data layout
     Mat4 meshMat = glm::transpose(transform.GetTransformMatrix());
     auto loadPos = [=](int i) {
@@ -581,20 +615,21 @@ void CollideMeshAt(T t, Mesh *mesh, Transform transform, CollisionManifold *mani
     };
     for (int i = 0; i < mesh->getLenIndices(); i+=3) {
         Triangle tri = Triangle(loadPos(i), loadPos(i + 1), loadPos(i + 2));
-        CollidePrimitive(t, tri, manifold);
-        if (manifold->collide) {
-            return;
+        auto manifold = CollidePrimitive(t, tri);
+        if (manifold.collide) {
+            return manifold;
         }
     }
-    return;
+    return res;
 }
-template void CollideMeshAt<AABB>(AABB, Mesh *, Transform, CollisionManifold*);
-template void CollideMeshAt<Sphere>(Sphere, Mesh *, Transform, CollisionManifold*);
-template void CollideMeshAt<Triangle>(Triangle, Mesh *, Transform, CollisionManifold*);
-template void CollideMeshAt<OBB>(OBB, Mesh *, Transform, CollisionManifold*);
+template CollisionManifold CollideMeshAt<AABB>(AABB, Mesh *, Transform);
+template CollisionManifold CollideMeshAt<Sphere>(Sphere, Mesh *, Transform);
+template CollisionManifold CollideMeshAt<Triangle>(Triangle, Mesh *, Transform);
+template CollisionManifold CollideMeshAt<OBB>(OBB, Mesh *, Transform);
 
-void CollideMeshes(Mesh *mesh, Transform transform, Mesh *mesh2,
-        Transform transform2, CollisionManifold *manifold) {
+CollisionManifold CollideMeshes(Mesh *mesh, Transform transform, Mesh *mesh2,
+        Transform transform2) {
+    CollisionManifold res;
     // WARNING: This makes assumptions about data layout
     Mat4 meshMat = glm::transpose(transform.GetTransformMatrix());
     auto loadPos = [=](int i) {
@@ -605,12 +640,12 @@ void CollideMeshes(Mesh *mesh, Transform transform, Mesh *mesh2,
     };
     for (int i = 0; i < mesh->getLenIndices(); i+=3) {
         Triangle tri = Triangle(loadPos(i), loadPos(i + 1), loadPos(i + 2));
-        CollideMeshAt(tri, mesh2, transform2, manifold);
-        if (manifold->collide) {
-            return;
+        auto manifold = CollideMeshAt(tri, mesh2, transform2);
+        if (manifold.collide) {
+            return manifold;
         }
     }
-    return;
+    return res;
 }
 
 bool CollidePrimitive(Ray r, Sphere s) {
