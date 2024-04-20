@@ -169,19 +169,21 @@ int main() {
     //cat.AddCollider(&model->meshes[0]);
 
 
-    auto staticOBB = setUpObj(
+    auto staticAABB = setUpObj(
         Transform(Vec3(2, -30, 2.0), Vec3(50), 0.f, Vec3(1)),
-        AABB {
-            Vec3(-0.5),
-            Vec3(0.5),
+        OBB {
+            Vec3(0, 0, 0),
+            Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
+            Vec3(0.5, 0.5, 0.5),
         },
         cubeModel,
         Vec3(0, 0, 0),
         0,
         Vec3(0));
 
+    
     auto obb = setUpObj(
-        Transform(Vec3(2, 3, 2.0), Vec3(1), 45, Vec3(1, 0, 1)),
+        Transform(Vec3(2, 3, 2.0), Vec3(1), 45, Vec3(1, 0, 0)),
         OBB {
             Vec3(0, 0, 0),
             Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
@@ -246,17 +248,18 @@ int main() {
         obj.AddCollider(Sphere{ Vec3(0), 1.f });
         obj.AddRigidBody(RigidBody(
             mass, IBodySphere(transform.GetScale().x, mass),
-            speed, 1, Vec3(0, -mass * 10, 0), Vec3(1), 0.01));
+            speed, 0, Vec3(0, -mass * 10, 0), Vec3(1), 0.01));
         return obj;
     };
 
+    /*
     Object spheres[3] = {
         getSphereObj(
             Transform(Vec3(-10, 4, 2.0), Vec3(1), 0.f, Vec3(1)),
-            Vec3(0, 0, 0),
-            10000),
+            Vec3(1, 0, 0),
+            1),
         getSphereObj(
-            Transform(Vec3(5, 4, 2.0), Vec3(0.3), 0.f, Vec3(1)),
+            Transform(Vec3(5, 4, 2.0), Vec3(1), 0.f, Vec3(1)),
             Vec3(0, 0, 0),
             4.f),
         getSphereObj(
@@ -264,6 +267,7 @@ int main() {
             Vec3(0, 0, 0),
             10000)
     };
+    */
 
     // cat.AddChild(aabb);
     // cat.AddBehaviour<Moving>();

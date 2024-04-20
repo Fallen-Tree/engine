@@ -363,7 +363,6 @@ void CollidePrimitive(AABB a1, AABB a2, CollisionManifold *manifold) {
     }
 
     if (hitNormal == nullptr) {
-        Logger::Info("here");
         return;
     }
 
@@ -467,7 +466,7 @@ void CollidePrimitive(Sphere s, AABB aabb, CollisionManifold *manifold) {
     auto distanceSq = aabb.Distance2(s.center);
     Vec3 p = aabb.ClosestPoint(s.center);
 
-    manifold->isCollide = aabb.Distance2(s.center) <= s.radius * s.radius;
+    manifold->isCollide = distanceSq <= s.radius * s.radius;
 
     if (isCloseToZero(distanceSq)) {
         auto aabbCenter = (aabb.max + aabb.min) / 2.f;

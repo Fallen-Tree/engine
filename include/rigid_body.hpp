@@ -21,6 +21,7 @@ public:
  Mat3 ibodyInverse;
  Vec3 defaultForce;
  Vec3 velocity = Vec3(0);
+ Vec3 angularVelocity = Vec3(0); 
  // angilarUnlock is unlock for every angulat axis
  // should be in {0, 1}
  Vec3 angularUnlock = Vec3(1);
@@ -37,7 +38,8 @@ public:
  void Update(Transform *tranform, float dt);
 
  void ResolveCollisions(RigidBody *otherRigidBody, CollisionManifold manifold,
-         Transform transform, Transform otherTransform, float dt);
+         Transform globalTransform, Transform globalOtherTransform,
+         Transform& tr1, Transform& tr2, float dt);
 
  void SetMass(float mass);
 
