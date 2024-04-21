@@ -253,7 +253,7 @@ CollisionManifold CollidePrimitive(OBB a, OBB b) {
     for (auto i : c2) p += i;
     if (c1.size() == 0 && c2.size() == 0)
         Logger::Info("COLLISION::OBBVSOBB::POINTS_SIZE_IS_ZERO");
-    res.collisionPoint = p / (float)(c1.size() + c2.size());
+    res.collisionPoint = p / static_cast<float>(c1.size() + c2.size());
 
     Interval i = a.GetInterval(axis);
     float distance = (i.max - i.min) * 0.5f

@@ -166,7 +166,7 @@ int main() {
     auto cat = engine.NewObject();
     cat.AddModel(*model);
     auto &t = cat.AddTransform(Vec3(0.f, -5.f, -8.f), Vec3(0.1f), Mat4(1.0));
-    //cat.AddCollider(&model->meshes[0]);
+    // cat.AddCollider(&model->meshes[0]);
 
 
     auto staticAABB = setUpObj(
@@ -181,7 +181,7 @@ int main() {
         0,
         Vec3(0));
 
-    
+
     auto obb = setUpObj(
         Transform(Vec3(2, 3, 2.0), Vec3(1), 45, Vec3(1, 0, 0)),
         OBB {

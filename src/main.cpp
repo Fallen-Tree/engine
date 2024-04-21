@@ -164,7 +164,7 @@ int main() {
         0,
         Vec3(0));
 
-    
+
     auto obb = setUpObj(
         Transform(Vec3(2, 3, 2.0), Vec3(1), 45, Vec3(1, 0, 0)),
         OBB {
