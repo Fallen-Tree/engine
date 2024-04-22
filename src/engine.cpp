@@ -119,7 +119,12 @@ Engine::~Engine() {
 Object Engine::NewObject() {
     ObjectHandle handle = m_ObjectCount++;
     Logger::Info("Created object %d", handle);
+    AddChild(ROOT, handle);
     return Object(this, handle);
+}
+
+bool Engine::IsObjectValid(ObjectHandle obj) {
+    return m_Parents.HasData(obj);
 }
 
 void Engine::RemoveObject(ObjectHandle handle) {
@@ -148,9 +153,11 @@ void Engine::RemoveObject(ObjectHandle handle) {
 
     if (m_Parents.HasData(handle)) {
         auto parent = m_Parents.GetData(handle);
-        auto &children = m_Children.GetData(parent);
-        children.erase(std::find(children.begin(), children.end(), parent));
-        m_Parents.RemoveData(handle);
+        if (parent != ROOT) {
+            auto &children = m_Children.GetData(parent);
+            children.erase(std::find(children.begin(), children.end(), parent));
+            m_Parents.RemoveData(handle);
+        }
     }
     if (m_Children.HasData(handle)) {
         for (auto child : m_Children.GetData(handle))
@@ -160,8 +167,10 @@ void Engine::RemoveObject(ObjectHandle handle) {
 }
 
 void Engine::AddChild(ObjectHandle parent, ObjectHandle child) {
+    assert(child != ROOT && "Adding root as child to anything is ~~stuuupid~~ unexpected");
     // TODO(theblek): Check for cycles in the tree
     m_Parents.SetData(child, parent);
+    if (parent == ROOT) return;
     if (!m_Children.HasData(parent))
         m_Children.SetData(parent, std::vector<ObjectHandle>());
     m_Children.GetData(parent).push_back(child);
