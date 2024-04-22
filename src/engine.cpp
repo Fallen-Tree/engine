@@ -156,8 +156,8 @@ void Engine::RemoveObject(ObjectHandle handle) {
         if (parent != ROOT) {
             auto &children = m_Children.GetData(parent);
             children.erase(std::find(children.begin(), children.end(), parent));
-            m_Parents.RemoveData(handle);
         }
+        m_Parents.RemoveData(handle);
     }
     if (m_Children.HasData(handle)) {
         for (auto child : m_Children.GetData(handle))
