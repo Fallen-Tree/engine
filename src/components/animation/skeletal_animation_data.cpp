@@ -71,7 +71,7 @@ void SkeletalAnimationData::ConstructorHelper(const std::string& animationPath, 
 
     ReadHeirarchyData(m_RootNode, scene->mRootNode);
     ReadMissingBones(animation, *model);
-    
+
     std::vector<Bone> newBones;
     ReorderBones(m_RootNode, newBones);
     m_Bones = newBones;
