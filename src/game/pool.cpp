@@ -38,7 +38,7 @@ class MovingBall : public Behaviour {
 
 class Cue : public Behaviour {
  public:
-    static Object New(std::vector<MovingBall *> objects, Camera *camera) {
+    static Object New(std::vector<Object> objects, Camera *camera) {
         Model *model = Model::loadFromFile("pool/cue.obj");
         Material material = {
             4.f,
@@ -52,7 +52,7 @@ class Cue : public Behaviour {
         return newCue;
     }
 
-    void Init(std::vector<MovingBall *> objects, Camera *camera) {
+    void Init(std::vector<Object> objects, Camera *camera) {
         m_Objects = objects;
         m_Camera = camera;
         m_CueDistance = 1.f;
@@ -62,14 +62,14 @@ class Cue : public Behaviour {
 
     void Update(float dt) override {
         Ray ray = Ray(m_Camera->GetPosition(), m_Camera->GetPosition() + m_Camera->GetFront());
-        MovingBall *target = nullptr;
+        Object *target = nullptr;
         const float MAX_HIT_DIST = 1e9;
         float closest = MAX_HIT_DIST;
         for (int i = 0; i < m_Objects.size(); i++) {
-            auto obj = m_Objects[i];
-            auto hit = obj->self.GetCollider()->RaycastHit(*obj->self.GetTransform(), ray);
+            if (!m_Objects[i].IsValid()) continue;
+            auto hit = m_Objects[i].GetCollider()->RaycastHit(*m_Objects[i].GetTransform(), ray);
             if (hit && *hit < closest) {
-                target = obj;
+                target = &m_Objects[i];
                 closest = *hit;
             }
         }
@@ -78,7 +78,7 @@ class Cue : public Behaviour {
             if (m_CurrentTarget != nullptr) {
                 m_Attacking = true;
                 Vec3 myPos = self.GetTransform()->GetTranslation();
-                Vec3 targetPos = m_CurrentTarget->self.GetTransform()->GetTranslation();
+                Vec3 targetPos = m_CurrentTarget->GetTransform()->GetTranslation();
                 Vec3 direction = glm::normalize(targetPos - myPos);
                 auto nextTransform = *self.GetTransform();
                 nextTransform.Translate(0.8f * direction);
@@ -92,10 +92,10 @@ class Cue : public Behaviour {
         if (self.GetAnimation()->isComplete()) {
             if (m_Attacking) {
                 Vec3 nextPos = self.GetTransform()->GetTranslation();
-                Vec3 targetPos = m_CurrentTarget->self.GetTransform()->GetTranslation();
+                Vec3 targetPos = m_CurrentTarget->GetTransform()->GetTranslation();
                 Vec3 direction = glm::normalize(targetPos - nextPos);
                 direction.y = 0.f;
-                m_CurrentTarget->self.GetRigidBody()->velocity += m_AttackVelocity * direction;
+                m_CurrentTarget->GetRigidBody()->velocity += m_AttackVelocity * direction;
                 m_CurrentTarget = nullptr;
             }
             m_Attacking = false;
@@ -108,7 +108,7 @@ class Cue : public Behaviour {
             m_CurrentTarget = nullptr;
 
         if (m_CurrentTarget != nullptr) {
-            Vec3 center = m_CurrentTarget->self.GetTransform()->GetTranslation();
+            Vec3 center = m_CurrentTarget->GetTransform()->GetTranslation();
             Vec3 closest = ray.origin + glm::dot(center - ray.origin, ray.direction) * ray.direction;
             closest.y = center.y;
             Vec3 onCircle = center + glm::normalize(closest - center) * m_CueDistance;
@@ -127,8 +127,8 @@ class Cue : public Behaviour {
     bool m_Attacking;
     float m_CueDistance;
     float m_AttackVelocity;
-    MovingBall *m_CurrentTarget = nullptr;
-    std::vector<MovingBall *> m_Objects;
+    Object *m_CurrentTarget = nullptr;
+    std::vector<Object> m_Objects;
     Camera *m_Camera;
 };
 
@@ -181,9 +181,7 @@ class Hole : public TriggerArea {
 
     void Consume(Object ball) {
         gameManager->score += 100;
-        // i don't know why but .Remove() crashing the engine :(
-        // ball.Remove();
-        ball.GetTransform()->Translate(Vec3(0, -100, 0));
+        ball.Remove();
     }
 };
 

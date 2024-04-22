@@ -49,7 +49,7 @@ void createUI() {
 }
 
 void AddLantern(Vec3 pos) {
-    Model *lantern = Model::loadFromFile("lantern/model.obj");
+    Model *lantern = Model::loadFromFile("Lantern/model.obj");
     Transform * tr = new Transform(pos, Vec3(1.0f), Mat4(1.0f));
     newModel(tr, lantern);
     engine->NewObject().AddPointLight(
@@ -279,11 +279,11 @@ void poolTable() {
     };
 
     int ballsCount = coordinates.size();
-    std::vector<MovingBall*> balls;
+    std::vector<Object> balls;
     for (int i = 0; i < ballsCount; i++) {
         Vec3 pos = coordinates[i];
         auto newBall = MovingBall::New(pos, 0.2f, "pool/" + std::to_string(i % 16 + 1) + ".png");
-        balls.push_back(reinterpret_cast<MovingBall*>(newBall.GetBehaviour()));
+        balls.push_back(newBall);
     }
 
     auto ocraFont = new Font("OCRAEXT.TTF", 20);
