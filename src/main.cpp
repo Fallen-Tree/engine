@@ -79,7 +79,7 @@ int main() {
         wolfModel->meshes.pop_back();  // Delete Fur
         wolfModel->meshes.erase(wolfModel->meshes.begin() + 1);  // Delete floor
 
-        auto wolfObj = engine.NewObject("Wolf");
+        auto wolfObj = engine.NewObject().SetName("Wolf");
         Logger::Info("%s", wolfObj.GetName().c_str());
         wolfObj.AddTransform(Vec3(5.f, -10.f, -10.f), Vec3(10.f), Mat4(1.0));
         wolfObj.AddModel(*wolfModel);

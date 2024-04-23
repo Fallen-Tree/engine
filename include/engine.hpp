@@ -3,6 +3,7 @@
 #include <variant>
 #include <string>
 #include <set>
+#include <map>
 #include "collider.hpp"
 #include "collisions.hpp"
 #include "render_data.hpp"
@@ -74,6 +75,8 @@ class Engine {
     void RemoveObject(ObjectHandle);
     Object NewObject();
     Object NewObject(std::string);
+    void SetObjectName(ObjectHandle handle, std::string name);
+    std::vector<ObjectHandle> GetHandlesByName(std::string name);
     void AddChild(ObjectHandle parent, ObjectHandle child);
     Object GetParent(ObjectHandle node);
 
@@ -111,6 +114,8 @@ class Engine {
 
     ComponentArray<Behaviour *> m_Behaviours;
     std::set<int> m_AvailableObjectIds;
+    std::map<std::string, std::set<int> > m_ActiveObjects;
+    std::vector<std::string> m_NameById;
 
     // Hierarchy tree
     PackedArray<ObjectHandle, MAX_OBJECT_COUNT> m_Parents;

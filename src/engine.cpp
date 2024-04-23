@@ -70,6 +70,7 @@ Engine::Engine() {
     for (int i = 0; i < MAX_OBJECT_COUNT; i++) {
         m_AvailableObjectIds.insert(i);
     }
+    m_NameById.resize(MAX_OBJECT_COUNT);
 
     m_CollideCache = std::vector<std::vector<bool>>(MAX_OBJECT_COUNT);
     for (auto i = 0; i < MAX_OBJECT_COUNT; i++)
@@ -121,6 +122,8 @@ Engine::~Engine() {
 Object Engine::NewObject() {
     ObjectHandle handle = *m_AvailableObjectIds.begin();
     m_AvailableObjectIds.erase(m_AvailableObjectIds.begin());
+    m_ActiveObjects["default"].insert(handle);
+    m_NameById[handle] = "default";
     Logger::Info("Created object %d with \"default\" name", handle);
     return Object(this, handle);
 }
@@ -128,8 +131,23 @@ Object Engine::NewObject() {
 Object Engine::NewObject(std::string name) {
     ObjectHandle handle = *m_AvailableObjectIds.begin();
     m_AvailableObjectIds.erase(m_AvailableObjectIds.begin());
+    m_ActiveObjects[name].insert(handle);
+    m_NameById[handle] = name;
     Logger::Info("Created object %d, named \"%s\"", handle, name.c_str());
     return Object(this, handle, name);
+}
+
+void Engine::SetObjectName(ObjectHandle handle, std::string name) {
+    m_ActiveObjects[m_NameById[handle]].erase(handle);
+    if (m_ActiveObjects[m_NameById[handle]].empty()) {
+        m_ActiveObjects.erase(m_NameById[handle]);
+    }
+    m_NameById[handle] = name;
+    m_ActiveObjects[name].insert(handle);
+}
+
+std::vector<ObjectHandle> Engine::GetHandlesByName(std::string name) {
+    return std::vector<ObjectHandle>(m_ActiveObjects[name].begin(), m_ActiveObjects[name].end());
 }
 
 void Engine::RemoveObject(ObjectHandle handle) {
@@ -157,6 +175,10 @@ void Engine::RemoveObject(ObjectHandle handle) {
         m_Behaviours.RemoveData(handle);
 
     m_AvailableObjectIds.insert(handle);
+    m_ActiveObjects[m_NameById[handle]].erase(handle);
+    if (m_ActiveObjects[m_NameById[handle]].empty()) {
+        m_ActiveObjects.erase(m_NameById[handle]);
+    }
 
     if (m_Parents.HasData(handle)) {
         auto parent = m_Parents.GetData(handle);

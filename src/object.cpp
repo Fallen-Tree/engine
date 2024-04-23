@@ -44,6 +44,7 @@ Transform *Object::GetTransform() {
 
 Object &Object::SetName(std::string name) {
     m_Name = name;
+    m_Engine->SetObjectName(m_Handle, name);
     return *this;
 }
 
