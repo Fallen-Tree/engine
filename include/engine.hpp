@@ -72,6 +72,7 @@ class Engine {
 
     void RemoveObject(ObjectHandle);
     Object NewObject();
+    Object NewObject(std::string);
     void AddChild(ObjectHandle parent, ObjectHandle child);
     Object GetParent(ObjectHandle node);
 

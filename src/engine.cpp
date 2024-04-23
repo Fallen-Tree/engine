@@ -118,8 +118,14 @@ Engine::~Engine() {
 // TODO(theblek): reuse object ids
 Object Engine::NewObject() {
     ObjectHandle handle = m_ObjectCount++;
-    Logger::Info("Created object %d", handle);
+    Logger::Info("Created object %d with \"default\" name", handle);
     return Object(this, handle);
+}
+
+Object Engine::NewObject(std::string name) {
+    ObjectHandle handle = m_ObjectCount++;
+    Logger::Info("Created object %d, named \"%s\"", handle, name.c_str());
+    return Object(this, handle, name);
 }
 
 void Engine::RemoveObject(ObjectHandle handle) {

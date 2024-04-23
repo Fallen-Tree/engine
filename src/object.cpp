@@ -1,8 +1,11 @@
 #include "object.hpp"
 #include "engine.hpp"
 
-Object::Object(Engine *engine, ObjectHandle id) : m_Engine(engine), m_Handle(id) {}
-Object::Object() : m_Engine(nullptr), m_Handle(-1) {}
+
+Object::Object(Engine *engine, ObjectHandle id, std::string name)
+    : m_Engine(engine), m_Handle(id), m_Name(name) {}
+Object::Object(Engine *engine, ObjectHandle id) : m_Engine(engine), m_Handle(id), m_Name("default") {}
+Object::Object() : m_Engine(nullptr), m_Handle(-1), m_Name("default") {}
 
 void Object::Remove() {
     m_Engine->RemoveObject(m_Handle);
@@ -24,17 +27,28 @@ Object Object::GetParent() {
 Object &Object::operator=(const Object &rhs) {
     m_Engine = rhs.m_Engine;
     m_Handle = rhs.m_Handle;
+    m_Name = rhs.m_Name;
     return *this;
 }
 
 Object &Object::operator=(const Object &&rhs) {
     m_Engine = rhs.m_Engine;
     m_Handle = rhs.m_Handle;
+    m_Name = rhs.m_Name;
     return *this;
 }
 
 Transform *Object::GetTransform() {
     return m_Engine->GetTransform(m_Handle);
+}
+
+Object &Object::SetName(std::string name) {
+    m_Name = name;
+    return *this;
+}
+
+std::string Object::GetName() {
+    return m_Name;
 }
 
 Model *Object::GetModel() {
