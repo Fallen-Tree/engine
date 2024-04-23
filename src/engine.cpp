@@ -67,7 +67,9 @@ Engine::Engine() {
     m_PointLights = ComponentArray<PointLight>();
     m_DirLights = ComponentArray<DirLight>();
     m_SpotLights = ComponentArray<SpotLight>();
-    m_ObjectCount = 0;
+    for (int i = 0; i < MAX_OBJECT_COUNT; i++) {
+        m_AvailableObjectIds.insert(i);
+    }
 
     m_CollideCache = std::vector<std::vector<bool>>(MAX_OBJECT_COUNT);
     for (auto i = 0; i < MAX_OBJECT_COUNT; i++)
@@ -115,15 +117,17 @@ Engine::~Engine() {
     std::cout << "Goodbye";
 }
 
-// TODO(theblek): reuse object ids
+
 Object Engine::NewObject() {
-    ObjectHandle handle = m_ObjectCount++;
+    ObjectHandle handle = *m_AvailableObjectIds.begin();
+    m_AvailableObjectIds.erase(m_AvailableObjectIds.begin());
     Logger::Info("Created object %d with \"default\" name", handle);
     return Object(this, handle);
 }
 
 Object Engine::NewObject(std::string name) {
-    ObjectHandle handle = m_ObjectCount++;
+    ObjectHandle handle = *m_AvailableObjectIds.begin();
+    m_AvailableObjectIds.erase(m_AvailableObjectIds.begin());
     Logger::Info("Created object %d, named \"%s\"", handle, name.c_str());
     return Object(this, handle, name);
 }
@@ -151,6 +155,8 @@ void Engine::RemoveObject(ObjectHandle handle) {
         m_DirLights.RemoveData(handle);
     if (m_Behaviours.HasData(handle))
         m_Behaviours.RemoveData(handle);
+
+    m_AvailableObjectIds.insert(handle);
 
     if (m_Parents.HasData(handle)) {
         auto parent = m_Parents.GetData(handle);

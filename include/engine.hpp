@@ -2,6 +2,7 @@
 #include <vector>
 #include <variant>
 #include <string>
+#include <set>
 #include "collider.hpp"
 #include "collisions.hpp"
 #include "render_data.hpp"
@@ -109,7 +110,7 @@ class Engine {
     ComponentArray<SpotLight> m_SpotLights;
 
     ComponentArray<Behaviour *> m_Behaviours;
-    int m_ObjectCount;
+    std::set<int> m_AvailableObjectIds;
 
     // Hierarchy tree
     PackedArray<ObjectHandle, MAX_OBJECT_COUNT> m_Parents;
