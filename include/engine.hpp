@@ -116,6 +116,7 @@ class Engine {
     ComponentArray<SpotLight> m_SpotLights;
 
     ComponentArray<Behaviour *> m_Behaviours;
+
     int m_ObjectCount;
     std::vector<std::string> m_Names;
     std::map<std::string, std::vector<ObjectHandle>> m_NamesToHandles;
