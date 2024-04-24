@@ -18,7 +18,6 @@ class Object {
     Object& operator=(const Object &&);
     Object();
     Object(Engine *, ObjectHandle);
-    Object(Engine *engine, ObjectHandle id, std::string name);
 
     Object& SetName(std::string);
     std::string GetName();
@@ -113,5 +112,4 @@ class Object {
  private:
     Engine *m_Engine;
     ObjectHandle m_Handle;
-    std::string m_Name;
 };

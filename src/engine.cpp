@@ -68,6 +68,7 @@ Engine::Engine() {
     m_DirLights = ComponentArray<DirLight>();
     m_SpotLights = ComponentArray<SpotLight>();
     m_ObjectCount = 0;
+    m_Names.assign(MAX_OBJECT_COUNT, "default");
 
     m_CollideCache = std::vector<std::vector<bool>>(MAX_OBJECT_COUNT);
     for (auto i = 0; i < MAX_OBJECT_COUNT; i++)
@@ -118,14 +119,41 @@ Engine::~Engine() {
 // TODO(theblek): reuse object ids
 Object Engine::NewObject() {
     ObjectHandle handle = m_ObjectCount++;
+    m_NamesToHandles["default"].push_back(handle);
     Logger::Info("Created object %d with \"default\" name", handle);
     return Object(this, handle);
 }
 
 Object Engine::NewObject(std::string name) {
     ObjectHandle handle = m_ObjectCount++;
+    m_Names[handle] = name;
+    m_NamesToHandles[name].push_back(handle);
     Logger::Info("Created object %d, named \"%s\"", handle, name.c_str());
-    return Object(this, handle, name);
+    return Object(this, handle);
+}
+
+void Engine::SetObjectName(ObjectHandle handle, std::string name) {
+    std::string oldName = m_Names[handle];
+    for (auto it = m_NamesToHandles[oldName].begin(); it != m_NamesToHandles[oldName].end(); it++) {
+        if (*it == handle) {
+            m_NamesToHandles[oldName].erase(it);
+            break;
+        }
+    }
+    if (m_NamesToHandles[oldName].empty()) {
+        m_NamesToHandles.erase(oldName);
+    }
+
+    m_Names[handle] = name;
+    m_NamesToHandles[name].push_back(handle);
+}
+
+std::string Engine::GetObjectName(ObjectHandle handle) {
+    return m_Names[handle];
+}
+
+std::vector<ObjectHandle> Engine::GetHandlesByName(std::string name) {
+    return m_NamesToHandles[name];
 }
 
 void Engine::RemoveObject(ObjectHandle handle) {
@@ -151,6 +179,18 @@ void Engine::RemoveObject(ObjectHandle handle) {
         m_DirLights.RemoveData(handle);
     if (m_Behaviours.HasData(handle))
         m_Behaviours.RemoveData(handle);
+
+    for (auto it = m_NamesToHandles[m_Names[handle]].begin();
+              it != m_NamesToHandles[m_Names[handle]].end(); it++) {
+        if (*it == handle) {
+            m_NamesToHandles[m_Names[handle]].erase(it);
+            break;
+        }
+    }
+    if (m_NamesToHandles[m_Names[handle]].empty()) {
+        m_NamesToHandles.erase(m_Names[handle]);
+    }
+
 
     if (m_Parents.HasData(handle)) {
         auto parent = m_Parents.GetData(handle);
