@@ -121,6 +121,7 @@ Object Engine::NewObject() {
     ObjectHandle handle = m_ObjectCount++;
     m_NamesToHandles["default"].push_back(handle);
     Logger::Info("Created object %d with \"default\" name", handle);
+    AddChild(ROOT, handle);
     return Object(this, handle);
 }
 
@@ -129,6 +130,7 @@ Object Engine::NewObject(std::string name) {
     m_Names[handle] = name;
     m_NamesToHandles[name].push_back(handle);
     Logger::Info("Created object %d, named \"%s\"", handle, name.c_str());
+    AddChild(ROOT, handle);
     return Object(this, handle);
 }
 
