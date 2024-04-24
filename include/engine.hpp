@@ -33,6 +33,8 @@ class Behaviour;
 
 using ObjectHandle = int;
 
+const ObjectHandle ROOT = -1;
+
 class Engine {
  public:
     Engine();
@@ -79,6 +81,8 @@ class Engine {
     void SetObjectName(ObjectHandle, std::string);
     std::string GetObjectName(ObjectHandle);
     std::vector<ObjectHandle> GetHandlesByName(std::string name);
+
+    bool IsObjectValid(ObjectHandle);
 
     void AddChild(ObjectHandle parent, ObjectHandle child);
     Object GetParent(ObjectHandle node);
