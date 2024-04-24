@@ -10,7 +10,7 @@ void Object::Remove() {
 }
 
 bool Object::IsValid() {
-    return m_Engine && m_Handle != -1;
+    return m_Engine && m_Handle != -1 && m_Engine->IsObjectValid(m_Handle);
 }
 
 void Object::AddChild(Object child) {

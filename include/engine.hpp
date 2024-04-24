@@ -31,6 +31,8 @@ class Behaviour;
 
 using ObjectHandle = int;
 
+const ObjectHandle ROOT = -1;
+
 class Engine {
  public:
     Engine();
@@ -72,6 +74,7 @@ class Engine {
 
     void RemoveObject(ObjectHandle);
     Object NewObject();
+    bool IsObjectValid(ObjectHandle);
     void AddChild(ObjectHandle parent, ObjectHandle child);
     Object GetParent(ObjectHandle node);
 
