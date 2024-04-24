@@ -37,6 +37,7 @@ add_library(ENGINE STATIC
             src/engine/math.cpp
             src/object.cpp
             src/images/images.cpp
+            src/timer.cpp
 )
 
 add_subdirectory(thirdparty/glfw)
@@ -55,15 +56,19 @@ SET(ASSIMP_BUILD_SAMPLES OFF)
 SET(ASSIMP_BUILD_TESTS OFF)
 add_subdirectory(thirdparty/assimp/assimp)
 
+# Profiler intergration
+option(TRACY_ENABLE "" ON)
+add_subdirectory(thirdparty/tracy)
+
 target_include_directories(ENGINE PUBLIC thirdparty PUBLIC include)
 target_include_directories(ENGINE PUBLIC thirdparty/bass/c)
-
 
 if (UNIX)
     target_link_libraries(ENGINE PUBLIC 
         glfw glad freetype assimp
         ${CMAKE_SOURCE_DIR}/thirdparty/bass/libbass.so
         OpenGL::GL
+        Tracy::TracyClient
     )
 
 else()

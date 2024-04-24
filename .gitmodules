@@ -7,3 +7,6 @@
 [submodule "assimp"]
 	path = thirdparty/assimp/assimp
 	url = https://github.com/assimp/assimp.git
+[submodule "thirdparty/tracy"]
+	path = thirdparty/tracy
+	url = https://github.com/wolfpld/tracy.git

@@ -23,6 +23,7 @@
 #include "rigid_body.hpp"
 #include "sound.hpp"
 #include <glm/gtx/string_cast.hpp>
+#include "tracy/Tracy.hpp"
 
 int viewportWidth, viewportHeight;
 // Left bottom corner coordinates of viewport
@@ -94,6 +95,7 @@ Engine::Engine() {
     glfwSetScrollCallback(m_Window, scroll_callback);
     glfwSetKeyCallback(m_Window, key_callback);
     glfwSetMouseButtonCallback(m_Window, mouse_button_callback);
+    glfwSwapInterval(0);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -366,6 +368,7 @@ void Engine::Run() {
     // render loop
     // -----------
     while (!glfwWindowShouldClose(m_Window)) {
+        ZoneScopedN("Frame");
         float currentTime = static_cast<float>(glfwGetTime());
         deltaTime = currentTime - lastTime;
         Time::SetDeltaTime(deltaTime);
@@ -398,6 +401,7 @@ void Engine::Run() {
 }
 
 void Engine::updateObjects(float deltaTime) {
+    ZoneScoped;
     // Check collisions
     for (int i = 0; i < m_Colliders.GetSize(); i++) {
         auto handle = m_Colliders.GetFromInternal(i);
@@ -493,6 +497,7 @@ void Engine::updateObjects(float deltaTime) {
 }
 
 void Engine::Render(int scr_width, int scr_height) {
+    ZoneScoped;
     // Coloring all window (black)
     glClearColor(0.f, 0.f, 0.f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -504,32 +509,35 @@ void Engine::Render(int scr_width, int scr_height) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
-    camera->SetScreenSize(
-        {
-            static_cast<float>(viewportWidth),
-            static_cast<float>(viewportHeight)
-        });
+        camera->SetScreenSize(
+            {
+                static_cast<float>(viewportWidth),
+                static_cast<float>(viewportHeight)
+            });
     std::vector<ShaderProgram*> shaders;
-    for (int model_i = 0; model_i < m_Models.GetSize(); model_i++) {
-        ObjectHandle id = m_Models.GetFromInternal(model_i);
-        if (!m_Transforms.HasData(id)) continue;
-        auto model = m_Models.GetData(id);
-        ShaderProgram* shader = model.shader;
-        bool used = false;
-        for (auto s : shaders) {
-            if (s == shader) {
-                used = true;
-                break;
+    {
+        ZoneScopedN("Collect Shaders");
+        for (int model_i = 0; model_i < m_Models.GetSize(); model_i++) {
+            ObjectHandle id = m_Models.GetFromInternal(model_i);
+            if (!m_Transforms.HasData(id)) continue;
+            auto model = m_Models.GetData(id);
+            ShaderProgram* shader = model.shader;
+            bool used = false;
+            for (auto s : shaders) {
+                if (s == shader) {
+                    used = true;
+                    break;
+                }
+            }
+            if (!used) {
+                shaders.push_back(shader);
             }
         }
-        if (!used) {
-            shaders.push_back(shader);
-        }
     }
+    {
+    ZoneScopedN("Send Lights");
     for (auto shader : shaders) {
         shader->Use();
-        // send light to shaders
-        // pointLight
         char str[100];
         for (int i = 0; i < m_PointLights.GetSize(); i++) {
             snprintf(str, sizeof(str), "pointLights[%d].position", i);
@@ -586,7 +594,9 @@ void Engine::Render(int scr_width, int scr_height) {
         }
         shader->SetInt("lenArrSpotL", m_SpotLights.GetSize());
     }
+    }
     for (int model_i = 0; model_i < m_Models.GetSize(); model_i++) {
+        ZoneScopedN("Render Call");
         ObjectHandle id = m_Models.GetFromInternal(model_i);
         if (!m_Transforms.HasData(id)) continue;
 

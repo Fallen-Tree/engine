@@ -2,6 +2,7 @@
 #include <vector>
 #include <variant>
 #include <string>
+#include <tracy/Tracy.hpp>
 #include "collider.hpp"
 #include "collisions.hpp"
 #include "render_data.hpp"
