@@ -37,7 +37,7 @@ fpsObj->text = new Text(textOcra, "", 0.8, 0.8, 1.f, Vec3(0, 0, 0)); // set new 
 engine.AddObject<>(fpsObj); // add to objects list
 ```
 
-### Text Rendering
+### Image Rendering
 ```C++
 Object* healthBar1 = new Object();
 healthBar1->image = new Image("hp.png", 0.03, 0.15, 0.4);
@@ -52,3 +52,60 @@ To render image see code above and *Image.hpp*.
 
 #### Probably bugs and problems
 + No game-window: Text objects can be created only after glfw initialization
+
+
+### SkeletalAnimations
+
+SkeletalAnimation component contains vector of SkeletalAnimationData. You can add animationData even after initialization, using method AddAnimation.
+To get method Play(int id, bool looped) id you can call function GetAnimationsInfo - it's formatted string showing all available animations.
+It's avalible not to work with SkeletalAnimationData, because all methods have equivalents using filenames.
+
+```C++
+{
+    // /* PIGEON */
+    Model *pigeonModel = Model::loadFromFile("pigeon/scene.gltf");
+    pigeonModel->shader = skeletalShaderProgram;
+
+    auto pigeonAnimation = new SkeletalAnimationData("pigeon/scene.gltf", 0, pigeonModel);
+
+    auto pigeonObj = engine.NewObject();
+    pigeonObj.AddTransform(Vec3(0.f, -10.f, -10.f), Vec3(10.f), Mat4(1.0));
+    pigeonObj.AddModel(*pigeonModel);
+    pigeonObj.AddSkeletalAnimationsManager(pigeonAnimation).PlayImmediately(0, 1);
+}
+
+{
+    /* Wolf */
+    Model *wolfModel = Model::loadFromFile("Wolf/Wolf-Blender-2.82a.gltf");
+    wolfModel->meshes.pop_back();
+    wolfModel->meshes.erase(wolfModel->meshes.begin() + 1);  // Delete floor
+    wolfModel->shader = skeletalShaderProgram;
+
+    auto wolfObj = engine.NewObject();
+    wolfObj.AddTransform(Vec3(5.f, -10.f, -10.f), Vec3(10.f), Mat4(1.0));
+    wolfObj.AddModel(*wolfModel);
+    auto& wolfManager = wolfObj.AddSkeletalAnimationsManager("Wolf/Wolf-Blender-2.82a.gltf", wolfModel); // Написать что обязательно нужно &
+    wolfManager.PlayImmediately(0, 0);
+    Logger::Info("%s", wolfManager.GetAnimationsInfo().c_str());
+}
+
+{
+    /* XBot */
+    Model *pigeonModel = Model::loadFromFile("XBot/XBot.dae");
+    pigeonModel->shader = skeletalShaderProgram;
+
+    auto pigeonAnimation1 = new SkeletalAnimationData("XBot/Praying.dae", 0, pigeonModel);
+
+    auto pigeonObj = engine.NewObject();
+    pigeonObj.AddTransform(Vec3(0.f, -10.f, -10.f), Vec3(5.f), Mat4(1.0));
+    pigeonObj.AddModel(*pigeonModel);
+    auto& animManager = pigeonObj.AddSkeletalAnimationsManager(pigeonAnimation1);
+    animManager.AddAnimation("XBot/Hip Hop Dancing.dae", pigeonModel);
+    Logger::Info("%s", animManager.GetAnimationsInfo().c_str());
+    animManager.PlayImmediately(0, 0);
+}
+```
+
++ SkeletalAnimationData have to be created only with new
++ use AddSkeletalAnimationManager return value only with auto&.
++ Currently if you are downloading from mixamo, use option download with skin. 
