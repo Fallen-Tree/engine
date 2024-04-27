@@ -20,9 +20,12 @@ void init() {
     engine = new Engine();
     std::string vertexShaderSource = "standart.vshader";
     std::string fragmentShaderSource = "standart.fshader";
-    Shader vShader = Shader(VertexShader, vertexShaderSource);
-    Shader fShader = Shader(FragmentShader, fragmentShaderSource);
-    defaultSP = new ShaderProgram(vShader, fShader);
+    /* Shader vShader = Shader(VertexShader, vertexShaderSource); */
+    /* Shader fShader = Shader(FragmentShader, fragmentShaderSource); */
+    /* defaultSP = new ShaderProgram(vShader, fShader); */
+    defaultSP = new ShaderProgram(
+        engine->GetShaderManager().LoadShaderProgram(vertexShaderSource, fragmentShaderSource)
+    );
 }
 
 void createUI() {
@@ -36,7 +39,7 @@ void createUI() {
         }
     };
 
-    auto ocraFont = new Font("OCRAEXT.TTF", 20);
+    auto ocraFont = engine->GetFontManager().LoadFont("OCRAEXT.TTF", 20);
     auto obj = engine->NewObject();
     obj.AddText(ocraFont, "", 0.85f, 0.95f, 1.f, Vec3(0, 0, 0));
     obj.AddBehaviour<FpsText>();\
@@ -286,7 +289,7 @@ void poolTable() {
         balls.push_back(newBall);
     }
 
-    auto ocraFont = new Font("OCRAEXT.TTF", 20);
+    auto ocraFont = engine->GetFontManager().LoadFont("OCRAEXT.TTF", 20);
     auto scoreText = PublicText::New(ocraFont, "0", Vec2(0.02f, 0.95f), 1.f, Vec3(0, 0, 0));
     Object gmObj = engine->NewObject();
     gmObj.AddBehaviour<GameManager>(
@@ -308,7 +311,7 @@ int main() {
     poolTable();
     createUI();
 
-    auto ocraFont = new Font("OCRAEXT.TTF", 20);
+    auto ocraFont = engine->GetFontManager().LoadFont("OCRAEXT.TTF", 20);
     auto hintText = reinterpret_cast<PublicText*>(
         PublicText::New(ocraFont, "0", Vec2(0.53f, 0.5f), 1.f, Vec3(1))
         .GetBehaviour());

@@ -5,7 +5,7 @@
 
 #include "math_types.hpp"
 
-enum ShaderType {VertexShader = GL_VERTEX_SHADER, FragmentShader = GL_FRAGMENT_SHADER};
+enum class ShaderType {Vertex = GL_VERTEX_SHADER, Fragment = GL_FRAGMENT_SHADER};
 
 class Shader {
  private:
@@ -17,24 +17,22 @@ class Shader {
  public:
      unsigned int m_Shader;
      explicit Shader(ShaderType shaderType, std::string path);
+     std::string GetSource();
 };
 
 class ShaderProgram {
  private:
-     unsigned int m_Program = 0;
+     unsigned int m_Program = -1;
      unsigned int GetLoc(const char* name);
 
  public:
      int AttachShader(Shader shader);
      int Link();
-    //  ShaderProgram(const ShaderProgram& other) = default;
-    //  ShaderProgram(ShaderProgram&& other) = default;
-    //  ShaderProgram& operator=(const ShaderProgram& other) = default;
-    //  ShaderProgram& operator=(ShaderProgram&& other) = default;
-     ShaderProgram();
+     ShaderProgram() = default;
      ShaderProgram(Shader vShader, Shader fShader);
      int Use();
      int UniformLocation(const char* mode);
+     bool IsValid();
 
      void SetFloat(const char* name, const float value);
      void SetInt(const char* name, const int value);

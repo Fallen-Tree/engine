@@ -30,4 +30,6 @@ class Image {
 
     void SetScale(float);
     void SetPosition(float, float);
+    void SetShaderProgram(ShaderProgram);
+    ShaderProgram GetShaderProgram();
 };

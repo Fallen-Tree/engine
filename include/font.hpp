@@ -1,9 +1,8 @@
 #pragma once
 
-#include <string>
-
 #include <ft2build.h>
 #include <freetype/freetype.h>
+#include <string>
 
 #include "shaders.hpp"
 
@@ -19,7 +18,10 @@ class Font {
     };
     Character Characters[128];
 
+    Font(std::string, unsigned int, ShaderProgram);
+
+    friend class FontManager;
  public:
-    Font(std::string, unsigned int);
+    Font() = default;
     void RenderText(std::string, float, float, float, glm::vec3);
 };

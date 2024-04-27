@@ -13,6 +13,7 @@ find_package(OpenGL REQUIRED)
 add_library(ENGINE STATIC 
             src/engine.cpp
             src/shaders/shaders.cpp
+            src/shaders/shader_manager.cpp
             src/model/mesh.cpp
             src/model/model.cpp
             src/input/input.cpp
@@ -21,6 +22,7 @@ add_library(ENGINE STATIC
             src/logging/logger.cpp
             src/text/text.cpp
             src/text/font.cpp
+            src/text/font_manager.cpp
             src/components/animation/animation.cpp
             src/components/animation/skeletal_animations_manager.cpp
             src/components/animation/skeletal_animation_data.cpp
@@ -37,7 +39,6 @@ add_library(ENGINE STATIC
             src/engine/math.cpp
             src/object.cpp
             src/images/images.cpp
-            src/timer.cpp
 )
 
 add_subdirectory(thirdparty/glfw)
