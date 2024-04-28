@@ -20,12 +20,8 @@ void init() {
     engine = new Engine();
     std::string vertexShaderSource = "standart.vshader";
     std::string fragmentShaderSource = "standart.fshader";
-    /* Shader vShader = Shader(VertexShader, vertexShaderSource); */
-    /* Shader fShader = Shader(FragmentShader, fragmentShaderSource); */
-    /* defaultSP = new ShaderProgram(vShader, fShader); */
     defaultSP = new ShaderProgram(
-        engine->GetShaderManager().LoadShaderProgram(vertexShaderSource, fragmentShaderSource)
-    );
+        engine->GetShaderManager().LoadShaderProgram(vertexShaderSource, fragmentShaderSource));
 }
 
 void createUI() {

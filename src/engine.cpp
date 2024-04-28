@@ -526,31 +526,11 @@ void Engine::Render(int scr_width, int scr_height) {
             static_cast<float>(viewportWidth),
             static_cast<float>(viewportHeight)
         });
-    /* std::vector<ShaderProgram*> shaders; */
-    /* { */
-    /*     ZoneScopedN("Collect Shaders"); */
-    /*     for (int model_i = 0; model_i < m_Models.GetSize(); model_i++) { */
-    /*         ObjectHandle id = m_Models.GetFromInternal(model_i); */
-    /*         if (!m_Transforms.HasData(id)) continue; */
-    /*         auto model = m_Models.GetData(id); */
-    /*         ShaderProgram* shader = model.shader; */
-    /*         bool used = false; */
-    /*         for (auto s : shaders) { */
-    /*             if (s == shader) { */
-    /*                 used = true; */
-    /*                 break; */
-    /*             } */
-    /*         } */
-    /*         if (!used) { */
-    /*             shaders.push_back(shader); */
-    /*         } */
-    /*     } */
-    /* } */
     {
+    ZoneScopedN("Send Lights+Camera data");
     Mat4 projection = camera->GetProjectionMatrix();
     Mat4 view = camera->GetViewMatrix();
     Vec3 viewPos = camera->GetPosition();
-    ZoneScopedN("Send Lights");
     for (auto [key, shader] : m_ShaderManager) {
         shader.Use();
         char str[100];

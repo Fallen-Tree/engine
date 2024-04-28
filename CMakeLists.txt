@@ -57,7 +57,6 @@ SET(ASSIMP_BUILD_TESTS OFF)
 add_subdirectory(thirdparty/assimp/assimp)
 
 # Profiler intergration
-# Uncomment to enable tracy client
 set(TRACY_ENABLE OFF)
 add_subdirectory(thirdparty/tracy)
 
