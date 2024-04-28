@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.16)
-
 project(Engine VERSION 0.1)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -59,7 +58,7 @@ add_subdirectory(thirdparty/assimp/assimp)
 
 # Profiler intergration
 # Uncomment to enable tracy client
-# option(TRACY_ENABLE "" ON)
+set(TRACY_ENABLE OFF)
 add_subdirectory(thirdparty/tracy)
 
 target_include_directories(ENGINE PUBLIC thirdparty PUBLIC include)
