@@ -55,30 +55,14 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 void processInput(GLFWwindow *window);
 
 Engine::Engine() : m_FontManager(m_ShaderManager) {
-    _startTime = std::chrono::high_resolution_clock::now();	
+    _startTime = std::chrono::high_resolution_clock::now();
     camera = new Camera(Vec3(0.0f, 0.0f, 3.0f));
     s_Engine = this;
-    // Pre-allocate all needed memory
-    m_Transforms = ComponentArray<Transform>();
-    m_Models = ComponentArray<Model>();
-    m_Animations = ComponentArray<Animation>();
-    m_Colliders = ComponentArray<Collider>();
-    m_RigidBodies = ComponentArray<RigidBody>();
-    m_Images = ComponentArray<Image>();
-    m_Texts = ComponentArray<Text>();
-    m_SkeletalAnimationsManagers = ComponentArray<SkeletalAnimationsManager>();
-    m_Sounds = ComponentArray<Sound>();
-
-    m_PointLights = ComponentArray<PointLight>();
-    m_DirLights = ComponentArray<DirLight>();
-    m_SpotLights = ComponentArray<SpotLight>();
     m_ObjectCount = 0;
 
     m_CollideCache = std::vector<std::vector<bool>>(MAX_OBJECT_COUNT);
     for (auto i = 0; i < MAX_OBJECT_COUNT; i++)
         m_CollideCache[i] = std::vector<bool>(MAX_OBJECT_COUNT);
-
-    m_ShaderManager = ShaderManager();
 
     bool bassInit = BASS_Init(-1, 44100, 0, NULL, NULL);
     if (!bassInit) {
@@ -365,14 +349,16 @@ std::vector<Object> Engine::CollideAll(ObjectHandle a) {
 
 void Engine::Run() {
     {
-    using namespace std::chrono;
-	auto endTime = high_resolution_clock::now();
+    using std::chrono::high_resolution_clock;
+    using std::chrono::time_point_cast;
+    using std::chrono::milliseconds;
+    auto endTime = high_resolution_clock::now();
 
-	auto start = time_point_cast<microseconds>(_startTime).time_since_epoch().count();
-	auto end = time_point_cast<microseconds>(endTime).time_since_epoch().count(); 
-	auto duration = end - start;
+    auto start = time_point_cast<milliseconds>(_startTime).time_since_epoch().count();
+    auto end = time_point_cast<milliseconds>(endTime).time_since_epoch().count();
+    auto duration = end - start;
 
-	Logger::Info("Startup took %fms(%fs)\n", (double)duration/1000, (double)duration/1000000);
+    Logger::Info("Startup took %fms(%fs)\n", duration, duration/1000.0f);
     }
     scrWidth = SCR_WIDTH;
     scrHeight = SCR_HEIGHT;
