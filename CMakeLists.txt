@@ -15,6 +15,7 @@ add_library(ENGINE STATIC
             src/shaders/shader_manager.cpp
             src/model/mesh.cpp
             src/model/model.cpp
+            src/model/model_manager.cpp
             src/input/input.cpp
             src/texture/stb_image.cpp
             src/texture/texture.cpp
@@ -57,7 +58,7 @@ SET(ASSIMP_BUILD_TESTS OFF)
 add_subdirectory(thirdparty/assimp/assimp)
 
 # Profiler intergration
-set(TRACY_ENABLE OFF)
+set(TRACY_ENABLE ON)
 add_subdirectory(thirdparty/tracy)
 
 target_include_directories(ENGINE PUBLIC thirdparty PUBLIC include)

@@ -17,7 +17,7 @@ class MovingBall : public Behaviour {
      std::string diffuseSource, float mass = 1.0) {
         Transform *transform = new Transform(position, Vec3(radius), Mat4(1.0));
 
-        if (ball_model == nullptr) ball_model = Model::loadFromFile("pool/shar_1200.obj");
+        if (ball_model == nullptr) ball_model = engine->GetModelManager().LoadModel("pool/shar_1200.obj");
         Model *model = ball_model;
         Material sphereMaterial = {4.f, Texture(diffuseSource)};
         model->setMaterial(sphereMaterial);
@@ -39,7 +39,7 @@ class MovingBall : public Behaviour {
 class Cue : public Behaviour {
  public:
     static Object New(std::vector<Object> objects, Camera *camera) {
-        Model *model = Model::loadFromFile("pool/cue.obj");
+        Model *model = engine->GetModelManager().LoadModel("pool/cue.obj");
         Material material = {
             4.f,
             Texture("/kiy.png"),
@@ -190,7 +190,7 @@ class Table : public Behaviour {
     static Object New(Vec3 position, Vec3 scale, GameManager *gameManager) {
         Transform *transform = new Transform(position, scale, Mat4(1.0));
 
-        Model *model = Model::loadFromFile("pool/stol_1.obj");
+        Model *model = engine->GetModelManager().LoadModel("pool/stol_1.obj");
         Material material = Material{
             4.f,
             Texture("pool/stol.png"),

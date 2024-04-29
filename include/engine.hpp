@@ -26,6 +26,7 @@
 #include "skeletal_animation_data.hpp"
 #include "shader_manager.hpp"
 #include "font_manager.hpp"
+#include "model_manager.hpp"
 
 extern Input *s_Input;
 
@@ -77,6 +78,7 @@ class Engine {
 
     ShaderManager &GetShaderManager();
     FontManager &GetFontManager();
+    ModelManager &GetModelManager();
 
     void RemoveObject(ObjectHandle);
     Object NewObject();
@@ -130,4 +132,5 @@ class Engine {
 
     ShaderManager m_ShaderManager;
     FontManager m_FontManager;
+    ModelManager m_ModelManager;
 };

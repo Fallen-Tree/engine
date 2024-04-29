@@ -24,6 +24,7 @@
 #include "sound.hpp"
 #include <glm/gtx/string_cast.hpp>
 #include "tracy/Tracy.hpp"
+#include <chrono>
 
 int viewportWidth, viewportHeight;
 // Left bottom corner coordinates of viewport
@@ -35,6 +36,8 @@ static Engine *s_Engine = nullptr;
 Input *s_Input = nullptr;
 
 unsigned int fps = 0;
+
+std::chrono::time_point<std::chrono::high_resolution_clock> _startTime;
 
 Camera* Engine::SwitchCamera(Camera* newCamera) {
     if (!newCamera) {
@@ -52,6 +55,7 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 void processInput(GLFWwindow *window);
 
 Engine::Engine() : m_FontManager(m_ShaderManager) {
+    _startTime = std::chrono::high_resolution_clock::now();	
     camera = new Camera(Vec3(0.0f, 0.0f, 3.0f));
     s_Engine = this;
     // Pre-allocate all needed memory
@@ -193,6 +197,7 @@ Model *Engine::GetModel(ObjectHandle handle) {
 }
 
 Transform Engine::GetGlobalTransform(ObjectHandle handle) {
+    ZoneScoped;
     auto transform = GetTransform(handle);
     if (!transform) {
         Logger::Error("Failed to get global transform: No transform on object");
@@ -335,6 +340,10 @@ FontManager &Engine::GetFontManager() {
     return m_FontManager;
 }
 
+ModelManager &Engine::GetModelManager() {
+    return m_ModelManager;
+}
+
 bool Engine::Collide(ObjectHandle a, ObjectHandle b) {
     if (!m_Colliders.HasData(a) || !m_Colliders.HasData(b)) {
         Logger::Warn("Trying to get collision data on objects with no colliders");
@@ -355,6 +364,16 @@ std::vector<Object> Engine::CollideAll(ObjectHandle a) {
 }
 
 void Engine::Run() {
+    {
+    using namespace std::chrono;
+	auto endTime = high_resolution_clock::now();
+
+	auto start = time_point_cast<microseconds>(_startTime).time_since_epoch().count();
+	auto end = time_point_cast<microseconds>(endTime).time_since_epoch().count(); 
+	auto duration = end - start;
+
+	Logger::Info("Startup took %fms(%fs)\n", (double)duration/1000, (double)duration/1000000);
+    }
     scrWidth = SCR_WIDTH;
     scrHeight = SCR_HEIGHT;
     viewportWidth = SCR_WIDTH;
@@ -599,7 +618,7 @@ void Engine::Render(int scr_width, int scr_height) {
         ObjectHandle id = m_Models.GetFromInternal(model_i);
         if (!m_Transforms.HasData(id)) continue;
 
-        auto model = m_Models.GetData(id);
+        auto &model = m_Models.GetData(id);
         auto transform = GetGlobalTransform(id);
 
         ShaderProgram* shader = model.shader;
@@ -619,6 +638,7 @@ void Engine::Render(int scr_width, int scr_height) {
         }
 
         for (RenderMesh mesh : model.meshes) {
+            ZoneScopedN("Render Mesh");
             shader->SetFloat("material.shininess", mesh.material.shininess);
             mesh.material.texture.bind();
 
