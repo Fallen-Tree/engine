@@ -154,7 +154,7 @@ inline bool ClipToPlane(const Plane& plane,
     float t = (plane.d - nA) / nAB;
 
     if (t >= 0.0f && t <= 1.0f) {
-        if (outPoint != 0) {
+        if (outPoint != nullptr) {
             *outPoint = line.start + ab * t;
         }
         return true;
@@ -251,8 +251,12 @@ CollisionManifold CollidePrimitive(OBB a, OBB b) {
     Vec3 p = Vec3(0);
     for (auto i : c1) p += i;
     for (auto i : c2) p += i;
-    if (c1.size() == 0 && c2.size() == 0)
+
+    if (c1.size() == 0 && c2.size() == 0) {
         Logger::Info("COLLISION::OBBVSOBB::POINTS_SIZE_IS_ZERO");
+        return res;
+    }
+
     res.collisionPoint = p / static_cast<float>(c1.size() + c2.size());
 
     Interval i = a.GetInterval(axis);

@@ -152,14 +152,14 @@ int main() {
     Model *cubeModel = Model::fromMesh(Mesh::GetCube(), material, standartShaderProgram);
 
     auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model,
-            Vec3 speed, float mass, Vec3 angUnlock) {
+            Vec3 speed, Vec3 angularSpeed, float mass, Vec3 angUnlock) {
         auto obj = engine.NewObject();
         obj.AddModel(*model);
 
         obj.AddTransform(transform);
         obj.AddCollider(primitive);
-        obj.AddRigidBody(RigidBody(mass, IBodyOBB(Vec3(1), mass), speed, 0,
-                    Vec3(0, -mass * 10, 0), angUnlock, 0.05));
+        obj.AddRigidBody(RigidBody(mass, IBodyOBB(Vec3(1), mass), speed,
+                    angularSpeed, 0, Vec3(0, -mass * 10, 0), angUnlock, 0.05));
         return obj;
     };
 
@@ -171,19 +171,19 @@ int main() {
 
     auto staticAABB = setUpObj(
         Transform(Vec3(2, -30, 2.0), Vec3(50), 0.f, Vec3(1)),
-        OBB {
-            Vec3(0, 0, 0),
-            Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
-            Vec3(0.5, 0.5, 0.5),
+        AABB {
+            Vec3(-0.5),
+            Vec3(0.5),
         },
         cubeModel,
         Vec3(0, 0, 0),
+        Vec3(0),
         0,
         Vec3(0));
 
 
     auto obb = setUpObj(
-        Transform(Vec3(2, 3, 2.0), Vec3(1), 45, Vec3(1, 0, 0)),
+        Transform(Vec3(2, 0, 2.0), Vec3(1), 45, Vec3(1)),
         OBB {
             Vec3(0, 0, 0),
             Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
@@ -191,55 +191,10 @@ int main() {
         },
         cubeModel,
         Vec3(0, 0, 0),
+        Vec3(0.0, 0, 0),
         1,
         Vec3(1));
 
-    /*
-    auto aabb2 = setUpObj(
-        Transform(Vec3(-4, 0, 2.0), Vec3(1), 0.f, Vec3(1)),
-        AABB {
-            Vec3(-0.5),
-            Vec3(0.5)
-        },
-        cubeModel,
-        Vec3(3, 0, 0),
-        1,
-        Vec3(0));
-
-    auto aabb3 = setUpObj(
-        Transform(Vec3(0, 0, 2.0), Vec3(1), 0.f, Vec3(1)),
-        AABB {
-            Vec3(-0.5),
-            Vec3(0.5)
-        },
-        cubeModel,
-        Vec3(0, 0, 0),
-        1,
-        Vec3(0));
-
-    auto obb2 = setUpObj(
-        Transform(Vec3(0, -1, 2.0), Vec3(2), 0.0f, Vec3(1)),
-        OBB {
-            Vec3(0, 0, 0),
-            Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
-            Vec3(0.5, 0.5, 0.5),
-        },
-        cubeModel,
-        Vec3(0),
-        1);
-
-
-    auto obb3 = setUpObj(
-        Transform(Vec3(10, 13, 10.0), Vec3(2), 0.0f, Vec3(1)),
-        OBB {
-            Vec3(0, 0, 0),
-            Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
-            Vec3(0.5, 0.5, 0.5),
-        },
-        cubeModel,
-        Vec3(0),
-        1);
-        */
 
     auto getSphereObj = [=, &engine](Transform transform, Vec3 speed, float mass) {
         auto obj = engine.NewObject();
@@ -248,16 +203,15 @@ int main() {
         obj.AddCollider(Sphere{ Vec3(0), 1.f });
         obj.AddRigidBody(RigidBody(
             mass, IBodySphere(transform.GetScale().x, mass),
-            speed, 0, Vec3(0, -mass * 10, 0), Vec3(1), 0.01));
+            speed, Vec3(0), 0, Vec3(0, -mass * 10, 0), Vec3(1), 0.01));
         return obj;
     };
 
-    /*
     Object spheres[3] = {
         getSphereObj(
             Transform(Vec3(-10, 4, 2.0), Vec3(1), 0.f, Vec3(1)),
-            Vec3(1, 0, 0),
-            1),
+            Vec3(5, 0, 0),
+            10),
         getSphereObj(
             Transform(Vec3(5, 4, 2.0), Vec3(1), 0.f, Vec3(1)),
             Vec3(0, 0, 0),
@@ -267,10 +221,7 @@ int main() {
             Vec3(0, 0, 0),
             10000)
     };
-    */
 
-    // cat.AddChild(aabb);
-    // cat.AddBehaviour<Moving>();
 
     class FpsText : public Behaviour {
      public:

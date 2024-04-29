@@ -28,7 +28,7 @@ public:
 
 
  RigidBody() = default;
- RigidBody(float mass, Mat3 iBody, Vec3 initalVelocity, 
+ RigidBody(float mass, Mat3 iBody, Vec3 initalVelocity, Vec3 initalAngVelocity, 
          float restitution, Vec3 defaultForce,
          Vec3 angularUnlock, float kineticFriction); 
 

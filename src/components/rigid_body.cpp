@@ -31,7 +31,7 @@ RigidBody::RigidBody(float mass, Mat3 iBody, float restitution, Vec3 defaultForc
 }
 
 RigidBody::RigidBody(float mass, Mat3 iBody, Vec3 initalVelocity,
-        float restitution, Vec3 defaultForce,
+        Vec3 angularInitalVelocity, float restitution, Vec3 defaultForce,
         Vec3 angularUnlock, float kineticFriction) {
     SetMass(mass);
     SetIbodyInverse(iBody);
@@ -40,9 +40,16 @@ RigidBody::RigidBody(float mass, Mat3 iBody, Vec3 initalVelocity,
     this->defaultForce = defaultForce;
     this->angularUnlock = angularUnlock;
     this->kineticFriction = kineticFriction;
+    this->angularVelocity = angularInitalVelocity;
 }
 
 void RigidBody::Update(Transform *tranform, float dt) {
+    if (massInverse == 0)
+        return;
+
+    auto dump = 0.98;
+    angularVelocity *= dump;
+
     LinearCalculation(tranform, dt);
     AngularCalculation(tranform, dt);
 
@@ -54,6 +61,10 @@ void RigidBody::ResolveCollisions(RigidBody *otherRigidBody,
         CollisionManifold manifold,
         Transform globalTransform, Transform otherGlobalTransform,
         Transform& tr1, Transform& tr2, float dt) {
+    auto epsilon = 0.000001;
+    if (manifold.penetrationDistance <= epsilon)
+        manifold.penetrationDistance = 0;
+
     if (massInverse != 0)
         tr1.Translate(manifold.collisionNormal * manifold.penetrationDistance);
     if (otherRigidBody->massInverse != 0)
@@ -86,20 +97,20 @@ void RigidBody::LinearCalculation(Transform *transform, float dt) {
 }
 
 void RigidBody::AngularCalculation(Transform *transform, float dt) {
-    if (m_Torque == Vec3(0))
-        return;
-    Mat3 rotation = transform->GetRotation();
-    Mat3 Iinverse = rotation * ibodyInverse * glm::transpose(rotation);
-    Vec3 L = m_Torque * dt;
-    Vec3 omega = Iinverse * L;
+    Vec3 omega = Vec3(0);
+    if (m_Torque != Vec3(0)) {
+        Mat3 rotation = transform->GetRotation();
+        Mat3 Iinverse = rotation * ibodyInverse * glm::transpose(rotation);
+        Vec3 L = m_Torque * dt;
+        omega = Iinverse * L;
+    }
     angularVelocity += omega;
     auto angle = angularVelocity * angularUnlock;
     transform->Rotate(angle.x, angle.y, angle.z);
 }
 
 void RigidBody::ApplyTorque(Vec3 force, Vec3 r) {
-    auto cross = glm::cross(force, r);
-    m_Torque += glm::cross(force, r) * static_cast<float>(TORQUE_RATIO);
+    m_Torque += glm::cross(r, force) * static_cast<float>(TORQUE_RATIO);
 }
 
 void RigidBody::LimitTorque(Vec3 force, Vec3 r) {
@@ -193,9 +204,11 @@ void RigidBody::ComputeForceTorque(RigidBody *otherRigidBody,
         velocity -= Projection(velocity, -normal);
     }
 
+    auto collisionPoint = manifold.collisionPoint;
+
     // Compute lever of force
-    auto r1 = -manifold.collisionPoint + transform.GetTranslation();
-    auto r2 = -manifold.collisionPoint + otherTransform.GetTranslation();
+    auto r1 = collisionPoint - transform.GetTranslation();
+    auto r2 = collisionPoint - otherTransform.GetTranslation();
 
 
     // Compute impulse
