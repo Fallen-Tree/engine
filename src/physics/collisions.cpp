@@ -746,14 +746,14 @@ std::optional<float> CollisionPrimitive(Ray r, OBB o) {
 
     float t[6] = {0, 0, 0, 0, 0, 0};
     for (int i = 0; i < 3; i++) {
-        if (std::fabs(f[i]) < epsilon) {
-            if (-e[i] - o.axis[0][i] > 0 || -e[i] + o.axis[0][i] < 0) {
+        if (isCloseToZero(f[i])) {
+            if (-e[i] - o.halfWidth[i] > 0 || -e[i] + o.halfWidth[i] < 0) {
                 return {};
             }
             f[i] = 0.00001f;  // Avoid div by 0!
         }
-        t[i * 2 + 0] = (e[i] + o.axis[0][i]) / f[i];  // min
-        t[i * 2 + 1] = (e[i] - o.axis[0][i]) / f[i];  // max
+        t[i * 2 + 0] = (e[i] + o.halfWidth[i]) / f[i];  // min
+        t[i * 2 + 1] = (e[i] - o.halfWidth[i]) / f[i];  // max
     }
 
     float tmin = fmaxf(
@@ -766,7 +766,7 @@ std::optional<float> CollisionPrimitive(Ray r, OBB o) {
         fminf(
             fmaxf(t[0], t[1]),
             fmaxf(t[2], t[3])),
-        fmaxf(t[4], t[5]));
+            fmaxf(t[4], t[5]));
 
     if (tmax < 0) {
         return {};

@@ -8,9 +8,3 @@ struct CollisionManifold {
     Vec3 collisionPoint;
     float penetrationDistance = std::numeric_limits<float>::max();
 };
-
-inline void ResetCollisionManifold(CollisionManifold* result) {
-    result->collide = false;
-    result->penetrationDistance = 0;
-    result->collisionNormal = Vec3(0);
-}
