@@ -323,7 +323,7 @@ bool Engine::Collide(ObjectHandle a, ObjectHandle b) {
 std::vector<Object> Engine::CollideAll(ObjectHandle a) {
     std::vector<Object> res;
     for (int i = 0; i < m_Colliders.GetSize(); i++) {
-       auto handle = m_Colliders.GetFromInternal(i); 
+       auto handle = m_Colliders.GetFromInternal(i);
        if (handle != a && Collide(a, handle)) {
            res.push_back(Object(this, handle));
        }
@@ -429,7 +429,7 @@ void Engine::updateObjects(float deltaTime) {
                 m_RigidBodies.GetData(handle).ResolveCollisions(
                         &m_RigidBodies.GetData(handle2),
                         m_CollideCache[handle][handle2],
-                        t1, t2, m_Transforms.GetData(handle), 
+                        t1, t2, m_Transforms.GetData(handle),
                         m_Transforms.GetData(handle2), deltaTime);
             }
         }
