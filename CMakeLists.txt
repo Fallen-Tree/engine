@@ -58,7 +58,7 @@ SET(ASSIMP_BUILD_TESTS OFF)
 add_subdirectory(thirdparty/assimp/assimp)
 
 # Profiler intergration
-set(TRACY_ENABLE ON)
+set(TRACY_ENABLE OFF)
 add_subdirectory(thirdparty/tracy)
 
 target_include_directories(ENGINE PUBLIC thirdparty PUBLIC include)

@@ -10,8 +10,10 @@
 #include "shaders.hpp"
 #include "user_config.hpp"
 #include "engine_config.hpp"
+#include "tracy/Tracy.hpp"
 
 void Text::RenderText() {
+    ZoneScoped;
     m_Font->RenderText(m_Text, m_RelX, m_RelY, m_Scale, m_Color);
 }
 

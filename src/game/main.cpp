@@ -48,7 +48,7 @@ void createUI() {
 }
 
 void AddLantern(Vec3 pos) {
-    Model *lantern = engine->GetModelManager().LoadModel("Lantern/model.obj");
+    Model *lantern = engine->GetModelManager().LoadModel("Lantern/one_mesh.obj");
     Transform * tr = new Transform(pos, Vec3(1.0f), Mat4(1.0f));
     newModel(tr, lantern);
     engine->NewObject().AddPointLight(
@@ -158,7 +158,7 @@ void buildRoom() {
         }
     }
 
-    Model *ceil = engine->GetModelManager().LoadModel("floor/model.obj");
+    Model *ceil = engine->GetModelManager().LoadModel("floor/one_mesh.obj");
 
     int ceil_cnt = 2;
 

@@ -8,6 +8,7 @@
 #include "path_resolver.hpp"
 #include "stb_image.h"
 #include "user_config.hpp"
+#include "tracy/Tracy.hpp"
 
 Image::Image(std::string path, float relX, float relY, float scale) {
   path = GetResourcePath(Resource::IMAGE, path);
@@ -57,6 +58,7 @@ ShaderProgram Image::GetShaderProgram() {
 }
 
 void Image::Render() {
+    ZoneScoped;
   if (!m_Visible) return;
 
   glDisable(GL_DEPTH_TEST);
