@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 
 inline bool isCloseToZero(float x) {
-    return std::abs(x) <= FLT_EPSILON * fmaxf(1, x);
+    return std::abs(x) <= FLT_EPSILON;
 }
 
 typedef glm::fvec2 Vec2;

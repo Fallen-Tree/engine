@@ -47,7 +47,7 @@ void RigidBody::Update(Transform *tranform, float dt) {
     if (massInverse == 0)
         return;
 
-    auto dump = 0.98;
+    auto dump = std::pow(DUMP, dt);
     angularVelocity *= dump;
 
     LinearCalculation(tranform, dt);
