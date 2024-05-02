@@ -1,4 +1,7 @@
 #pragma once
+
+#include <string>
+
 #include "transform.hpp"
 #include "collider.hpp"
 #include "animation.hpp"
@@ -15,6 +18,9 @@ class Object {
     Object& operator=(const Object &&);
     Object();
     Object(Engine *, ObjectHandle);
+
+    Object& SetName(std::string);
+    std::string GetName();
 
     void SetEngine(Engine *);
 
