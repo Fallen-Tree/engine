@@ -70,9 +70,7 @@ Engine::Engine() {
     m_ObjectCount = 0;
     m_Names.assign(MAX_OBJECT_COUNT, "default");
 
-    m_CollideCache = std::vector<std::vector<bool>>(MAX_OBJECT_COUNT);
-    for (auto i = 0; i < MAX_OBJECT_COUNT; i++)
-        m_CollideCache[i] = std::vector<bool>(MAX_OBJECT_COUNT);
+    m_CollideCache.assign(MAX_OBJECT_COUNT, 0);
 
     bool bassInit = BASS_Init(-1, 44100, 0, NULL, NULL);
     if (!bassInit) {

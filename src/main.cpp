@@ -52,7 +52,7 @@ class MovingRotating2 : public Behaviour {
 };
 
 int main() {
-    auto engine = Engine();
+    auto engine = new Engine();
 
     Shader standartVShader = Shader(VertexShader, standartVertexShaderSource);
     Shader skeletalVShader = Shader(VertexShader, skeletalVertexShaderSource);
@@ -67,7 +67,7 @@ int main() {
         pigeonModel->shader = skeletalShaderProgram;
         auto pigeonAnimation = new SkeletalAnimationData("pigeon/scene.gltf", 0, pigeonModel);
 
-        auto pigeonObj = engine.NewObject();
+        auto pigeonObj = engine->NewObject();
         pigeonObj.AddTransform(Vec3(0.f, -10.f, -10.f), Vec3(10.f), Mat4(1.0));
         pigeonObj.AddModel(*pigeonModel);
         pigeonObj.AddSkeletalAnimationsManager(pigeonAnimation).PlayImmediately(0, 0);
@@ -79,7 +79,7 @@ int main() {
         wolfModel->meshes.pop_back();  // Delete Fur
         wolfModel->meshes.erase(wolfModel->meshes.begin() + 1);  // Delete floor
 
-        auto wolfObj = engine.NewObject().SetName("Wolf");
+        auto wolfObj = engine->NewObject().SetName("Wolf");
         Logger::Info("%s", wolfObj.GetName().c_str());
         wolfObj.AddTransform(Vec3(5.f, -10.f, -10.f), Vec3(10.f), Mat4(1.0));
         wolfObj.AddModel(*wolfModel);
@@ -131,7 +131,7 @@ int main() {
             4.f,
             Texture("/Cat_diffuse.png", "/Cat_specular.png")
         };
-        auto cat = engine.NewObject();
+        auto cat = engine->NewObject();
         cat.AddModel(*model);
         auto &t = cat.AddTransform(Vec3(0.f, -7.f, -5.f), Vec3(0.01f), Mat4(1.0));
         t.RotateGlobal(1.67f, Vec3(-1.f, 0.f, 0.f));
@@ -140,7 +140,7 @@ int main() {
     // Shiba inu (ETO FIASKO BRATAN)
     Model *model = Model::loadFromFile("ShibaInu.fbx");
     model->shader = standartShaderProgram;
-    auto dog = engine.NewObject();
+    auto dog = engine->NewObject();
     dog.AddModel(*model);
     // dog.AddSkeletalAnimationsManager("ShibaInu.fbx", model).PlayImmediately(14, 1);
     dog.AddTransform(Transform(Vec3(2, -5, 0.0), Vec3(1.f), glm::radians(-90.f), Vec3(1.0f, 0.f, 0.f)));
@@ -153,7 +153,7 @@ int main() {
     Model *cubeModel = Model::fromMesh(Mesh::GetCube(), material, standartShaderProgram);
 
     auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model) {
-        auto obj = engine.NewObject();
+        auto obj = engine->NewObject();
         obj.AddModel(*model);
 
         obj.AddTransform(transform);
@@ -195,7 +195,7 @@ int main() {
     obb3.AddBehaviour<MovingRotating>();
 
     auto getSphereObj = [=, &engine](Transform transform, Vec3 speed, float mass) {
-        auto obj = engine.NewObject();
+        auto obj = engine->NewObject();
         obj.AddTransform(transform);
         obj.AddModel(*sphereModel);
         obj.AddCollider(Sphere{ Vec3(0), 1.f });
@@ -234,40 +234,40 @@ int main() {
 
     {
         auto ocraFont = new Font("OCRAEXT.TTF", 20);
-        auto obj = engine.NewObject();
+        auto obj = engine->NewObject();
         obj.AddText(ocraFont, "", 0.85f, 0.95f, 1.f, Vec3(0, 0, 0));
         obj.AddBehaviour<FpsText>();
     }
 
-    engine.NewObject().AddSound(SoundType::SOUND_FLAT, "georgian_disco.mp3").SetVolume(0.05f).Start();
+    engine->NewObject().AddSound(SoundType::SOUND_FLAT, "georgian_disco.mp3").SetVolume(0.05f).Start();
 
-    engine.NewObject().AddImage("hp.png", 0.03f, 0.15f, 0.4f);
-    engine.NewObject().AddImage("hp_bar.png", 0.015f, 0.01f, 0.4f);
+    engine->NewObject().AddImage("hp.png", 0.03f, 0.15f, 0.4f);
+    engine->NewObject().AddImage("hp_bar.png", 0.015f, 0.01f, 0.4f);
 
-    engine.NewObject().AddPointLight(
+    engine->NewObject().AddPointLight(
         Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
         Vec3(1.0f, 1.0f, 1.0f), Vec3(-0.2, -0.5, -1.2),
         1.f, 0.09f, 0.032f);
 
-    engine.NewObject().AddPointLight(
+    engine->NewObject().AddPointLight(
         Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
         Vec3(1.0f, 1.0f, 1.0f), Vec3(2.3f, -3.3f, -4.0f),
         1.f, 0.09f, 0.032f);
 
-    engine.NewObject().AddPointLight(
+    engine->NewObject().AddPointLight(
         Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
         Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0f,  0.0f, -3.0f),
         1.f, 0.09f, 0.032f);
 
-    engine.NewObject().AddDirLight(
+    engine->NewObject().AddDirLight(
         Vec3(0.05f, 0.05f, 0.05f), Vec3(0.4f, 0.4f, 0.4f),
         Vec3(0.5f, 0.5f, 0.5f),  Vec3(-0.2f, -1.0f, -0.3f));
 
-    engine.NewObject().AddSpotLight(Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
+    engine->NewObject().AddSpotLight(Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
         Vec3(1.0f, 1.0f, 1.0f), Vec3(1.0f, 1.0f, 1.0f),
         1.0f, 0.09f, 0.032f, Vec3(0),
         glm::cos(glm::radians(12.5f)),
         glm::cos(glm::radians(15.0f)));
 
-    engine.Run();
+    engine->Run();
 }
