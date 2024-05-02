@@ -160,7 +160,17 @@ int main() {
         obj.AddCollider(primitive);
         return obj;
     };
+/*
+    auto cubeObj = engine.NewObject();
+    cubeObj.AddModel(*cubeModel);
+    cubeObj.AddCollider(Collider::GetDefaultAABB(cubeModel));
+    cubeObj.AddTransform(Transform(Vec3(5, 5, 5), Vec3(2), 0.0f, Vec3(1)));
 
+    auto cubeObj2 = engine.NewObject();
+    cubeObj2.AddModel(*cubeModel);
+    cubeObj2.AddCollider(Collider::GetDefaultAABB(cubeModel));
+    cubeObj2.AddTransform(Transform(Vec3(7, 7, 7), Vec3(2), 0.0f, Vec3(1)));
+*/
     auto obb = setUpObj(
         Transform(Vec3(0, 0, 2.0), Vec3(1), 0.0f, Vec3(1)),
         OBB {
@@ -236,6 +246,8 @@ int main() {
         auto ocraFont = new Font("OCRAEXT.TTF", 20);
         auto obj = engine.NewObject();
         obj.AddText(ocraFont, "", 0.85f, 0.95f, 1.f, Vec3(0, 0, 0));
+        auto obj2 = engine.NewObject();
+        obj2.AddText(ocraFont, "+", 0.49f, 0.49f, 1.f, Vec3(0, 0, 0));
         obj.AddBehaviour<FpsText>();
     }
 

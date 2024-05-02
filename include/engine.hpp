@@ -90,6 +90,8 @@ class Engine {
     bool Collide(ObjectHandle, ObjectHandle);
     std::vector<Object> CollideAll(ObjectHandle);
 
+    std::optional<ObjectHandle> GlobalRaycast(Ray ray);
+
     Camera* SwitchCamera(Camera* newCamera);
     void Run();
     Input m_Input;

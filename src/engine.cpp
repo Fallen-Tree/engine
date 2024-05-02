@@ -379,12 +379,29 @@ bool Engine::Collide(ObjectHandle a, ObjectHandle b) {
 std::vector<Object> Engine::CollideAll(ObjectHandle a) {
     std::vector<Object> res;
     for (int i = 0; i < m_Colliders.GetSize(); i++) {
-       auto handle = m_Colliders.GetFromInternal(i); 
+       auto handle = m_Colliders.GetFromInternal(i);
        if (handle != a && Collide(a, handle)) {
            res.push_back(Object(this, handle));
        }
     }
     return res;
+}
+
+std::optional<ObjectHandle> Engine::GlobalRaycast(Ray ray) {
+    std::optional<ObjectHandle> result = std::nullopt;
+    float bestDistance = 1e18;
+    for (int i = 0; i < m_Colliders.GetSize(); i++) {
+        int handle = m_Colliders.GetFromInternal(i);
+        auto current = m_Colliders.GetData(handle).RaycastHit(
+            m_Transforms.GetData(handle), ray);
+
+        if (!current.has_value()) continue;
+        if (current.value() < bestDistance) {
+            bestDistance = current.value();
+            result = m_Colliders.GetFromInternal(i);
+        }
+    }
+    return result;
 }
 
 void Engine::Run() {
@@ -425,6 +442,11 @@ void Engine::Run() {
             lastFpsShowedTime = currentTime;
             fpsFrames = 0;
         }
+
+
+        //=======
+        Logger::Warn("%d", GlobalRaycast(Ray(camera->GetPosition(), camera->GetPosition() + camera->GetFront())));
+        //=====
 
         m_Input.Update();
         glfwPollEvents();
