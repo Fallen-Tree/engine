@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <set>
+#include <bitset>
 #include "collider.hpp"
 #include "collisions.hpp"
 #include "render_data.hpp"
@@ -132,5 +133,5 @@ class Engine {
     // Collision cache
     // TODO(theblek): Make this a binary search tree
     // Or just an ordered array and do binary search. Should be fast enough.
-    std::vector<std::vector<bool>> m_CollideCache;
+    std::vector<std::bitset<MAX_OBJECT_COUNT>> m_CollideCache;
 };
