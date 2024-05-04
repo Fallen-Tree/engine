@@ -72,7 +72,7 @@ Engine::Engine() {
 
     m_CollideCache = std::vector<std::vector<CollisionManifold>>(MAX_OBJECT_COUNT);
     for (auto i = 0; i < MAX_OBJECT_COUNT; i++)
-        m_CollideCache[i] = std::vector<CollisionManifold>(MAX_OBJECT_COUNT)
+        m_CollideCache[i] = std::vector<CollisionManifold>(MAX_OBJECT_COUNT);
 
     bool bassInit = BASS_Init(-1, 44100, 0, NULL, NULL);
     if (!bassInit) {

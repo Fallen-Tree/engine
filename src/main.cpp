@@ -138,7 +138,7 @@ int main() {
 
     auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model,
             Vec3 speed, float mass, Vec3 angUnlock) {
-        auto obj = engine.NewObject();
+        auto obj = engine->NewObject();
         obj.AddModel(*model);
 
         obj.AddTransform(transform);
@@ -148,7 +148,7 @@ int main() {
         return obj;
     };
 
-    auto cat = engine.NewObject();
+    auto cat = engine->NewObject();
     cat.AddModel(*model);
     auto &t = cat.AddTransform(Vec3(0.f, -5.f, -8.f), Vec3(0.1f), Mat4(1.0));
 
