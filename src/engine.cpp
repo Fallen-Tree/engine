@@ -68,10 +68,11 @@ Engine::Engine() {
     m_DirLights = ComponentArray<DirLight>();
     m_SpotLights = ComponentArray<SpotLight>();
     m_ObjectCount = 0;
+    m_Names.assign(MAX_OBJECT_COUNT, "default");
 
     m_CollideCache = std::vector<std::vector<CollisionManifold>>(MAX_OBJECT_COUNT);
     for (auto i = 0; i < MAX_OBJECT_COUNT; i++)
-        m_CollideCache[i] = std::vector<CollisionManifold>(MAX_OBJECT_COUNT);
+        m_CollideCache[i] = std::vector<CollisionManifold>(MAX_OBJECT_COUNT)
 
     bool bassInit = BASS_Init(-1, 44100, 0, NULL, NULL);
     if (!bassInit) {
@@ -118,8 +119,47 @@ Engine::~Engine() {
 // TODO(theblek): reuse object ids
 Object Engine::NewObject() {
     ObjectHandle handle = m_ObjectCount++;
-    Logger::Info("Created object %d", handle);
+    m_NamesToHandles["default"].push_back(handle);
+    Logger::Info("Created object %d with \"default\" name", handle);
+    AddChild(ROOT, handle);
     return Object(this, handle);
+}
+
+Object Engine::NewObject(std::string name) {
+    ObjectHandle handle = m_ObjectCount++;
+    m_Names[handle] = name;
+    m_NamesToHandles[name].push_back(handle);
+    Logger::Info("Created object %d, named \"%s\"", handle, name.c_str());
+    AddChild(ROOT, handle);
+    return Object(this, handle);
+}
+
+void Engine::SetObjectName(ObjectHandle handle, std::string name) {
+    std::string oldName = m_Names[handle];
+    for (auto it = m_NamesToHandles[oldName].begin(); it != m_NamesToHandles[oldName].end(); it++) {
+        if (*it == handle) {
+            m_NamesToHandles[oldName].erase(it);
+            break;
+        }
+    }
+    if (m_NamesToHandles[oldName].empty()) {
+        m_NamesToHandles.erase(oldName);
+    }
+
+    m_Names[handle] = name;
+    m_NamesToHandles[name].push_back(handle);
+}
+
+std::string Engine::GetObjectName(ObjectHandle handle) {
+    return m_Names[handle];
+}
+
+std::vector<ObjectHandle> Engine::GetHandlesByName(std::string name) {
+    return m_NamesToHandles[name];
+}
+
+bool Engine::IsObjectValid(ObjectHandle obj) {
+    return m_Parents.HasData(obj);
 }
 
 void Engine::RemoveObject(ObjectHandle handle) {
@@ -146,10 +186,24 @@ void Engine::RemoveObject(ObjectHandle handle) {
     if (m_Behaviours.HasData(handle))
         m_Behaviours.RemoveData(handle);
 
+    for (auto it = m_NamesToHandles[m_Names[handle]].begin();
+              it != m_NamesToHandles[m_Names[handle]].end(); it++) {
+        if (*it == handle) {
+            m_NamesToHandles[m_Names[handle]].erase(it);
+            break;
+        }
+    }
+    if (m_NamesToHandles[m_Names[handle]].empty()) {
+        m_NamesToHandles.erase(m_Names[handle]);
+    }
+
+
     if (m_Parents.HasData(handle)) {
         auto parent = m_Parents.GetData(handle);
-        auto &children = m_Children.GetData(parent);
-        children.erase(std::find(children.begin(), children.end(), parent));
+        if (parent != ROOT) {
+            auto &children = m_Children.GetData(parent);
+            children.erase(std::find(children.begin(), children.end(), parent));
+        }
         m_Parents.RemoveData(handle);
     }
     if (m_Children.HasData(handle)) {
@@ -160,8 +214,10 @@ void Engine::RemoveObject(ObjectHandle handle) {
 }
 
 void Engine::AddChild(ObjectHandle parent, ObjectHandle child) {
+    assert(child != ROOT && "Adding root as child to anything is ~~stuuupid~~ unexpected");
     // TODO(theblek): Check for cycles in the tree
     m_Parents.SetData(child, parent);
+    if (parent == ROOT) return;
     if (!m_Children.HasData(parent))
         m_Children.SetData(parent, std::vector<ObjectHandle>());
     m_Children.GetData(parent).push_back(child);

@@ -2,6 +2,9 @@
 #include <vector>
 #include <variant>
 #include <string>
+#include <map>
+#include <set>
+#include <bitset>
 #include "collider.hpp"
 #include "collisions.hpp"
 #include "render_data.hpp"
@@ -31,6 +34,8 @@ class Object;
 class Behaviour;
 
 using ObjectHandle = int;
+
+const ObjectHandle ROOT = -1;
 
 class Engine {
  public:
@@ -73,6 +78,14 @@ class Engine {
 
     void RemoveObject(ObjectHandle);
     Object NewObject();
+    Object NewObject(std::string);
+
+    void SetObjectName(ObjectHandle, std::string);
+    std::string GetObjectName(ObjectHandle);
+    std::vector<ObjectHandle> GetHandlesByName(std::string name);
+
+    bool IsObjectValid(ObjectHandle);
+
     void AddChild(ObjectHandle parent, ObjectHandle child);
     Object GetParent(ObjectHandle node);
 
@@ -109,7 +122,10 @@ class Engine {
     ComponentArray<SpotLight> m_SpotLights;
 
     ComponentArray<Behaviour *> m_Behaviours;
+
     int m_ObjectCount;
+    std::vector<std::string> m_Names;
+    std::map<std::string, std::vector<ObjectHandle>> m_NamesToHandles;
 
     // Hierarchy tree
     PackedArray<ObjectHandle, MAX_OBJECT_COUNT> m_Parents;
