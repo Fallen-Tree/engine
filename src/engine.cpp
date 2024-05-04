@@ -70,7 +70,9 @@ Engine::Engine() {
     m_ObjectCount = 0;
     m_Names.assign(MAX_OBJECT_COUNT, "default");
 
-    m_CollideCache.assign(MAX_OBJECT_COUNT, 0);
+    m_CollideCache = std::vector<std::vector<CollisionManifold>>(MAX_OBJECT_COUNT);
+    for (auto i = 0; i < MAX_OBJECT_COUNT; i++)
+        m_CollideCache[i] = std::vector<CollisionManifold>(MAX_OBJECT_COUNT);
 
     bool bassInit = BASS_Init(-1, 44100, 0, NULL, NULL);
     if (!bassInit) {
@@ -371,13 +373,13 @@ bool Engine::Collide(ObjectHandle a, ObjectHandle b) {
         Logger::Warn("Trying to get collision data on objects with no colliders");
         return false;
     }
-    return m_CollideCache[a][b];
+    return m_CollideCache[a][b].collide;
 }
 
 std::vector<Object> Engine::CollideAll(ObjectHandle a) {
     std::vector<Object> res;
     for (int i = 0; i < m_Colliders.GetSize(); i++) {
-       auto handle = m_Colliders.GetFromInternal(i); 
+       auto handle = m_Colliders.GetFromInternal(i);
        if (handle != a && Collide(a, handle)) {
            res.push_back(Object(this, handle));
        }
@@ -481,8 +483,10 @@ void Engine::updateObjects(float deltaTime) {
                 auto t1 = GetGlobalTransform(handle);
                 auto t2 = GetGlobalTransform(handle2);
                 m_RigidBodies.GetData(handle).ResolveCollisions(
-                        t1, t2, &c1, &c2,
-                        &m_RigidBodies.GetData(handle2), deltaTime);
+                        &m_RigidBodies.GetData(handle2),
+                        m_CollideCache[handle][handle2],
+                        t1, t2, m_Transforms.GetData(handle),
+                        m_Transforms.GetData(handle2), deltaTime);
             }
         }
     }
