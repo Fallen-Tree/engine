@@ -372,6 +372,7 @@ void Engine::Run() {
     m_Input.InitMouse();
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
 
     // FPS variables
     float lastFpsShowedTime = -2.f;
