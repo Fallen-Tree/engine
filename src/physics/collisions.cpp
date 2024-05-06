@@ -248,16 +248,16 @@ CollisionManifold CollidePrimitive(OBB a, OBB b) {
     std::vector<Vec3> c1 = ClipEdgesToOBB(b.GetEdges(), a);
     std::vector<Vec3> c2 = ClipEdgesToOBB(a.GetEdges(), b);
 
-    Vec3 p = Vec3(0);
-    for (auto i : c1) p += i;
-    for (auto i : c2) p += i;
-
     if (c1.size() == 0 && c2.size() == 0) {
         res.collisionPoint = a.ClosestPoint(b.center);
         res.collide = true;
         res.collisionNormal = -axis;
         return res;
     }
+
+    Vec3 p = Vec3(0);
+    for (auto i : c1) p += i;
+    for (auto i : c2) p += i;
 
     res.collisionPoint = p / static_cast<float>(c1.size() + c2.size());
 
