@@ -109,3 +109,8 @@ It's avalible not to work with SkeletalAnimationData, because all methods have e
 + SkeletalAnimationData have to be created only with new
 + use AddSkeletalAnimationManager return value only with auto&.
 + Currently if you are downloading from mixamo, use option download with skin. 
+
+### Global Raycast
+```C++
+ObjectHandle handle = GlobalRaycast(Ray(camera->GetPosition(), camera->GetPosition() + camera->GetFront()));
+```

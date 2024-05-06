@@ -444,10 +444,6 @@ void Engine::Run() {
         }
 
 
-        //=======
-        Logger::Warn("%d", GlobalRaycast(Ray(camera->GetPosition(), camera->GetPosition() + camera->GetFront())));
-        //=====
-
         m_Input.Update();
         glfwPollEvents();
         processInput(m_Window);

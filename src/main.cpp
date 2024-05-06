@@ -136,7 +136,15 @@ int main() {
     Model *sphereModel = Model::fromMesh(Mesh::GetSphere(), material, standartShaderProgram);
     Model *cubeModel = Model::fromMesh(Mesh::GetCube(), material, standartShaderProgram);
 
-    auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model,
+    auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model) {
+        auto obj = engine->NewObject();
+        obj.AddModel(*model);
+        obj.AddTransform(transform);
+        obj.AddCollider(primitive);
+        return obj;
+    };
+
+    auto setUpObjRigidBody = [=, &engine](Transform transform, auto primitive, Model *model,
             Vec3 speed, float mass, Vec3 angUnlock) {
         auto obj = engine->NewObject();
         obj.AddModel(*model);
@@ -147,16 +155,17 @@ int main() {
                     Vec3(0), 0, Vec3(0, -mass * 10, 0), angUnlock, 0.05));
         return obj;
     };
-  
-    auto cubeObj = engine.NewObject();
+
+    auto cubeObj = engine->NewObject();
     cubeObj.AddModel(*cubeModel);
     cubeObj.AddCollider(Collider::GetDefaultAABB(cubeModel));
     cubeObj.AddTransform(Transform(Vec3(5, 5, 5), Vec3(2), 0.0f, Vec3(1)));
 
-    auto cubeObj2 = engine.NewObject();
+    auto cubeObj2 = engine->NewObject();
     cubeObj2.AddModel(*cubeModel);
     cubeObj2.AddCollider(Collider::GetDefaultAABB(cubeModel));
     cubeObj2.AddTransform(Transform(Vec3(7, 7, 7), Vec3(2), 0.0f, Vec3(1)));
+    
     auto obb = setUpObj(
         Transform(Vec3(0, 0, 2.0), Vec3(1), 0.0f, Vec3(1)),
         OBB {
@@ -165,14 +174,35 @@ int main() {
             Vec3(0.5, 0.5, 0.5),
         },
         cubeModel);
+    obb.AddBehaviour<MovingRotating>();
+
+    auto obb2 = setUpObj(
+        Transform(Vec3(-5, -3, 2.0), Vec3(2), 0.0f, Vec3(1)),
+        OBB {
+            Vec3(0, 0, 0),
+            Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
+            Vec3(0.5, 0.5, 0.5),
+        },
+        cubeModel);
+
+    obb2.AddBehaviour<MovingRotating2>();
+    auto obb3 = setUpObj(
+        Transform(Vec3(10, 13, 10.0), Vec3(2), 0.0f, Vec3(1)),
+        OBB {
+            Vec3(0, 0, 0),
+            Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
+            Vec3(0.5, 0.5, 0.5),
+        },
+        cubeModel);    
+
+    obb3.AddBehaviour<MovingRotating>();
 
     auto cat = engine->NewObject();
     cat.AddModel(*model);
     auto &t = cat.AddTransform(Vec3(0.f, -5.f, -8.f), Vec3(0.1f), Mat4(1.0));
 
 
-
-    auto staticAABB = setUpObj(
+    auto staticAABB = setUpObjRigidBody(
         Transform(Vec3(2, -30, 2.0), Vec3(50), 0.f, Vec3(1)),
         OBB {
             Vec3(0, 0, 0),
@@ -184,18 +214,6 @@ int main() {
         0,
         Vec3(0));
 
-
-    auto obb = setUpObj(
-        Transform(Vec3(2, 3, 2.0), Vec3(1), 0, Vec3(1, 1, 1)),
-        OBB {
-            Vec3(0, 0, 0),
-            Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
-            Vec3(0.5, 0.5, 0.5),
-        },
-        cubeModel,
-        Vec3(0, 0, 0),
-        1,
-        Vec3(1));
 
     auto getSphereObj = [=, &engine](Transform transform, Vec3 speed, float mass) {
         auto obj = engine->NewObject();
@@ -223,7 +241,7 @@ int main() {
         auto ocraFont = new Font("OCRAEXT.TTF", 20);
         auto obj = engine->NewObject();
         obj.AddText(ocraFont, "", 0.85f, 0.95f, 1.f, Vec3(0, 0, 0));
-        auto obj2 = engine.NewObject();
+        auto obj2 = engine->NewObject();
         obj2.AddText(ocraFont, "+", 0.49f, 0.49f, 1.f, Vec3(0, 0, 0));
         obj.AddBehaviour<FpsText>();
     }
