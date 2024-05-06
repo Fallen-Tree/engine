@@ -106,8 +106,6 @@ void RigidBody::AngularCalculation(Transform *transform, float dt) {
     }
     angularVelocity += omega;
     auto angle = angularVelocity * angularUnlock;
-    if (glm::length(angle) < 0.001)
-        return;
     Mat3 r = transform->GetRotation();
     Mat3 mat = (Mat3(
         glm::cross(angle, r[0]),
