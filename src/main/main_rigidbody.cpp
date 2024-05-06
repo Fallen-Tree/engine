@@ -184,7 +184,7 @@ int main() {
 
 
     auto obb = setUpObj(
-        Transform(Vec3(2, 0, 2.0), Vec3(1),10, Vec3(1)),
+        Transform(Vec3(2, 0, 2.0), Vec3(1), 10, Vec3(1)),
         OBB {
             Vec3(0, 0, 0),
             Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
@@ -197,7 +197,7 @@ int main() {
         Vec3(1));
 
     auto obb2 = setUpObj(
-        Transform(Vec3(-10, 0, 2.0), Vec3(1),10, Vec3(1)),
+        Transform(Vec3(-10, 0, 2.0), Vec3(1), 10, Vec3(1)),
         OBB {
             Vec3(0, 0, 0),
             Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),

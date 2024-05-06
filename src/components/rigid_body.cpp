@@ -152,7 +152,7 @@ inline void RigidBody::ComputeFriction(Vec3 normalForce, float friction,
 
     // otherwise apply full friction force
     m_ResForce += frictionForce;
-    //LimitTorque(frictionForce, r);
+    LimitTorque(frictionForce, r);
 }
 
 inline float getRestitution(RigidBody *rigidBody, RigidBody *otherRigidBody) {
@@ -215,7 +215,6 @@ void RigidBody::ComputeForceTorque(RigidBody *otherRigidBody,
     auto r1 = collisionPoint - transform.GetTranslation();
     auto r2 = collisionPoint - otherTransform.GetTranslation();
 
-    
     ApplyTorque(normalForce, r1);
     otherRigidBody->ApplyTorque(otherNormalForce, r2);
 
