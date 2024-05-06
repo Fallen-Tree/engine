@@ -106,7 +106,12 @@ void RigidBody::AngularCalculation(Transform *transform, float dt) {
     }
     angularVelocity += omega;
     auto angle = angularVelocity * angularUnlock;
-    transform->Rotate(angle.x, angle.y, angle.z);
+    Mat3 r = transform->GetRotation();
+    Mat3 mat = (Mat3(
+        glm::cross(angle, r[0]),
+        glm::cross(angle, r[1]),
+        glm::cross(angle, r[2])));
+    transform->SetRotation(r + mat * dt);
 }
 
 void RigidBody::ApplyTorque(Vec3 force, Vec3 r) {

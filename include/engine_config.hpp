@@ -39,7 +39,7 @@
 // rigid body
 
 #define DUMP                        0.98
-#define TORQUE_RATIO                0.001
+#define TORQUE_RATIO                0.1
 // value in [0,1]
 // the more higher the smoother 
 // used in LimitTorque
