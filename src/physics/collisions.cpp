@@ -253,7 +253,9 @@ CollisionManifold CollidePrimitive(OBB a, OBB b) {
     for (auto i : c2) p += i;
 
     if (c1.size() == 0 && c2.size() == 0) {
-        Logger::Info("COLLISION::OBBVSOBB::POINTS_SIZE_IS_ZERO");
+        res.collisionPoint = a.ClosestPoint(b.center);
+        res.collide = true;
+        res.collisionNormal = -axis;
         return res;
     }
 

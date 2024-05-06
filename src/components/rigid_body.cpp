@@ -106,6 +106,8 @@ void RigidBody::AngularCalculation(Transform *transform, float dt) {
     }
     angularVelocity += omega;
     auto angle = angularVelocity * angularUnlock;
+    if (glm::length(angle) < 0.001)
+        return;
     Mat3 r = transform->GetRotation();
     Mat3 mat = (Mat3(
         glm::cross(angle, r[0]),
@@ -152,7 +154,7 @@ inline void RigidBody::ComputeFriction(Vec3 normalForce, float friction,
 
     // otherwise apply full friction force
     m_ResForce += frictionForce;
-    LimitTorque(frictionForce, r);
+    //LimitTorque(frictionForce, r);
 }
 
 inline float getRestitution(RigidBody *rigidBody, RigidBody *otherRigidBody) {
@@ -215,6 +217,9 @@ void RigidBody::ComputeForceTorque(RigidBody *otherRigidBody,
     auto r1 = collisionPoint - transform.GetTranslation();
     auto r2 = collisionPoint - otherTransform.GetTranslation();
 
+    
+    ApplyTorque(normalForce, r1);
+    otherRigidBody->ApplyTorque(otherNormalForce, r2);
 
     // Compute impulse
     if (velAlongNormal < 0) {
