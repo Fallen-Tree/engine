@@ -4,21 +4,41 @@
 #include "math_types.hpp"
 #include "collisions.hpp"
 #include "engine_config.hpp"
+#include "pretty_print.hpp"
 #include <glm/common.hpp>
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-bool CollidePrimitive(OBB obb, AABB aabb) {
-    return CollidePrimitive(aabb, obb);
+CollisionManifold CollidePrimitive(OBB obb, AABB aabb) {
+    auto res = CollidePrimitive(aabb, obb);
+    res.collisionNormal *= -1;
+    return res;
 }
 
-bool OverlapOnAxis(AABB aabb, OBB obb, Vec3 axis) {
-    Interval a = aabb.GetInterval(axis);
-    Interval b = obb.GetInterval(axis);
-    return ((b.min <= a.max) && (a.min <= b.max));
+inline float PenetrationDepth(OBB& o, AABB& a,
+        const Vec3& axis, bool* outShouldFlip) {
+    Interval i1 = o.GetInterval(Norm(axis));
+    Interval i2 = a.GetInterval(Norm(axis));
+
+    if (!((i2.min <= i1.max) && (i1.min <= i2.max))) {
+        return 0.0f;  // No penerattion
+    }
+
+    float len1 = i1.max - i1.min;
+    float len2 = i2.max - i2.min;
+    float min = fminf(i1.min, i2.min);
+    float max = fmaxf(i1.max, i2.max);
+    float length = max - min;
+
+    if (outShouldFlip != 0) {
+        *outShouldFlip = (i2.min < i1.min);
+    }
+
+    return (len1 + len2) - length;
 }
 
-bool CollidePrimitive(AABB aabb, OBB obb) {
+CollisionManifold CollidePrimitive(AABB aabb, OBB obb) {
+    CollisionManifold res;
     Vec3 test[15] = {
         Vec3(1, 0, 0),
         // AABB axis 1
@@ -38,13 +58,37 @@ bool CollidePrimitive(AABB aabb, OBB obb) {
         test[6 + i * 3 + 2] = glm::cross(test[i], test[2]);
     }
 
+    Vec3 *hitNormal = nullptr;
+    bool shouldFlip;
+
     for (int i = 0; i < 15; i++) {
-        if (!OverlapOnAxis(aabb, obb, test[i])) {
-            return false;  // Seperating axis found
+        if (glm::length(test[i]) < 0.001f) {
+            continue;
+        }
+        float depth = PenetrationDepth(obb, aabb, test[i], &shouldFlip);
+        if (depth <= 0.0f) {
+            return res;
+        } else if (depth < res.penetrationDistance) {
+            if (shouldFlip) {
+                test[i] = test[i] * -1.0f;
+            }
+            res.penetrationDistance = depth;
+            hitNormal = &test[i];
         }
     }
 
-    return true;  // Seperating axis not found
+    if (hitNormal == nullptr) {
+        return res;
+    }
+
+    Vec3 axis = Norm(*hitNormal);
+
+    // TODO(solloballon): find all collision point
+    res.collisionPoint = obb.ClosestPoint((aabb.max + aabb.min) / 2.f);
+
+    res.collide = true;
+    res.collisionNormal = axis;
+    return res;  // Seperating axis not found
 }
 
 bool OverlapOnAxis(OBB obb, Triangle triangle, Vec3 axis) {
@@ -53,7 +97,8 @@ bool OverlapOnAxis(OBB obb, Triangle triangle, Vec3 axis) {
     return ((b.min <= a.max) && (a.min <= b.max));
 }
 
-bool CollidePrimitive(Triangle triangle, OBB obb) {
+CollisionManifold CollidePrimitive(Triangle triangle, OBB obb) {
+    CollisionManifold res;
     // Compute the edge vectors of the triangle (ABC)
     Vec3 f0 = triangle.b - triangle.a;
     Vec3 f1 = triangle.c - triangle.b;
@@ -77,207 +122,210 @@ bool CollidePrimitive(Triangle triangle, OBB obb) {
 
     for (int i = 0; i < 13; i++) {
         if (!OverlapOnAxis(obb, triangle, test[i])) {
-            return false;  // Separating axis found
+            return res;  // Separating axis found
         }
     }
 
-    return true;  // Separating axis not found
+    res.collide = true;
+    return res;  // Separating axis not found
 }
 
-bool CollidePrimitive(OBB obb, Triangle triangle) {
-    return CollidePrimitive(triangle, obb);
-}
-
-Mat3 RotationMatrix(OBB a, OBB b) {
-    Mat3 res;
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            res[i][j] = glm::dot(a.axis[i], b.axis[j]);
-        }
-    }
+CollisionManifold CollidePrimitive(OBB obb, Triangle triangle) {
+    auto res = CollidePrimitive(triangle, obb);
+    res.collisionNormal *= 1;
     return res;
 }
 
+// TODO(solloballon): do this shit
 bool CollidePrimitive(Ray, OBB) {
-    return true;
+    assert(false);
+    return false;
 }
 
-Mat3 AbsRotationMatrix(Mat3 rotationMat, float epsilon) {
-    Mat3 res;
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            res[i][j] = std::abs(rotationMat[i][j]) + epsilon;
+inline bool ClipToPlane(const Plane& plane,
+        const Line& line, Vec3* outPoint) {
+    Vec3 ab = line.end - line.start;
+    float nAB = glm::dot(plane.normal, ab);
+    if (isCloseToZero(nAB)) {
+        return false;
+    }
+
+    float nA = glm::dot(plane.normal, line.start);
+    float t = (plane.d - nA) / nAB;
+
+    if (t >= 0.0f && t <= 1.0f) {
+        if (outPoint != nullptr) {
+            *outPoint = line.start + ab * t;
+        }
+        return true;
+    }
+
+    return false;
+}
+
+inline std::vector<Vec3> ClipEdgesToOBB(
+        const std::vector<Line>& edges, OBB& obb) {
+    std::vector<Vec3> result;
+    result.reserve(edges.size());
+    Vec3 intersection;
+
+    std::vector<Plane> planes = obb.GetPlanes();
+    for (int i = 0; i < planes.size(); i++) {
+        for (int j = 0; j < edges.size(); j++) {
+            if (ClipToPlane(planes[i], edges[j], &intersection)) {
+                if (obb.IsPointIn(intersection)) {
+                    result.push_back(intersection);
+                }
+            }
         }
     }
+
+    return result;
+}
+
+inline float PenetrationDepth(OBB& o1, OBB& o2,
+        const Vec3& axis, bool* outShouldFlip) {
+    Interval i1 = o1.GetInterval(Norm(axis));
+    Interval i2 = o2.GetInterval(Norm(axis));
+
+    if (!((i2.min <= i1.max) && (i1.min <= i2.max))) {
+        return 0.0f;  // No penerattion
+    }
+
+    float len1 = i1.max - i1.min;
+    float len2 = i2.max - i2.min;
+    float min = fminf(i1.min, i2.min);
+    float max = fmaxf(i1.max, i2.max);
+    float length = max - min;
+
+    if (outShouldFlip != 0) {
+        *outShouldFlip = (i2.min < i1.min);
+    }
+
+    return (len1 + len2) - length;
+}
+
+CollisionManifold CollidePrimitive(OBB a, OBB b) {
+    CollisionManifold res;
+    Vec3 test[15] = {  // Face axis
+        a.axis[0],
+        a.axis[1],
+        a.axis[2],
+        b.axis[0],
+        b.axis[1],
+        b.axis[2],
+    };
+    for (int i = 0; i < 3; i++) {  // Fill out rest of axis
+        test[6 + i * 3 + 0] = glm::cross(test[i], test[0]);
+        test[6 + i * 3 + 1] = glm::cross(test[i], test[1]);
+        test[6 + i * 3 + 2] = glm::cross(test[i], test[2]);
+    }
+
+    Vec3 *hitNormal = nullptr;
+    bool shouldFlip;
+
+    for (int i = 0; i < 15; i++) {
+        if (glm::length(test[i]) < 0.001f) {
+            continue;
+        }
+        float depth = PenetrationDepth(a, b, test[i], &shouldFlip);
+        if (depth <= 0.0f) {
+            return res;
+        } else if (depth < res.penetrationDistance) {
+            if (shouldFlip) {
+                test[i] = test[i] * -1.0f;
+            }
+            res.penetrationDistance = depth;
+            hitNormal = &test[i];
+        }
+    }
+
+    if (hitNormal == nullptr) {
+        return res;
+    }
+    Vec3 axis = Norm(*hitNormal);
+
+    std::vector<Vec3> c1 = ClipEdgesToOBB(b.GetEdges(), a);
+    std::vector<Vec3> c2 = ClipEdgesToOBB(a.GetEdges(), b);
+
+    Vec3 p = Vec3(0);
+    for (auto i : c1) p += i;
+    for (auto i : c2) p += i;
+
+    if (c1.size() == 0 && c2.size() == 0) {
+        Logger::Info("COLLISION::OBBVSOBB::POINTS_SIZE_IS_ZERO");
+        return res;
+    }
+
+    res.collisionPoint = p / static_cast<float>(c1.size() + c2.size());
+
+    Interval i = a.GetInterval(axis);
+    float distance = (i.max - i.min) * 0.5f
+        - res.penetrationDistance * 0.5f;
+    Vec3 pointOnPlane = a.center + axis * distance;
+    res.collisionPoint += (axis *
+            glm::dot(axis, pointOnPlane - res.collisionPoint));
+
+    res.collide = true;
+    res.collisionNormal = -axis;
+
     return res;
 }
 
-bool CollidePrimitive(OBB a, OBB b) {
-    const float EPSILON = 0;
-    Mat3 rotationMat = RotationMatrix(a, b);
-    Mat3 absRotationMat = AbsRotationMatrix(rotationMat, EPSILON);
-
-    Vec3 translation = b.center - a.center;
-    // Bring translation into a’s coordinate frame
-    translation = Vec3(
-            glm::dot(translation, a.axis[0]),
-            glm::dot(translation, a.axis[1]),
-            glm::dot(translation, a.axis[2]));
-
-    float ra;
-    float rb;
-
-    // Test axes L = A0, L = A1, L = A2
-    for (int i = 0; i < 3; i++) {
-        ra = a.halfWidth[i];
-        rb = b.halfWidth[0] * absRotationMat[i][0]
-            + b.halfWidth[1] * absRotationMat[i][1]
-            + b.halfWidth[2] * absRotationMat[i][2];
-        if (std::abs(translation[i]) > ra + rb)
-            return false;
-    }
-
-    // Test axes L = B0, L = B1, L = B2
-    for (int i = 0; i < 3; i++) {
-        ra = a.halfWidth[0] * absRotationMat[0][i]
-            + a.halfWidth[1] * absRotationMat[1][i]
-            + a.halfWidth[2] * absRotationMat[2][i];
-        rb = b.halfWidth[i];
-        if (std::abs(
-                    translation[0] * rotationMat[0][i]
-                    + translation[1] * rotationMat[1][i]
-                    + translation[2] * rotationMat[2][i])
-                > ra + rb)
-            return false;
-    }
-
-    // Test axis L = A0 x B0
-    ra = a.halfWidth[1] * absRotationMat[2][0]
-        + a.halfWidth[2] * absRotationMat[1][0];
-    rb = b.halfWidth[1] * absRotationMat[0][2]
-        + b.halfWidth[2] * absRotationMat[0][1];
-    if (std::abs(
-                translation[2] * rotationMat[1][0]
-                - translation[1] * rotationMat[2][0])
-            > ra + rb)
-        return false;
-
-    // Test axis L = A0 x B1
-    ra = a.halfWidth[1] * absRotationMat[2][1]
-        + a.halfWidth[2] * absRotationMat[1][1];
-    rb = b.halfWidth[0] * absRotationMat[0][2]
-        + b.halfWidth[2] * absRotationMat[0][0];
-    if (std::abs(
-                translation[2] * rotationMat[1][1]
-                - translation[1] * rotationMat[2][1])
-            > ra + rb)
-        return false;
-
-    // Test axis L = A0 x B2
-    ra = a.halfWidth[1] * absRotationMat[2][2]
-        + a.halfWidth[2] * absRotationMat[1][2];
-    rb = b.halfWidth[0] * absRotationMat[0][1]
-        + b.halfWidth[1] * absRotationMat[0][0];
-    if (std::abs(
-                translation[2] * rotationMat[1][2]
-                - translation[1] * rotationMat[2][2])
-            > ra + rb)
-        return 0;
-
-    // Test axis L = A1 x B0
-    ra = a.halfWidth[0] * absRotationMat[2][0]
-        + a.halfWidth[2] * absRotationMat[0][0];
-    rb = b.halfWidth[1] * absRotationMat[1][2]
-        + b.halfWidth[2] * absRotationMat[1][1];
-    if (std::abs(
-                translation[0] * rotationMat[2][0]
-                - translation[2] * rotationMat[0][0])
-            > ra + rb)
-        return false;
-
-    // Test axis L = A1 x B1
-    ra = a.halfWidth[0] * absRotationMat[2][1]
-        + a.halfWidth[2] * absRotationMat[0][1];
-    rb = b.halfWidth[0] * absRotationMat[1][2]
-        + b.halfWidth[2] * absRotationMat[1][0];
-    if (std::abs(
-                translation[0] * rotationMat[2][1]
-                - translation[2] * rotationMat[0][1])
-            > ra + rb)
-        return false;
-
-    // Test axis L = A1 x B2
-    ra = a.halfWidth[0] * absRotationMat[2][2]
-        + a.halfWidth[2] * absRotationMat[0][2];
-    rb = b.halfWidth[0] * absRotationMat[1][1]
-        + b.halfWidth[1] * absRotationMat[1][0];
-    if (std::abs(
-                translation[0] * rotationMat[2][2]
-                - translation[2] * rotationMat[0][2])
-            > ra + rb)
-        return false;
-
-    // Test axis L = A2 x B0
-    ra = a.halfWidth[0] * absRotationMat[1][0]
-        + a.halfWidth[1] * absRotationMat[0][0];
-    rb = b.halfWidth[1] * absRotationMat[2][2]
-        + b.halfWidth[2] * absRotationMat[2][1];
-    if (std::abs(translation[1] * rotationMat[0][0]
-                - translation[0] * rotationMat[1][0])
-            > ra + rb)
-        return false;
-
-    // Test axis L = A2 x B1
-    ra = a.halfWidth[0] * absRotationMat[1][1]
-        + a.halfWidth[1] * absRotationMat[0][1];
-    rb = b.halfWidth[0] * absRotationMat[2][2]
-        + b.halfWidth[2] * absRotationMat[2][0];
-    if (std::abs(
-                translation[1] * rotationMat[0][1]
-                - translation[0] * rotationMat[1][1])
-            > ra + rb)
-        return false;
-
-    // Test axis L = A2 x B2
-    ra = a.halfWidth[0] * absRotationMat[1][2]
-        + a.halfWidth[1] * absRotationMat[0][2];
-    rb = b.halfWidth[0] * absRotationMat[2][1]
-        + b.halfWidth[1] * absRotationMat[2][0];
-    if (std::abs(
-                translation[1] * rotationMat[0][2]
-                - translation[0] * rotationMat[1][2])
-            > ra + rb)
-        return false;
-
-    return true;
-}
-
-bool CollidePrimitive(Sphere a, OBB b) {
+CollisionManifold CollidePrimitive(Sphere a, OBB b) {
+    CollisionManifold res;
     Vec3 p = b.ClosestPoint(a.center);
-    Vec3 v = p - a.center;
-    return glm::dot(v, v) <= a.radius * a.radius;
+    float distanceSq = glm::length(p - a.center);
+    res.collide = distanceSq <= a.radius * a.radius;
+    if (!res.collide)
+        return res;
+
+    if (isCloseToZero(distanceSq)) {
+        float mSq = glm::length(p - b.center);
+        if (isCloseToZero(mSq))  // here manifold can be strange
+            return res;
+        // Closest point is at the center of the sphere
+        res.collisionNormal = Norm(p - b.center);
+    } else {
+        res.collisionNormal = Norm(a.center - p);
+    }
+
+    Vec3 outsidePoint = a.center - res.collisionNormal * a.radius;
+    float distance = glm::length(p - outsidePoint);
+    res.collisionPoint = p + (outsidePoint - p) * 0.5f;
+    res.penetrationDistance = distance * 0.5f;
+    return res;
 }
 
-bool CollidePrimitive(OBB a, Sphere b) {
-    return CollidePrimitive(b, a);
+CollisionManifold CollidePrimitive(OBB a, Sphere b) {
+    auto res = CollidePrimitive(b, a);
+    res.collisionNormal *= -1;
+    return res;
 }
 
-bool CollidePrimitive(Plane a, OBB b) {
-    return CollidePrimitive(b, a);
+CollisionManifold CollidePrimitive(Plane a, OBB b) {
+    auto res = CollidePrimitive(b, a);
+    res.collisionNormal *= -1;
+    return res;
 }
 
-bool CollidePrimitive(OBB a, Plane b) {
+CollisionManifold CollidePrimitive(OBB a, Plane b) {
+    CollisionManifold res;
     float r = a.halfWidth[0] + std::abs(glm::dot(b.normal, a.axis[0]))
         + a.halfWidth[1] + std::abs(glm::dot(b.normal, a.axis[1]))
         + a.halfWidth[2] + std::abs(glm::dot(b.normal, a.axis[2]));
-    return std::abs(glm::dot(b.normal, a.center)- b.d) <= r;
+    res.collide = std::abs(glm::dot(b.normal, a.center)- b.d) <= r;
+    return res;
 }
 
-bool CollidePrimitive(Plane p, AABB a) {
-    return CollidePrimitive(a, p);
+CollisionManifold CollidePrimitive(Plane p, AABB a) {
+    auto res = CollidePrimitive(a, p);
+    res.collisionNormal *= -1;
+    return res;
 }
 
-bool CollidePrimitive(AABB aabb, Plane plane) {
+CollisionManifold CollidePrimitive(AABB aabb, Plane plane) {
+    CollisionManifold res;
     Vec3 center = (aabb.min + aabb.max) / 2.0f;
     Vec3 extents = (aabb.max - aabb.min) / 2.0f;
 
@@ -286,20 +334,74 @@ bool CollidePrimitive(AABB aabb, Plane plane) {
         extents.z * glm::abs(plane.normal.z);
 
     float c_dist = glm::dot(center, plane.normal) + plane.d;
-    return glm::abs(c_dist) <= r;
+    res.collide = glm::abs(c_dist) <= r;
+    return res;
 }
 
-bool CollidePrimitive(AABB lhs, AABB rhs) {
-    return lhs.max.x >= rhs.min.x && rhs.max.x >= lhs.min.x &&
-        lhs.max.y >= rhs.min.y && rhs.max.y >= lhs.min.y &&
-        lhs.max.z >= rhs.min.z && rhs.max.z >= lhs.min.z;
+inline float PenetrationDepth(AABB& a1, AABB& a2,
+        const Vec3& axis, bool* outShouldFlip) {
+    Interval i1 = a1.GetInterval(axis);
+    Interval i2 = a2.GetInterval(axis);
+
+    if (!((i2.min <= i1.max) && (i1.min <= i2.max))) {
+        return 0.0f;  // No penerattion
+    }
+
+    float len1 = i1.max - i1.min;
+    float len2 = i2.max - i2.min;
+    float min = fminf(i1.min, i2.min);
+    float max = fmaxf(i1.max, i2.max);
+    float length = max - min;
+
+    if (outShouldFlip != 0) {
+        *outShouldFlip = (i2.min < i1.min);
+    }
+
+    return (len1 + len2) - length;
 }
 
-bool CollidePrimitive(Triangle t, AABB a) {
-    return CollidePrimitive(a, t);
+CollisionManifold CollidePrimitive(AABB a1, AABB a2) {
+    CollisionManifold res;
+    Vec3 test[3] {
+        Vec3(1, 0, 0),
+        Vec3(0, 1, 0),
+        Vec3(0, 0, 1),
+    };
+
+    Vec3 *hitNormal = nullptr;
+    bool shouldFlip;
+
+    for (int i = 0; i < 3; i++) {
+        float depth = PenetrationDepth(a1, a2, test[i], &shouldFlip);
+        if (depth <= 0.0f) {
+            return res;
+        } else if (depth < res.penetrationDistance) {
+            if (shouldFlip) {
+                test[i] = test[i] * -1.0f;
+            }
+            res.penetrationDistance = depth;
+            hitNormal = &test[i];
+        }
+    }
+
+    if (hitNormal == nullptr) {
+        return res;
+    }
+
+    res.collisionPoint = Vec3(0);
+    res.collide = true;
+    res.collisionNormal = -(*hitNormal);
+    return res;
 }
 
-bool CollidePrimitive(AABB aabb, Triangle tri) {
+CollisionManifold CollidePrimitive(Triangle t, AABB a) {
+    auto res = CollidePrimitive(a, t);
+    res.collisionNormal *= -1;
+    return res;
+}
+
+CollisionManifold CollidePrimitive(AABB aabb, Triangle tri) {
+    CollisionManifold res;
     Vec3 center = (aabb.min + aabb.max) / 2.0f;
     Vec3 length = (aabb.max - aabb.min) / 2.0f;
 
@@ -322,7 +424,7 @@ bool CollidePrimitive(AABB aabb, Triangle tri) {
         float p2 = -verts[(3 + i) % 3].y * edges[i].z + verts[(3 + i) % 3].z * edges[i].y;
         if (glm::max(p1, p2) < -r || glm::min(p1, p2) > r) {
             // Separating axis found
-            return false;
+            return res;
         }
     }
 
@@ -333,7 +435,7 @@ bool CollidePrimitive(AABB aabb, Triangle tri) {
         float p2 = -verts[(3 + i) % 3].x * edges[i].z + verts[(3 + i) % 3].z * edges[i].x;
         if (glm::max(p1, p2) < -r || glm::min(p1, p2) > r) {
             // Separating axis found
-            return false;
+            return res;
         }
     }
 
@@ -344,50 +446,91 @@ bool CollidePrimitive(AABB aabb, Triangle tri) {
         float p2 = -verts[(3 + i) % 3].x * edges[i].y + verts[(3 + i) % 3].y * edges[i].x;
         if (glm::max(p1, p2) < -r || glm::min(p1, p2) > r) {
             // Separating axis found
-            return false;
+            return res;
         }
     }
 
     // testing triangle's AABB with given AABB
     if (glm::max(glm::max(verts[0].x, verts[1].x), verts[2].x) < -length.x ||
             glm::min(glm::min(verts[0].x, verts[1].x), verts[2].x) > length.x) {
-        return false;
+        return res;
     }
     if (glm::max(glm::max(verts[0].y, verts[1].y), verts[2].y) < -length.y ||
             glm::min(glm::min(verts[0].y, verts[1].y), verts[2].y) > length.y) {
-        return false;
+        return res;
     }
     if (glm::max(glm::max(verts[0].z, verts[1].z), verts[2].z) < -length.z ||
             glm::min(glm::min(verts[0].z, verts[1].z), verts[2].z) > length.z) {
-        return false;
+        return res;
     }
 
     auto p = Plane(glm::cross(edges[0], edges[1]), verts[0]);
     return CollidePrimitive(aabb, p);
 }
 
-bool CollidePrimitive(Sphere s1, Sphere s2) {
-    return glm::length2(s1.center - s2.center) <= (s1.radius + s2.radius) * (s1.radius + s2.radius);
+CollisionManifold CollidePrimitive(Sphere s1, Sphere s2) {
+    CollisionManifold res;
+    res.collide =  glm::length2(s1.center - s2.center)
+        <= (s1.radius + s2.radius) * (s1.radius + s2.radius);
+    if (!res.collide)
+        return res;
+    float r = s1.radius + s2.radius;
+    Vec3 d = s1.center - s2.center;
+    res.collisionNormal = Norm(d);
+    res.penetrationDistance = fabsf(glm::length(d) - r) * 0.5f;
+    // dtp - Distance to intersection point
+    float dtp = s1.radius - res.penetrationDistance;
+    Vec3 contact = s1.center + d * dtp;
+    res.collisionPoint = contact;
+    return res;
 }
 
-bool CollidePrimitive(AABB aabb, Sphere s) {
-    return CollidePrimitive(s, aabb);
+CollisionManifold CollidePrimitive(AABB aabb, Sphere s) {
+    auto res = CollidePrimitive(s, aabb);
+    res.collisionNormal *= -1;
+    return res;
 }
 
-bool CollidePrimitive(Sphere s, AABB aabb) {
-    return aabb.Distance2(s.center) <= s.radius * s.radius;
+CollisionManifold CollidePrimitive(Sphere s, AABB aabb) {
+    CollisionManifold res;
+    auto distanceSq = aabb.Distance2(s.center);
+    Vec3 p = aabb.ClosestPoint(s.center);
+
+    res.collide = distanceSq <= s.radius * s.radius;
+
+    if (isCloseToZero(distanceSq)) {
+        auto aabbCenter = (aabb.max + aabb.min) / 2.f;
+        float mSq = glm::length(p - aabbCenter);
+        if (isCloseToZero(mSq))  // here manifold can be strange
+            return res;
+        // Closest point is at the center of the sphere
+        res.collisionNormal = Norm(p - aabbCenter);
+    } else {
+        res.collisionNormal = Norm(s.center - p);
+    }
+
+    Vec3 outsidePoint = s.center - res.collisionNormal * s.radius;
+    float distance = glm::length(p - outsidePoint);
+    res.collisionPoint = p + (outsidePoint - p) * 0.5f;
+    res.penetrationDistance = distance * 0.5f;
+    return res;
 }
 
-bool CollidePrimitive(Sphere, Triangle);
-bool CollidePrimitive(Triangle t, Sphere s) {
-    return CollidePrimitive(s, t);
+CollisionManifold CollidePrimitive(Sphere, Triangle);
+CollisionManifold CollidePrimitive(Triangle t, Sphere s) {
+    auto res = CollidePrimitive(s, t);
+    res.collisionNormal *= -1;
+    return res;
 }
 
-bool CollidePrimitive(Sphere s, Triangle t) {
-    return t.Distance2(s.center) <= s.radius * s.radius;
+CollisionManifold CollidePrimitive(Sphere s, Triangle t) {
+    CollisionManifold res;
+    res.collide = t.Distance2(s.center) <= s.radius * s.radius;
+    return res;
 }
 
-bool CollidePrimitive(Triangle t1, Triangle t2) {
+CollisionManifold CollidePrimitive(Triangle t1, Triangle t2) {
+    CollisionManifold res;
     Plane aPlane = Plane(t1);
     float sdistb[3] = {
         glm::dot(aPlane.normal, t2.a) + aPlane.d,
@@ -397,11 +540,11 @@ bool CollidePrimitive(Triangle t1, Triangle t2) {
 
     if (glm::abs(sdistb[0]) == 0 && glm::abs(sdistb[1]) == 0 && glm::abs(sdistb[2]) == 0) {
         Logger::Error("Coplanar case for triangle-triangle collision is not handled");
-        return false;
+        return res;
     }
 
     if (sdistb[0] * sdistb[1] > 0 && sdistb[1] * sdistb[2] > 0) {
-        return false;
+        return res;
     }
     Plane bPlane = Plane(t2);
     float sdista[3] = {
@@ -412,11 +555,11 @@ bool CollidePrimitive(Triangle t1, Triangle t2) {
 
     if (glm::abs(sdista[0]) == 0 && glm::abs(sdista[1]) == 0 && glm::abs(sdista[2]) == 0) {
         Logger::Error("Coplanar case for triangle-triangle collision is not handled");
-        return false;
+        return res;
     }
 
     if (sdista[0] * sdista[1] > 0 && sdista[1] * sdista[2] > 0) {
-        return false;
+        return res;
     }
 
     Vec3 intersectDir = glm::cross(aPlane.normal, bPlane.normal);
@@ -457,13 +600,15 @@ bool CollidePrimitive(Triangle t1, Triangle t2) {
     // VERY FUCKING BAD                  v
     auto [a1, a2] = findInterval(sdista, &t1.a);
     auto [a3, a4] = findInterval(sdistb, &t2.a);
-    return (glm::max(a1, a2) > a3 && a3 > glm::min(a1, a2))
+    res.collide = (glm::max(a1, a2) > a3 && a3 > glm::min(a1, a2))
         || (glm::max(a1, a2) > a4 && a4 > glm::min(a1, a2));
+    return res;
 }
 
 // There should be an overload CollidePrimitive(T, Triangle);
 template<typename T>
-bool CollideMeshAt(T t, Mesh *mesh, Transform transform) {
+CollisionManifold CollideMeshAt(T t, Mesh *mesh, Transform transform) {
+    CollisionManifold res;
     // WARNING: This makes assumptions about data layout
     Mat4 meshMat = glm::transpose(transform.GetTransformMatrix());
     auto loadPos = [=](int i) {
@@ -474,18 +619,21 @@ bool CollideMeshAt(T t, Mesh *mesh, Transform transform) {
     };
     for (int i = 0; i < mesh->getLenIndices(); i+=3) {
         Triangle tri = Triangle(loadPos(i), loadPos(i + 1), loadPos(i + 2));
-        if (CollidePrimitive(t, tri)) {
-            return true;
+        auto manifold = CollidePrimitive(t, tri);
+        if (manifold.collide) {
+            return manifold;
         }
     }
-    return false;
+    return res;
 }
-template bool CollideMeshAt<AABB>(AABB, Mesh *, Transform);
-template bool CollideMeshAt<Sphere>(Sphere, Mesh *, Transform);
-template bool CollideMeshAt<Triangle>(Triangle, Mesh *, Transform);
-template bool CollideMeshAt<OBB>(OBB, Mesh *, Transform);
+template CollisionManifold CollideMeshAt<AABB>(AABB, Mesh *, Transform);
+template CollisionManifold CollideMeshAt<Sphere>(Sphere, Mesh *, Transform);
+template CollisionManifold CollideMeshAt<Triangle>(Triangle, Mesh *, Transform);
+template CollisionManifold CollideMeshAt<OBB>(OBB, Mesh *, Transform);
 
-bool CollideMeshes(Mesh *mesh, Transform transform, Mesh *mesh2, Transform transform2) {
+CollisionManifold CollideMeshes(Mesh *mesh, Transform transform, Mesh *mesh2,
+        Transform transform2) {
+    CollisionManifold res;
     // WARNING: This makes assumptions about data layout
     Mat4 meshMat = glm::transpose(transform.GetTransformMatrix());
     auto loadPos = [=](int i) {
@@ -496,11 +644,12 @@ bool CollideMeshes(Mesh *mesh, Transform transform, Mesh *mesh2, Transform trans
     };
     for (int i = 0; i < mesh->getLenIndices(); i+=3) {
         Triangle tri = Triangle(loadPos(i), loadPos(i + 1), loadPos(i + 2));
-        if (CollideMeshAt(tri, mesh2, transform2)) {
-            return true;
+        auto manifold = CollideMeshAt(tri, mesh2, transform2);
+        if (manifold.collide) {
+            return manifold;
         }
     }
-    return false;
+    return res;
 }
 
 bool CollidePrimitive(Ray r, Sphere s) {
@@ -597,14 +746,14 @@ std::optional<float> CollisionPrimitive(Ray r, OBB o) {
 
     float t[6] = {0, 0, 0, 0, 0, 0};
     for (int i = 0; i < 3; i++) {
-        if (std::fabs(f[i]) < epsilon) {
-            if (-e[i] - o.axis[0][i] > 0 || -e[i] + o.axis[0][i] < 0) {
+        if (isCloseToZero(f[i])) {
+            if (-e[i] - o.halfWidth[i] > 0 || -e[i] + o.halfWidth[i] < 0) {
                 return {};
             }
             f[i] = 0.00001f;  // Avoid div by 0!
         }
-        t[i * 2 + 0] = (e[i] + o.axis[0][i]) / f[i];  // min
-        t[i * 2 + 1] = (e[i] - o.axis[0][i]) / f[i];  // max
+        t[i * 2 + 0] = (e[i] + o.halfWidth[i]) / f[i];  // min
+        t[i * 2 + 1] = (e[i] - o.halfWidth[i]) / f[i];  // max
     }
 
     float tmin = fmaxf(
@@ -617,7 +766,7 @@ std::optional<float> CollisionPrimitive(Ray r, OBB o) {
         fminf(
             fmaxf(t[0], t[1]),
             fmaxf(t[2], t[3])),
-        fmaxf(t[4], t[5]));
+            fmaxf(t[4], t[5]));
 
     if (tmax < 0) {
         return {};
@@ -634,124 +783,3 @@ std::optional<float> CollisionPrimitive(Ray r, OBB o) {
     return tmin;
 }
 
-Vec3 CollisionNormal(AABB a1, AABB a2, Transform tr1, Transform tr2, Vec3 velocity, float dt) {
-    const float epsilon = 0.1;
-    auto transformed1 = a1.Transformed(tr1).PrevState(velocity, dt);
-    auto transformed2 = a2.Transformed(tr2);
-
-    if (transformed1.min.x + epsilon >= transformed2.max.x) {
-        return Vec3(1, 0, 0);
-    } else if (transformed1.max.x <= transformed2.min.x + epsilon) {
-        return Vec3(-1, 0, 0);
-    } else if (transformed1.min.y + epsilon >= transformed2.max.y) {
-        return Vec3(0, 1, 0);
-    } else if (transformed1.max.y <= transformed2.min.y + epsilon) {
-        return Vec3(0, -1, 0);
-    } else if (transformed1.min.z + epsilon >= transformed2.max.z) {
-        return Vec3(0, 0, 1);
-    } else if (transformed1.max.z <= transformed2.min.z + epsilon) {
-        return Vec3(0, 0, -1);
-    }
-
-    // the case if one object is inside other
-    return Norm(tr1.GetTranslation() - tr2.GetTranslation())
-        * static_cast<float>(EJECTION_RATIO);
-}
-
-Vec3 CollisionNormal(Sphere sph, AABB a, Transform tr1, Transform tr2,
-        Vec3 velocity, float dt) {
-    return -CollisionNormal(a, sph, tr2, tr1, velocity, dt);
-}
-
-Vec3 CollisionNormal(AABB a, Sphere sph, Transform tr1, Transform tr2,
-        Vec3 velocity, float dt) {
-    const float epsilon = 0.1;
-    auto transformed1 = a.Transformed(tr1).PrevState(velocity, dt);
-    auto transformed2 = sph.Transformed(tr2);
-
-    return Norm(
-        transformed1.ClosestPoint(transformed2.center)
-        - transformed2.center);
-}
-
-Vec3 CollisionNormal(Sphere sph1, Sphere sph2,
-        Transform tr1, Transform tr2, Vec3 vel, float dt) {
-    auto tranformed1 = sph1.Transformed(tr1).PrevState(vel, dt);
-    auto tranformed2 = sph2.Transformed(tr2);
-
-    return Norm(tranformed1.center - tranformed2.center);
-}
-
-// TODO(solloballon): make this operation with Model
-Vec3 CollisionNormal(AABB, Mesh*, Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
-    return Vec3(0);
-}
-
-Vec3 CollisionNormal(Mesh*, AABB, Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
-    return Vec3(0);
-}
-
-Vec3 CollisionNormal(Sphere, Mesh*, Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
-    return Vec3(0);
-}
-
-Vec3 CollisionNormal(Mesh*, Sphere, Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
-    return Vec3(0);
-}
-
-Vec3 CollisionNormal(Mesh*, Mesh*, Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_MODEL");
-    return Vec3(0);
-}
-
-// TODO(solloballon): make this operation with OBB
-Vec3 CollisionNormal(OBB, OBB,       Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
-    return Vec3(0);
-}
-
-Vec3 CollisionNormal(AABB, OBB,      Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
-    return Vec3(0);
-}
-
-Vec3 CollisionNormal(OBB, AABB,      Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
-    return Vec3(0);
-}
-
-Vec3 CollisionNormal(Sphere, OBB,    Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
-    return Vec3(0);
-}
-
-Vec3 CollisionNormal(OBB, Sphere,    Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
-    return Vec3(0);
-}
-
-Vec3 CollisionNormal(OBB, Mesh*,     Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
-    return Vec3(0);
-}
-
-Vec3 CollisionNormal(Mesh*, OBB,     Transform, Transform, Vec3, float) {
-    Logger::Warn(
-            "COLLISIONS::COLLISION_NORMAL::THERE_IS_NO_DEFINITION_OPERATION_OBB");
-    return Vec3(0);
-}

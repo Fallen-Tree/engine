@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <set>
+#include <bitset>
 #include "collider.hpp"
 #include "collisions.hpp"
 #include "render_data.hpp"
@@ -23,6 +24,7 @@
 #include "rigid_body.hpp"
 #include "pretty_print.hpp"
 #include "images.hpp"
+#include "manifold.hpp"
 #include "skeletal_animations_manager.hpp"
 #include "skeletal_animation_data.hpp"
 
@@ -134,5 +136,5 @@ class Engine {
     // Collision cache
     // TODO(theblek): Make this a binary search tree
     // Or just an ordered array and do binary search. Should be fast enough.
-    std::vector<std::vector<bool>> m_CollideCache;
+    std::vector<std::vector<CollisionManifold>> m_CollideCache;
 };

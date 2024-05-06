@@ -78,7 +78,9 @@ else()
 endif()
 
 add_executable(main src/main.cpp)
+add_executable(manifold src/main/main_rigidbody.cpp)
 target_link_libraries(main PUBLIC ENGINE)
+target_link_libraries(manifold PUBLIC ENGINE)
 
 add_custom_command(TARGET ENGINE PRE_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory

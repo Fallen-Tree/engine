@@ -13,6 +13,11 @@ Plane::Plane(Vec3 normal, Vec3 point) {
     d = -glm::dot(normal, point);
 }
 
+Plane::Plane(Vec3 normal, float distance) {
+    this->normal = normal;
+    this->d = distance;
+}
+
 Vec3 AABB::ClosestPoint(Vec3 point) {
     Vec3 result = {
         glm::clamp(point.x, min.x, max.x),
@@ -205,6 +210,80 @@ OBB OBB::Transformed(Transform transform) {
         Mat3(transform.GetRotation()) * axis,
         halfWidth * transform.GetScale(),
     };
+}
+
+bool OBB::IsPointIn(Vec3 point) {
+    Vec3 dir = point - center;
+    for (int i = 0; i < 3; i++) {
+        float distance = glm::dot(dir, axis[i]);
+        if (distance > halfWidth[i] || distance < -halfWidth[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+std::vector<Vec3> OBB::GetVertices() {
+    std::vector<Vec3> v;
+    v.resize(8);
+
+    v[0] = center + axis[0] * halfWidth[0] + axis[1] * halfWidth[1]
+        + axis[2] * halfWidth[2];
+    v[1] = center - axis[0] * halfWidth[0] + axis[1] * halfWidth[1]
+        + axis[2] * halfWidth[2];
+    v[2] = center + axis[0] * halfWidth[0] - axis[1] * halfWidth[1]
+        + axis[2] * halfWidth[2];
+    v[3] = center + axis[0] * halfWidth[0] + axis[1] * halfWidth[1]
+        - axis[2] * halfWidth[2];
+    v[4] = center - axis[0] * halfWidth[0] - axis[1] * halfWidth[1]
+        - axis[2] * halfWidth[2];
+    v[5] = center + axis[0] * halfWidth[0] - axis[1] * halfWidth[1]
+        - axis[2] * halfWidth[2];
+    v[6] = center - axis[0] * halfWidth[0] + axis[1] * halfWidth[1]
+        - axis[2] * halfWidth[2];
+    v[7] = center - axis[0] * halfWidth[0] - axis[1] * halfWidth[1]
+        + axis[2] * halfWidth[2];
+
+    return v;
+}
+
+std::vector<Line> OBB::GetEdges() {
+    std::vector<Line> result;
+    result.reserve(12);
+    std::vector<Vec3> v = GetVertices();
+
+    int index[][2] = {  // Indices of edge-vertices
+        {6, 1}, {6, 3}, {6, 4}, {2, 7}, {2, 5}, {2, 0},
+        {0, 1}, {0, 3}, {7, 1}, {7, 4}, {4, 5}, {5, 3}
+    };
+    for (int j = 0; j < 12; ++j) {
+        result.push_back(Line{
+                v[index[j][0]],
+                v[index[j][1]]});
+    }
+
+    return result;
+}
+
+std::vector<Plane> OBB::GetPlanes() {
+    std::vector<Plane> result;
+    result.resize(6);
+
+    result[0] = Plane(
+            axis[0], glm::dot(axis[0], (center + axis[0] * halfWidth.x)));
+    result[1] = Plane(
+            axis[0] * (-1.0f), -glm::dot(axis[0], (center - axis[0] * halfWidth.x)));
+    result[2] = Plane(
+            axis[1], glm::dot(axis[1], (center + axis[1] * halfWidth.y)));
+    result[3] = Plane(
+            axis[1] * (-1.0f), -glm::dot(axis[1], (center - axis[1] * halfWidth.y)));
+    result[4] = Plane(
+            axis[2], glm::dot(axis[2], (center + axis[2] * halfWidth.z)));
+    result[5] = Plane(
+        axis[2] * (-1.0f), -glm::dot(axis[2], (center - axis[2] * halfWidth.z)));
+
+    return result;
 }
 
 Interval OBB::GetInterval(Vec3 axisPar) {
