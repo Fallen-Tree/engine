@@ -146,17 +146,17 @@ class MovingRotating2 : public Behaviour {
 int main() {
     auto engine = Engine();
 
-    Shader standartVShader = Shader(VertexShader, standartVertexShaderSource);
-    Shader skeletalVShader = Shader(VertexShader, skeletalVertexShaderSource);
-    Shader fShader = Shader(FragmentShader, fragmentShaderSource);
-
-    ShaderProgram *standartShaderProgram = new ShaderProgram(standartVShader, fShader);
-    ShaderProgram *skeletalShaderProgram = new ShaderProgram(skeletalVShader, fShader);
+    ShaderProgram standartShaderProgram = engine
+        .GetShaderManager()
+        .LoadShaderProgram(standartVertexShaderSource, fragmentShaderSource);
+    ShaderProgram skeletalShaderProgram = engine
+        .GetShaderManager()
+        .LoadShaderProgram(skeletalVertexShaderSource, fragmentShaderSource);
 
     {
         // /* PIGEON */
         Model *pigeonModel = Model::loadFromFile("pigeon/scene.gltf");
-        pigeonModel->shader = skeletalShaderProgram;
+        pigeonModel->shader = &skeletalShaderProgram;
         auto pigeonAnimation = new SkeletalAnimationData("pigeon/scene.gltf", 0, pigeonModel);
 
         auto pigeonObj = engine.NewObject();
@@ -167,7 +167,7 @@ int main() {
 
     {
         /* Wolf */
-        Model *wolfModel = Model::loadFromFile("Wolf/Wolf-Blender-2.82a.gltf", skeletalShaderProgram);
+        Model *wolfModel = Model::loadFromFile("Wolf/Wolf-Blender-2.82a.gltf", &skeletalShaderProgram);
         wolfModel->meshes.pop_back();  // Delete Fur
         wolfModel->meshes.erase(wolfModel->meshes.begin() + 1);  // Delete floor
 
@@ -217,7 +217,7 @@ int main() {
 
     {
         Model * model = Model::loadFromFile(catSource);
-        model->shader = standartShaderProgram;
+        model->shader = &standartShaderProgram;
         Material cat_material = {
             4.f,
             Texture("/Cat_diffuse.png", "/Cat_specular.png")
@@ -230,7 +230,7 @@ int main() {
 
     // Shiba inu (ETO FIASKO BRATAN)
     Model *model = Model::loadFromFile("ShibaInu.fbx");
-    model->shader = standartShaderProgram;
+    model->shader = &standartShaderProgram;
     auto dog = engine.NewObject();
     dog.AddModel(*model);
     // dog.AddSkeletalAnimationsManager("ShibaInu.fbx", model).PlayImmediately(14, 1);
@@ -240,8 +240,8 @@ int main() {
         4.f,
         Texture("wall.png", "wallspecular.png")
     };
-    Model *sphereModel = Model::fromMesh(Mesh::GetSphere(), material, standartShaderProgram);
-    Model *cubeModel = Model::fromMesh(Mesh::GetCube(), material, standartShaderProgram);
+    Model *sphereModel = Model::fromMesh(Mesh::GetSphere(), material, &standartShaderProgram);
+    Model *cubeModel = Model::fromMesh(Mesh::GetCube(), material, &standartShaderProgram);
 
     auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model) {
         auto obj = engine.NewObject();
@@ -324,7 +324,7 @@ int main() {
     };
 
     {
-        auto ocraFont = new Font("OCRAEXT.TTF", 20);
+        auto ocraFont = engine.GetFontManager().LoadFont("OCRAEXT.TTF", 20);
         auto obj = engine.NewObject();
         obj.AddText(ocraFont, "", 0.85f, 0.95f, 1.f, Vec3(0, 0, 0));
         obj.AddBehaviour<FpsText>();

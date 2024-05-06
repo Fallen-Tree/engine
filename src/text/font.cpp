@@ -67,7 +67,7 @@ void Font::RenderText(std::string text, float relX, float relY, float scale, glm
     glDisable(GL_BLEND);
 }
 
-Font::Font(std::string path, unsigned int fontSize) {
+Font::Font(std::string path, unsigned int fontSize, ShaderProgram sp) {
     path = GetResourcePath(Resource::FONT, path);
 
     FT_Library ft;
@@ -132,8 +132,5 @@ Font::Font(std::string path, unsigned int fontSize) {
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-
-    Shader vShader = Shader(VertexShader, "text.vshader");
-    Shader fShader = Shader(FragmentShader, "text.fshader");
-    m_ShaderProgram = ShaderProgram(vShader, fShader);
+    m_ShaderProgram = sp;
 }

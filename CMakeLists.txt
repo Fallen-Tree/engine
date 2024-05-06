@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.16)
-
 project(Engine VERSION 0.1)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -13,14 +12,17 @@ find_package(OpenGL REQUIRED)
 add_library(ENGINE STATIC 
             src/engine.cpp
             src/shaders/shaders.cpp
+            src/shaders/shader_manager.cpp
             src/model/mesh.cpp
             src/model/model.cpp
+            src/model/model_manager.cpp
             src/input/input.cpp
             src/texture/stb_image.cpp
             src/texture/texture.cpp
             src/logging/logger.cpp
             src/text/text.cpp
             src/text/font.cpp
+            src/text/font_manager.cpp
             src/components/animation/animation.cpp
             src/components/animation/skeletal_animations_manager.cpp
             src/components/animation/skeletal_animation_data.cpp
@@ -55,15 +57,19 @@ SET(ASSIMP_BUILD_SAMPLES OFF)
 SET(ASSIMP_BUILD_TESTS OFF)
 add_subdirectory(thirdparty/assimp/assimp)
 
+# Profiler intergration
+set(TRACY_ENABLE OFF)
+add_subdirectory(thirdparty/tracy)
+
 target_include_directories(ENGINE PUBLIC thirdparty PUBLIC include)
 target_include_directories(ENGINE PUBLIC thirdparty/bass/c)
-
 
 if (UNIX)
     target_link_libraries(ENGINE PUBLIC 
         glfw glad freetype assimp
         ${CMAKE_SOURCE_DIR}/thirdparty/bass/libbass.so
         OpenGL::GL
+        Tracy::TracyClient
     )
 
 else()

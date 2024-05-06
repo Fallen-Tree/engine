@@ -20,9 +20,8 @@ void init() {
     engine = new Engine();
     std::string vertexShaderSource = "standart.vshader";
     std::string fragmentShaderSource = "standart.fshader";
-    Shader vShader = Shader(VertexShader, vertexShaderSource);
-    Shader fShader = Shader(FragmentShader, fragmentShaderSource);
-    defaultSP = new ShaderProgram(vShader, fShader);
+    defaultSP = new ShaderProgram(
+        engine->GetShaderManager().LoadShaderProgram(vertexShaderSource, fragmentShaderSource));
 }
 
 void createUI() {
@@ -36,7 +35,7 @@ void createUI() {
         }
     };
 
-    auto ocraFont = new Font("OCRAEXT.TTF", 20);
+    auto ocraFont = engine->GetFontManager().LoadFont("OCRAEXT.TTF", 20);
     auto obj = engine->NewObject();
     obj.AddText(ocraFont, "", 0.85f, 0.95f, 1.f, Vec3(0, 0, 0));
     obj.AddBehaviour<FpsText>();\
@@ -49,7 +48,7 @@ void createUI() {
 }
 
 void AddLantern(Vec3 pos) {
-    Model *lantern = Model::loadFromFile("Lantern/model.obj");
+    Model *lantern = engine->GetModelManager().LoadModel("Lantern/one_mesh.obj");
     Transform * tr = new Transform(pos, Vec3(1.0f), Mat4(1.0f));
     newModel(tr, lantern);
     engine->NewObject().AddPointLight(
@@ -98,7 +97,7 @@ void buildRoom() {
     float wall_scale = 4.0f;
     int walls_cnt = 2;
     Vec3 wall_y = Vec3(0, floor_y, 0);
-    Model *w2 = Model::loadFromFile("wall.fbx");
+    Model *w2 = engine->GetModelManager().LoadModel("wall.fbx");
     for (int i = -walls_cnt; i <= walls_cnt; ++i) {
         newModel(
             new Transform(Vec3(i, 0, -walls_cnt) * 4.0f * wall_scale + wall_y,
@@ -139,7 +138,7 @@ void buildRoom() {
             Vec3{walls_x, floor_y, walls_x},
         }});
 
-    Model *floor = Model::loadFromFile("Floor_Modular.fbx");
+    Model *floor = engine->GetModelManager().LoadModel("Floor_Modular.fbx");
     int floor_cnt = 4;
 
     float floor_scale = 4.5f;
@@ -159,7 +158,7 @@ void buildRoom() {
         }
     }
 
-    Model *ceil = Model::loadFromFile("floor/model.obj");
+    Model *ceil = engine->GetModelManager().LoadModel("floor/one_mesh.obj");
 
     int ceil_cnt = 2;
 
@@ -180,7 +179,7 @@ void buildRoom() {
     }
 
     float cc_scale = 1.5f;
-    Model *cc = Model::loadFromFile("CompanionCube/Portal_Companion_Cube.obj");
+    Model *cc = engine->GetModelManager().LoadModel("CompanionCube/Portal_Companion_Cube.obj");
     Object cube = newDynamicBody(
         new Transform(Vec3(18, floor_y + cc_scale + 0.1f, 0), Vec3(cc_scale), Mat4(1.0)), cc,
         new Collider{Collider::GetDefaultAABB(&cc->meshes[0])},
@@ -189,7 +188,7 @@ void buildRoom() {
 
     float chest_scale = 20.f;
     float chest_y = floor_y + chest_scale * 0.1f;
-    Model *chest = Model::loadFromFile("Chest/model.obj");
+    Model *chest = engine->GetModelManager().LoadModel("Chest/model.obj");
     for (int i = 0; i < 4; ++i) {
         Object chestObj = newDynamicBody(
             new Transform(Vec3(-20, chest_y, i * 5 - 10), Vec3(chest_scale), Mat4(1.0)),
@@ -200,17 +199,18 @@ void buildRoom() {
         interactableObjects.push_back(chestObj);
     }
 
-    Model *plant1 = Model::loadFromFile("HousePlant/Houseplant.obj");
+    auto &modelManager = engine->GetModelManager();
+    Model *plant1 = modelManager.LoadModel("HousePlant/Houseplant.obj");
     newModel(new Transform(Vec3(10, floor_y, 0), Vec3(1), Mat4(1.0)), plant1);
 
-    Model *plant2 = Model::loadFromFile("Orchid/Orchid.obj");
+    Model *plant2 = modelManager.LoadModel("Orchid/Orchid.obj");
     newModel(new Transform(Vec3(14, floor_y, 0), Vec3(0.3), Mat4(1.0)), plant2);
 
-    Model *dog = Model::loadFromFile("ShibaInu.fbx");
+    Model *dog = modelManager.LoadModel("ShibaInu.fbx");
     Object dogObj = newModel(new Transform(Vec3(14, floor_y, 4), Vec3(1), Mat4(1.0)), dog);
     dogObj.GetTransform()->Rotate(glm::radians(-90.0f), 0, 0);
 
-    Model *chair = Model::loadFromFile("Chair.obj");
+    Model *chair = modelManager.LoadModel("Chair.obj");
     for (int i = 0; i < 4; ++i) {
         Transform *chTransform = new Transform(Vec3(5 * i, floor_y, -15), Vec3(0.4), Mat4(1.0));
         Object chairObj = newDynamicBody(chTransform, chair,
@@ -221,15 +221,15 @@ void buildRoom() {
 
     float table_y = 4.2f;
 
-    Model *table = Model::loadFromFile("Table_Small/Table_Small.obj");
+    Model *table = modelManager.LoadModel("Table_Small/Table_Small.obj");
     newStaticBody(new Transform(Vec3(20, floor_y, 14), Vec3(0.05), Mat4(1.0)), table,
         new Collider{Collider::GetDefaultAABB(&table->meshes[0])});
 
-    Model *table2 = Model::loadFromFile("Desk/desk.obj");
+    Model *table2 = modelManager.LoadModel("Desk/desk.obj");
     newStaticBody(new Transform(Vec3(20, floor_y, -30), Vec3(15.0), Mat4(1.0)), table2,
         new Collider{Collider::GetDefaultAABB(&table2->meshes[0])});
 
-    Model *big_shelf = Model::loadFromFile("wooden bookshelf/model.obj");
+    Model *big_shelf = modelManager.LoadModel("wooden bookshelf/model.obj");
     newStaticBody(new Transform(Vec3(20, floor_y + 7, -walls_x + 3), Vec3(8.0), Mat4(1.0)), big_shelf,
         new Collider{Collider::GetDefaultAABB(&big_shelf->meshes[0])}).
         GetTransform()->Rotate(0, glm::radians(-90.0f), 0);
@@ -239,7 +239,7 @@ void buildRoom() {
         new Collider{Collider::GetDefaultAABB(&small_shelf->meshes[0])});
     */
 
-    Model *pizza = Model::loadFromFile("Pizza slice/Pizza_Slice_01.obj");
+    Model *pizza = modelManager.LoadModel("Pizza slice/Pizza_Slice_01.obj");
     Object pizzaObj = newDynamicBody(
         new Transform(Vec3(20, floor_y + table_y, 16), Vec3(0.1), Mat4(1.0)), pizza,
         new Collider{Collider::GetDefaultAABB(&pizza->meshes[0])},
@@ -247,11 +247,11 @@ void buildRoom() {
     pizzaObj.name = 1;
     interactableObjects.push_back(pizzaObj);
 
-    Model *painting = Model::loadFromFile("Wall painting/Wall_Art_Classical_01.obj");
+    Model *painting = modelManager.LoadModel("Wall painting/Wall_Art_Classical_01.obj");
     newModel(new Transform(Vec3(walls_x, floor_y + 8, 6), Vec3(0.5), Mat4(1.0)), painting)
         .GetTransform()->Rotate(0, glm::radians(90.0f), 0);
 
-    Model *boombox = Model::loadFromFile("record player.fbx");
+    Model *boombox = modelManager.LoadModel("record player.fbx");
     newModel(new Transform(Vec3(20, floor_y + table_y, 14), Vec3(1.0, 1.0, 0.25), Mat4(1.0)), boombox)
         .GetTransform()->Rotate(glm::radians(-90.0f), 0, 0);
 }
@@ -286,7 +286,7 @@ void poolTable() {
         balls.push_back(newBall);
     }
 
-    auto ocraFont = new Font("OCRAEXT.TTF", 20);
+    auto ocraFont = engine->GetFontManager().LoadFont("OCRAEXT.TTF", 20);
     auto scoreText = PublicText::New(ocraFont, "0", Vec2(0.02f, 0.95f), 1.f, Vec3(0, 0, 0));
     Object gmObj = engine->NewObject();
     gmObj.AddBehaviour<GameManager>(
@@ -308,7 +308,7 @@ int main() {
     poolTable();
     createUI();
 
-    auto ocraFont = new Font("OCRAEXT.TTF", 20);
+    auto ocraFont = engine->GetFontManager().LoadFont("OCRAEXT.TTF", 20);
     auto hintText = reinterpret_cast<PublicText*>(
         PublicText::New(ocraFont, "0", Vec2(0.53f, 0.5f), 1.f, Vec3(1))
         .GetBehaviour());

@@ -36,7 +36,7 @@ void Shader::LoadSourceFromFile(std::string path) {
 
 int Shader::Compile() {
     if (m_Shader == 0)
-        m_Shader = glCreateShader(m_Type);
+        m_Shader = glCreateShader((GLenum)m_Type);
     const char* source = m_Source.c_str();
     glShaderSource(m_Shader, 1, &source, NULL);
     glCompileShader(m_Shader);
@@ -45,10 +45,14 @@ int Shader::Compile() {
     return success;
 }
 
+std::string Shader::GetSource() {
+    return m_Source;
+}
+
 Shader::Shader(ShaderType shaderType, std::string path) {
     m_Type = shaderType;
     m_Shader = 0;
-    if (shaderType == VertexShader) {
+    if (shaderType == ShaderType::Vertex) {
         path = GetResourcePath(Resource::VSHADER, path);
     } else {
         path = GetResourcePath(Resource::FSHADER, path);
@@ -79,15 +83,15 @@ int ShaderProgram::Link() {
     return 0;
 }
 
-ShaderProgram::ShaderProgram() {
-    m_Program = -1;
-}
-
 ShaderProgram::ShaderProgram(Shader vShader, Shader fShader) {
     m_Program = glCreateProgram();
     AttachShader(vShader);
     AttachShader(fShader);
     Link();
+}
+
+bool ShaderProgram::IsValid() {
+    return m_Program >= 0;
 }
 
 int ShaderProgram::Use() {

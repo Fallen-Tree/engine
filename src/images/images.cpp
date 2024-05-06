@@ -8,6 +8,7 @@
 #include "path_resolver.hpp"
 #include "stb_image.h"
 #include "user_config.hpp"
+#include "tracy/Tracy.hpp"
 
 Image::Image(std::string path, float relX, float relY, float scale) {
   path = GetResourcePath(Resource::IMAGE, path);
@@ -46,13 +47,18 @@ Image::Image(std::string path, float relX, float relY, float scale) {
   glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
+}
 
-  Shader vShader = Shader(VertexShader, "text.vshader");
-  Shader fShader = Shader(FragmentShader, "image.fshader");
-  m_ShaderProgram = ShaderProgram(vShader, fShader);
+void Image::SetShaderProgram(ShaderProgram sp) {
+    m_ShaderProgram = sp;
+}
+
+ShaderProgram Image::GetShaderProgram() {
+    return m_ShaderProgram;
 }
 
 void Image::Render() {
+    ZoneScoped;
   if (!m_Visible) return;
 
   glDisable(GL_DEPTH_TEST);
