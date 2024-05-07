@@ -31,7 +31,7 @@ inline bool ClipToPlane(const Plane& plane,
 }
 
 inline std::vector<Vec3> ClipEdgesToOBB(
-        const std::vector<Line>& edges, OBB& obb) {
+        const std::vector<Line>& edges, OBB obb) {
     std::vector<Vec3> result;
     result.reserve(edges.size());
     Vec3 intersection;
@@ -51,7 +51,7 @@ inline std::vector<Vec3> ClipEdgesToOBB(
 }
 
 inline std::vector<Vec3> ClipEdgesToAABB(
-        const std::vector<Line>& edges, AABB& aabb) {
+        const std::vector<Line>& edges, AABB aabb) {
     std::vector<Vec3> result;
     result.reserve(edges.size());
     Vec3 intersection;
@@ -144,8 +144,6 @@ CollisionManifold CollidePrimitive(AABB aabb, OBB obb) {
 
     Vec3 axis = Norm(*hitNormal);
 
-    // TODO(solloballon): find all collision point
-    //res.collisionPoint = obb.ClosestPoint((aabb.max + aabb.min) / 2.f);
     std::vector<Vec3> c1 = ClipEdgesToOBB(aabb.GetEdges(), obb);
     std::vector<Vec3> c2 = ClipEdgesToAABB(obb.GetEdges(), aabb);
 
