@@ -171,10 +171,9 @@ int main() {
 
     auto staticAABB = setUpObj(
         Transform(Vec3(2, -30, 2.0), Vec3(50), 0.f, Vec3(1)),
-        OBB {
-            Vec3(0, 0, 0),
-            Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
-            Vec3(0.5, 0.5, 0.5),
+        AABB {
+            Vec3(-0.5),
+            Vec3(0.5),
         },
         cubeModel,
         Vec3(0, 0, 0),
@@ -234,7 +233,6 @@ int main() {
             Vec3(0, 0, 0),
             10000)
     };
-
 
     class FpsText : public Behaviour {
      public:
