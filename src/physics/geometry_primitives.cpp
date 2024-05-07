@@ -40,15 +40,12 @@ std::vector<Plane> AABB::GetPlanes() {
 }
 
 bool AABB::IsPointIn(Vec3 point) {
-    if (point.x < min.x
+    return !(point.x < min.x
             || point.y < min.y
             || point.z < min.z
             || point.x > max.x
-            || point.y>max.y
-            || point.z>max.z) {
-        return false;
-    }
-    return true;
+            || point.y > max.y
+            || point.z > max.z);
 }
 
 std::vector<Vec3> AABB::GetVertices() {
