@@ -183,18 +183,30 @@ int main() {
 
 
     auto obb = setUpObj(
-        Transform(Vec3(2, 0, 2.0), Vec3(1), 45, Vec3(1)),
+        Transform(Vec3(2, 0, 2.0), Vec3(1), 10, Vec3(1)),
         OBB {
             Vec3(0, 0, 0),
             Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
             Vec3(0.5, 0.5, 0.5),
         },
         cubeModel,
-        Vec3(0, 0, 0),
+        Vec3(-0, 0, 0),
         Vec3(0.0, 0, 0),
         1,
         Vec3(1));
 
+    auto obb2 = setUpObj(
+        Transform(Vec3(-10, 0, 2.0), Vec3(1), 10, Vec3(1)),
+        OBB {
+            Vec3(0, 0, 0),
+            Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
+            Vec3(0.5, 0.5, 0.5),
+        },
+        cubeModel,
+        Vec3(5, 0, 0),
+        Vec3(0.0, 0, 0),
+        1,
+        Vec3(1));
 
     auto getSphereObj = [=, &engine](Transform transform, Vec3 speed, float mass) {
         auto obj = engine.NewObject();
@@ -211,7 +223,7 @@ int main() {
         getSphereObj(
             Transform(Vec3(-10, 4, 2.0), Vec3(1), 0.f, Vec3(1)),
             Vec3(5, 0, 0),
-            10),
+            1),
         getSphereObj(
             Transform(Vec3(5, 4, 2.0), Vec3(1), 0.f, Vec3(1)),
             Vec3(0, 0, 0),
@@ -221,7 +233,6 @@ int main() {
             Vec3(0, 0, 0),
             10000)
     };
-
 
     class FpsText : public Behaviour {
      public:
