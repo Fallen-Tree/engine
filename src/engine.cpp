@@ -387,6 +387,23 @@ std::vector<Object> Engine::CollideAll(ObjectHandle a) {
     return res;
 }
 
+std::optional<ObjectHandle> Engine::GlobalRaycast(Ray ray) {
+    std::optional<ObjectHandle> result = std::nullopt;
+    float bestDistance = 1e18;
+    for (int i = 0; i < m_Colliders.GetSize(); i++) {
+        int handle = m_Colliders.GetFromInternal(i);
+        auto current = m_Colliders.GetData(handle).RaycastHit(
+            m_Transforms.GetData(handle), ray);
+
+        if (!current.has_value()) continue;
+        if (current.value() < bestDistance) {
+            bestDistance = current.value();
+            result = m_Colliders.GetFromInternal(i);
+        }
+    }
+    return result;
+}
+
 void Engine::Run() {
     scrWidth = SCR_WIDTH;
     scrHeight = SCR_HEIGHT;
@@ -425,6 +442,7 @@ void Engine::Run() {
             lastFpsShowedTime = currentTime;
             fpsFrames = 0;
         }
+
 
         m_Input.Update();
         glfwPollEvents();
