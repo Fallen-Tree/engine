@@ -12,7 +12,6 @@ const char *cubeSource = "cube2.obj";
 const char *catSource = "fish.obj";
 const char *benchSource = "bench.obj";
 
-const char *standartVertexShaderSource = "standart.vshader";
 const char *skeletalVertexShaderSource = "skeletal.vshader";
 const char *fragmentShaderSource = "standart.fshader";
 
@@ -146,9 +145,6 @@ class MovingRotating2 : public Behaviour {
 int main() {
     auto engine = Engine();
 
-    ShaderProgram standartShaderProgram = engine
-        .GetShaderManager()
-        .LoadShaderProgram(standartVertexShaderSource, fragmentShaderSource);
     ShaderProgram skeletalShaderProgram = engine
         .GetShaderManager()
         .LoadShaderProgram(skeletalVertexShaderSource, fragmentShaderSource);
@@ -217,7 +213,6 @@ int main() {
 
     {
         Model * model = Model::loadFromFile(catSource);
-        model->shader = &standartShaderProgram;
         Material cat_material = {
             4.f,
             Texture("/Cat_diffuse.png", "/Cat_specular.png")
@@ -230,7 +225,6 @@ int main() {
 
     // Shiba inu (ETO FIASKO BRATAN)
     Model *model = Model::loadFromFile("ShibaInu.fbx");
-    model->shader = &standartShaderProgram;
     auto dog = engine.NewObject();
     dog.AddModel(*model);
     // dog.AddSkeletalAnimationsManager("ShibaInu.fbx", model).PlayImmediately(14, 1);
@@ -240,8 +234,8 @@ int main() {
         4.f,
         Texture("wall.png", "wallspecular.png")
     };
-    Model *sphereModel = Model::fromMesh(Mesh::GetSphere(), material, &standartShaderProgram);
-    Model *cubeModel = Model::fromMesh(Mesh::GetCube(), material, &standartShaderProgram);
+    Model *sphereModel = Model::fromMesh(Mesh::GetSphere(), material);
+    Model *cubeModel = Model::fromMesh(Mesh::GetCube(), material);
 
     auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model) {
         auto obj = engine.NewObject();

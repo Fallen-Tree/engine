@@ -26,6 +26,14 @@ Shader ShaderManager::LoadShader(ShaderType type, std::string filename) {
     }
 }
 
+void ShaderManager::SetDefault(ShaderProgram program) {
+    m_DefaultShader = program;
+}
+
+ShaderProgram *ShaderManager::GetDefault() {
+    return &m_DefaultShader;
+}
+
 std::map<std::pair<std::string, std::string>, ShaderProgram>::iterator
     ShaderManager::begin() {
         return m_ShaderPrograms.begin();

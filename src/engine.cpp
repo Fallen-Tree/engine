@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include <chrono>
 
 #include "engine_config.hpp"
 #include "math_types.hpp"
@@ -24,12 +25,12 @@
 #include "sound.hpp"
 #include <glm/gtx/string_cast.hpp>
 #include "tracy/Tracy.hpp"
-#include <chrono>
+
+const char *standartVertexShader = "standart.vshader";
+const char *fragmentShader = "standart.fshader";
 
 int viewportWidth, viewportHeight;
-// Left bottom corner coordinates of viewport
 int viewportStartX, viewportStartY;
-// For resoliton and initial window size. 1600x900 for example.
 int scrWidth, scrHeight;
 
 static Engine *s_Engine = nullptr;
@@ -93,6 +94,9 @@ Engine::Engine() : m_FontManager(m_ShaderManager) {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return;
     }
+
+    auto program = m_ShaderManager.LoadShaderProgram(standartVertexShader, fragmentShader);
+    m_ShaderManager.SetDefault(program);
 }
 
 Engine::~Engine() {
@@ -259,6 +263,9 @@ Transform &Engine::AddTransform(ObjectHandle id, Transform v) {
 }
 
 Model &Engine::AddModel(ObjectHandle id, Model v) {
+    if (v.shader == nullptr) {
+        v.shader = m_ShaderManager.GetDefault();
+    }
     m_Models.SetData(id, v);
     return m_Models.GetData(id);
 }
