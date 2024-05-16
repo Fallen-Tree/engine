@@ -103,6 +103,18 @@ int main() {
         1,
         Vec3(1));
 
+    auto obb2 = setUpObj(
+        Transform(Vec3(-10, 0, 2.0), Vec3(1), 10, Vec3(1)),
+        OBB {
+            Vec3(0, 0, 0),
+            Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
+            Vec3(0.5, 0.5, 0.5),
+        },
+        cubeModel,
+        Vec3(5, 0, 0),
+        Vec3(0.0, 0, 0),
+        1,
+        Vec3(1));
 
     auto getSphereObj = [=, &engine](Transform transform, Vec3 speed, float mass) {
         auto obj = engine->NewObject();
