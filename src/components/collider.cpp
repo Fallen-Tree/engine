@@ -17,7 +17,6 @@ AABB Collider::GetDefaultAABB(Mesh* m) {
     return AABB{min, max};
 }
 
-
 AABB Collider::GetDefaultAABB(Model* model) {
     Vec3 min = {1e12, 1e12, 1e12};
     Vec3 max = {-1e12, -1e12, -1e12};

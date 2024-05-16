@@ -315,6 +315,8 @@ int main() {
         auto ocraFont = engine->GetFontManager().LoadFont("OCRAEXT.TTF", 20);
         auto obj = engine->NewObject();
         obj.AddText(ocraFont, "", 0.85f, 0.95f, 1.f, Vec3(0, 0, 0));
+        auto obj2 = engine->NewObject();
+        obj2.AddText(ocraFont, "+", 0.49f, 0.49f, 1.f, Vec3(0, 0, 0));
         obj.AddBehaviour<FpsText>();
     }
 

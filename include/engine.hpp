@@ -4,7 +4,6 @@
 #include <string>
 #include <map>
 #include <set>
-
 #include <tracy/Tracy.hpp>
 #include "collider.hpp"
 #include "collisions.hpp"
@@ -98,6 +97,8 @@ class Engine {
 
     bool Collide(ObjectHandle, ObjectHandle);
     std::vector<Object> CollideAll(ObjectHandle);
+
+    std::optional<ObjectHandle> GlobalRaycast(Ray ray);
 
     Camera* SwitchCamera(Camera* newCamera);
     void Run();

@@ -24,6 +24,13 @@ struct AABB {
     AABB PrevState(Vec3, float);
 
     AABB Transformed(Transform);
+
+    std::vector<Vec3> GetVertices();
+    std::vector<Line> GetEdges();
+    std::vector<Plane> GetPlanes();
+
+    bool IsPointIn(Vec3);
+
 };
 
 struct Sphere {

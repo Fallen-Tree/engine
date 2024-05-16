@@ -18,6 +18,70 @@ Plane::Plane(Vec3 normal, float distance) {
     this->d = distance;
 }
 
+std::vector<Plane> AABB::GetPlanes() {
+    std::vector<Plane> result;
+    result.resize(6);
+    Vec3 center = (max + min) * 0.5f;
+
+    result[0] = Plane(
+            Vec3(1, 0, 0), glm::dot(Vec3(1, 0, 0), Vec3(max.x, center.y, center.z)));
+    result[1] = Plane(
+            Vec3(-1, 0, 0), -glm::dot(Vec3(1, 0, 0), Vec3(min.x, center.y, center.z)));
+    result[2] = Plane(
+            Vec3(0, 1, 0), glm::dot(Vec3(0, 1, 0), Vec3(center.x, max.y, center.z)));
+    result[3] = Plane(
+            Vec3(0, -1, 0), -glm::dot(Vec3(0, 1, 0), Vec3(center.x, min.y, center.z)));
+    result[4] = Plane(
+            Vec3(0, 0, 1), glm::dot(Vec3(0, 0, 1), Vec3(center.x, center.y, max.z)));
+    result[5] = Plane(
+            Vec3(0, 0, -1), -glm::dot(Vec3(0, 0, -1), Vec3(center.x, center.y, min.z)));
+
+    return result;
+}
+
+bool AABB::IsPointIn(Vec3 point) {
+    return !(point.x < min.x
+            || point.y < min.y
+            || point.z < min.z
+            || point.x > max.x
+            || point.y > max.y
+            || point.z > max.z);
+}
+
+std::vector<Vec3> AABB::GetVertices() {
+    std::vector<Vec3> v;
+    v.resize(8);
+
+    v[0] = Vec3(max.x, max.y, max.z);
+    v[1] = Vec3(min.x, max.y, max.z);
+    v[2] = Vec3(max.x, min.y, max.z);
+    v[3] = Vec3(max.x, max.y, min.z);
+    v[4] = Vec3(min.x, min.y, max.z);
+    v[5] = Vec3(max.x, min.y, min.z);
+    v[6] = Vec3(min.x, max.y, min.z);
+    v[7] = Vec3(min.x, min.y, min.z);
+
+    return v;
+}
+
+std::vector<Line> AABB::GetEdges() {
+    std::vector<Line> result;
+    result.reserve(12);
+    std::vector<Vec3> v = GetVertices();
+
+    int index[][2] = {  // Indices of edge-vertices
+        {6, 1}, {6, 3}, {6, 4}, {2, 7}, {2, 5}, {2, 0},
+        {0, 1}, {0, 3}, {7, 1}, {7, 4}, {4, 5}, {5, 3}
+    };
+    for (int j = 0; j < 12; ++j) {
+        result.push_back(Line{
+                v[index[j][0]],
+                v[index[j][1]]});
+    }
+
+    return result;
+}
+
 Vec3 AABB::ClosestPoint(Vec3 point) {
     Vec3 result = {
         glm::clamp(point.x, min.x, max.x),

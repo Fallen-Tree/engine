@@ -9,6 +9,67 @@
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+inline bool ClipToPlane(const Plane& plane,
+        const Line& line, Vec3* outPoint) {
+    Vec3 ab = line.end - line.start;
+    float nAB = glm::dot(plane.normal, ab);
+    if (isCloseToZero(nAB)) {
+        return false;
+    }
+
+    float nA = glm::dot(plane.normal, line.start);
+    float t = (plane.d - nA) / nAB;
+
+    if (t >= 0.0f && t <= 1.0f) {
+        if (outPoint != nullptr) {
+            *outPoint = line.start + ab * t;
+        }
+        return true;
+    }
+
+    return false;
+}
+
+inline std::vector<Vec3> ClipEdgesToOBB(
+        const std::vector<Line>& edges, OBB obb) {
+    std::vector<Vec3> result;
+    result.reserve(edges.size());
+    Vec3 intersection;
+
+    std::vector<Plane> planes = obb.GetPlanes();
+    for (int i = 0; i < planes.size(); i++) {
+        for (int j = 0; j < edges.size(); j++) {
+            if (ClipToPlane(planes[i], edges[j], &intersection)) {
+                if (obb.IsPointIn(intersection)) {
+                    result.push_back(intersection);
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+inline std::vector<Vec3> ClipEdgesToAABB(
+        const std::vector<Line>& edges, AABB aabb) {
+    std::vector<Vec3> result;
+    result.reserve(edges.size());
+    Vec3 intersection;
+
+    std::vector<Plane> planes = aabb.GetPlanes();
+    for (int i = 0; i < planes.size(); i++) {
+        for (int j = 0; j < edges.size(); j++) {
+            if (ClipToPlane(planes[i], edges[j], &intersection)) {
+                if (aabb.IsPointIn(intersection)) {
+                    result.push_back(intersection);
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
 CollisionManifold CollidePrimitive(OBB obb, AABB aabb) {
     auto res = CollidePrimitive(aabb, obb);
     res.collisionNormal *= -1;
@@ -83,8 +144,29 @@ CollisionManifold CollidePrimitive(AABB aabb, OBB obb) {
 
     Vec3 axis = Norm(*hitNormal);
 
-    // TODO(solloballon): find all collision point
-    res.collisionPoint = obb.ClosestPoint((aabb.max + aabb.min) / 2.f);
+    std::vector<Vec3> c1 = ClipEdgesToOBB(aabb.GetEdges(), obb);
+    std::vector<Vec3> c2 = ClipEdgesToAABB(obb.GetEdges(), aabb);
+
+    if (c1.size() == 0 && c2.size() == 0) {
+        res.collisionPoint = obb.ClosestPoint((aabb.max + aabb.min) / 2.f);
+        res.collide = true;
+        res.collisionNormal = axis;
+        return res;
+    }
+
+    Vec3 p = Vec3(0);
+    for (auto i : c1) p += i;
+    for (auto i : c2) p += i;
+
+    res.collisionPoint = p / static_cast<float>(c1.size() + c2.size());
+
+    Interval i = obb.GetInterval(axis);
+    float distance = (i.max - i.min) * 0.5f
+        - res.penetrationDistance * 0.5f;
+    Vec3 pointOnPlane = obb.center
+        + axis * distance;
+    res.collisionPoint += (axis *
+            glm::dot(axis, pointOnPlane - res.collisionPoint));
 
     res.collide = true;
     res.collisionNormal = axis;
@@ -140,47 +222,6 @@ CollisionManifold CollidePrimitive(OBB obb, Triangle triangle) {
 bool CollidePrimitive(Ray, OBB) {
     assert(false);
     return false;
-}
-
-inline bool ClipToPlane(const Plane& plane,
-        const Line& line, Vec3* outPoint) {
-    Vec3 ab = line.end - line.start;
-    float nAB = glm::dot(plane.normal, ab);
-    if (isCloseToZero(nAB)) {
-        return false;
-    }
-
-    float nA = glm::dot(plane.normal, line.start);
-    float t = (plane.d - nA) / nAB;
-
-    if (t >= 0.0f && t <= 1.0f) {
-        if (outPoint != nullptr) {
-            *outPoint = line.start + ab * t;
-        }
-        return true;
-    }
-
-    return false;
-}
-
-inline std::vector<Vec3> ClipEdgesToOBB(
-        const std::vector<Line>& edges, OBB& obb) {
-    std::vector<Vec3> result;
-    result.reserve(edges.size());
-    Vec3 intersection;
-
-    std::vector<Plane> planes = obb.GetPlanes();
-    for (int i = 0; i < planes.size(); i++) {
-        for (int j = 0; j < edges.size(); j++) {
-            if (ClipToPlane(planes[i], edges[j], &intersection)) {
-                if (obb.IsPointIn(intersection)) {
-                    result.push_back(intersection);
-                }
-            }
-        }
-    }
-
-    return result;
 }
 
 inline float PenetrationDepth(OBB& o1, OBB& o2,
@@ -248,14 +289,16 @@ CollisionManifold CollidePrimitive(OBB a, OBB b) {
     std::vector<Vec3> c1 = ClipEdgesToOBB(b.GetEdges(), a);
     std::vector<Vec3> c2 = ClipEdgesToOBB(a.GetEdges(), b);
 
+    if (c1.size() == 0 && c2.size() == 0) {
+        res.collisionPoint = a.ClosestPoint(b.center);
+        res.collide = true;
+        res.collisionNormal = -axis;
+        return res;
+    }
+
     Vec3 p = Vec3(0);
     for (auto i : c1) p += i;
     for (auto i : c2) p += i;
-
-    if (c1.size() == 0 && c2.size() == 0) {
-        Logger::Info("COLLISION::OBBVSOBB::POINTS_SIZE_IS_ZERO");
-        return res;
-    }
 
     res.collisionPoint = p / static_cast<float>(c1.size() + c2.size());
 

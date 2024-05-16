@@ -401,6 +401,23 @@ std::vector<Object> Engine::CollideAll(ObjectHandle a) {
     return res;
 }
 
+std::optional<ObjectHandle> Engine::GlobalRaycast(Ray ray) {
+    std::optional<ObjectHandle> result = std::nullopt;
+    float bestDistance = 1e18;
+    for (int i = 0; i < m_Colliders.GetSize(); i++) {
+        int handle = m_Colliders.GetFromInternal(i);
+        auto current = m_Colliders.GetData(handle).RaycastHit(
+            m_Transforms.GetData(handle), ray);
+
+        if (!current.has_value()) continue;
+        if (current.value() < bestDistance) {
+            bestDistance = current.value();
+            result = m_Colliders.GetFromInternal(i);
+        }
+    }
+    return result;
+}
+
 void Engine::Run() {
     {
     using std::chrono::high_resolution_clock;
@@ -452,6 +469,7 @@ void Engine::Run() {
             lastFpsShowedTime = currentTime;
             fpsFrames = 0;
         }
+
 
         m_Input.Update();
         glfwPollEvents();
@@ -678,9 +696,6 @@ void Engine::Render(int scr_width, int scr_height) {
                 shader->SetMat4(("finalBonesMatrices[" + std::to_string(i) + "]").c_str(), bones[i]);
             }
         }
-
-        Mat4 view = camera->GetViewMatrix();
-        Vec3 viewPos = camera->GetPosition();
 
         for (RenderMesh mesh : model.meshes) {
             ZoneScopedN("Render Mesh");
