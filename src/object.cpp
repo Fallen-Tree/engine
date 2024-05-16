@@ -1,6 +1,7 @@
 #include "object.hpp"
 #include "engine.hpp"
 
+
 Object::Object(Engine *engine, ObjectHandle id) : m_Engine(engine), m_Handle(id) {}
 Object::Object() : m_Engine(nullptr), m_Handle(-1) {}
 
@@ -35,6 +36,15 @@ Object &Object::operator=(const Object &&rhs) {
 
 Transform *Object::GetTransform() {
     return m_Engine->GetTransform(m_Handle);
+}
+
+Object &Object::SetName(std::string name) {
+    m_Engine->SetObjectName(m_Handle, name);
+    return *this;
+}
+
+std::string Object::GetName() {
+    return m_Engine->GetObjectName(m_Handle);
 }
 
 Model *Object::GetModel() {

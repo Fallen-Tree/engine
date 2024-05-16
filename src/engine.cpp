@@ -60,10 +60,11 @@ Engine::Engine() : m_FontManager(m_ShaderManager) {
     camera = new Camera(Vec3(0.0f, 0.0f, 3.0f));
     s_Engine = this;
     m_ObjectCount = 0;
+    m_Names.assign(MAX_OBJECT_COUNT, "default");
 
-    m_CollideCache = std::vector<std::vector<bool>>(MAX_OBJECT_COUNT);
+    m_CollideCache = std::vector<std::vector<CollisionManifold>>(MAX_OBJECT_COUNT);
     for (auto i = 0; i < MAX_OBJECT_COUNT; i++)
-        m_CollideCache[i] = std::vector<bool>(MAX_OBJECT_COUNT);
+        m_CollideCache[i] = std::vector<CollisionManifold>(MAX_OBJECT_COUNT);
 
     bool bassInit = BASS_Init(-1, 44100, 0, NULL, NULL);
     if (!bassInit) {
@@ -114,9 +115,43 @@ Engine::~Engine() {
 // TODO(theblek): reuse object ids
 Object Engine::NewObject() {
     ObjectHandle handle = m_ObjectCount++;
-    Logger::Info("Created object %d", handle);
+    m_NamesToHandles["default"].push_back(handle);
+    Logger::Info("Created object %d with \"default\" name", handle);
     AddChild(ROOT, handle);
     return Object(this, handle);
+}
+
+Object Engine::NewObject(std::string name) {
+    ObjectHandle handle = m_ObjectCount++;
+    m_Names[handle] = name;
+    m_NamesToHandles[name].push_back(handle);
+    Logger::Info("Created object %d, named \"%s\"", handle, name.c_str());
+    AddChild(ROOT, handle);
+    return Object(this, handle);
+}
+
+void Engine::SetObjectName(ObjectHandle handle, std::string name) {
+    std::string oldName = m_Names[handle];
+    for (auto it = m_NamesToHandles[oldName].begin(); it != m_NamesToHandles[oldName].end(); it++) {
+        if (*it == handle) {
+            m_NamesToHandles[oldName].erase(it);
+            break;
+        }
+    }
+    if (m_NamesToHandles[oldName].empty()) {
+        m_NamesToHandles.erase(oldName);
+    }
+
+    m_Names[handle] = name;
+    m_NamesToHandles[name].push_back(handle);
+}
+
+std::string Engine::GetObjectName(ObjectHandle handle) {
+    return m_Names[handle];
+}
+
+std::vector<ObjectHandle> Engine::GetHandlesByName(std::string name) {
+    return m_NamesToHandles[name];
 }
 
 bool Engine::IsObjectValid(ObjectHandle obj) {
@@ -146,6 +181,18 @@ void Engine::RemoveObject(ObjectHandle handle) {
         m_DirLights.RemoveData(handle);
     if (m_Behaviours.HasData(handle))
         m_Behaviours.RemoveData(handle);
+
+    for (auto it = m_NamesToHandles[m_Names[handle]].begin();
+              it != m_NamesToHandles[m_Names[handle]].end(); it++) {
+        if (*it == handle) {
+            m_NamesToHandles[m_Names[handle]].erase(it);
+            break;
+        }
+    }
+    if (m_NamesToHandles[m_Names[handle]].empty()) {
+        m_NamesToHandles.erase(m_Names[handle]);
+    }
+
 
     if (m_Parents.HasData(handle)) {
         auto parent = m_Parents.GetData(handle);
@@ -340,13 +387,13 @@ bool Engine::Collide(ObjectHandle a, ObjectHandle b) {
         Logger::Warn("Trying to get collision data on objects with no colliders");
         return false;
     }
-    return m_CollideCache[a][b];
+    return m_CollideCache[a][b].collide;
 }
 
 std::vector<Object> Engine::CollideAll(ObjectHandle a) {
     std::vector<Object> res;
     for (int i = 0; i < m_Colliders.GetSize(); i++) {
-       auto handle = m_Colliders.GetFromInternal(i); 
+       auto handle = m_Colliders.GetFromInternal(i);
        if (handle != a && Collide(a, handle)) {
            res.push_back(Object(this, handle));
        }
@@ -464,8 +511,10 @@ void Engine::updateObjects(float deltaTime) {
                 auto t1 = GetGlobalTransform(handle);
                 auto t2 = GetGlobalTransform(handle2);
                 m_RigidBodies.GetData(handle).ResolveCollisions(
-                        t1, t2, &c1, &c2,
-                        &m_RigidBodies.GetData(handle2), deltaTime);
+                        &m_RigidBodies.GetData(handle2),
+                        m_CollideCache[handle][handle2],
+                        t1, t2, m_Transforms.GetData(handle),
+                        m_Transforms.GetData(handle2), deltaTime);
             }
         }
     }
@@ -630,6 +679,9 @@ void Engine::Render(int scr_width, int scr_height) {
             }
         }
 
+        Mat4 view = camera->GetViewMatrix();
+        Vec3 viewPos = camera->GetPosition();
+
         for (RenderMesh mesh : model.meshes) {
             ZoneScopedN("Render Mesh");
             shader->SetFloat("material.shininess", mesh.material.shininess);
@@ -660,11 +712,6 @@ void Engine::Render(int scr_width, int scr_height) {
 
     glfwSwapBuffers(m_Window);
 }
-
-
-
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
 
 void processInput(GLFWwindow *window) {
     if (s_Engine->m_Input.IsKeyPressed(Key::Escape))

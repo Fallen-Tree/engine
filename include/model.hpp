@@ -26,17 +26,17 @@ class Model {
 
     void setMaterial(Material material);
 
-    static Model *loadFromFile(std::string);
     static Model *fromMesh(Mesh *mesh, Material material);
-
-    static Model *loadFromFile(std::string, ShaderProgram*);
     static Model *fromMesh(Mesh *mesh, Material material, ShaderProgram*);
-
 
     auto& GetBoneInfoMap() { return m_BoneInfoMap; }
     int& GetBoneCount() { return m_BoneCounter; }
 
+    friend class ModelManager;
  private:
+    static Model *loadFromFile(std::string, ShaderProgram*);
+    static Model *loadFromFile(std::string);
+
     void processNode(aiNode *node, const aiScene *scene);
     RenderMesh processMesh(aiMesh *mesh, const aiScene *scene);
 

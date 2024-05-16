@@ -13,7 +13,7 @@ Vec3 Norm(Vec3 vec) {
     return glm::normalize(vec);
 }
 
-Vec3 Projection(Vec3 vec, Vec3 axes) {
-    auto normAxes = Norm(axes);
-    return glm::dot(normAxes, vec) * normAxes;
+Vec3 Projection(Vec3 vec, Vec3 axis) {
+    auto normAxis = Norm(axis);
+    return glm::dot(normAxis, vec) * normAxis;
 }

@@ -12,100 +12,9 @@ const char *cubeSource = "cube2.obj";
 const char *catSource = "fish.obj";
 const char *benchSource = "bench.obj";
 
+const char *standartVertexShaderSource = "standart.vshader";
 const char *skeletalVertexShaderSource = "skeletal.vshader";
 const char *fragmentShaderSource = "standart.fshader";
-
-class CameraController : public Behaviour {
- private:
-    enum MovementMode {Walk, Fly};
-    Camera * m_Camera;
-    float m_FlySpeed = 8;
-    float m_WalkSpeed = 15;
-    float m_MouseSensitivity = SENSIVITY;
-    MovementMode m_MovementMode = Fly;
-
-    void ProcessKeyboard(float deltaTime) {
-        if (s_Input->IsKeyPressed(Key::Space)) {
-            if (m_MovementMode == Fly) {
-                m_MovementMode = Walk;
-            } else {
-                m_MovementMode = Fly;
-            }
-        }
-
-        Vec3 front = m_Camera->GetFront();
-        if (m_MovementMode == Walk) {
-            front.y = 0;
-        }
-        front = glm::normalize(front);
-        Vec3 right = glm::normalize(glm::cross(front, Vec3(0, 1, 0)));
-
-        Vec3 direction = Vec3(0);
-
-        if (s_Input->IsKeyDown(Key::W))
-            direction += front;
-        if (s_Input->IsKeyDown(Key::S))
-            direction -= front;
-        if (s_Input->IsKeyDown(Key::A))
-            direction -= right;
-        if (s_Input->IsKeyDown(Key::D))
-            direction += right;
-        float moveSpeed;
-        if (m_MovementMode == Walk)
-            moveSpeed = m_WalkSpeed;
-        else /*m_MovementMode == Fly*/
-            moveSpeed = m_FlySpeed;
-        Transform *tr = self.GetTransform();
-        tr->Translate(direction * moveSpeed * deltaTime);
-    }
-
-    void ProcessMouseMovement() {
-        float xOffset = s_Input->OffsetX();
-        float yOffset = s_Input->OffsetY();
-
-        xOffset *= m_MouseSensitivity;
-        yOffset *= m_MouseSensitivity;
- 
-        Transform *tr = self.GetTransform();
-
-        tr->Rotate(0, xOffset, 0);
-        tr->RotateGlobal(-yOffset, 0, 0);
-
-        // to update front vector
-        m_Camera->SetTransform(*self.GetTransform());
- 
-        Vec3 front = m_Camera->GetFront();
-        if (abs(glm::dot(front, Vec3(0, 1, 0))) > MAX_DOT) {
-            tr->RotateGlobal(yOffset, 0, 0);
-        }
-    }
-
-    void ProcessMouseScroll() {
-        float scrollOffset = s_Input->ScrollOfsset();
-        float zoom = m_Camera->GetZoom();
-        zoom -= static_cast<float>(scrollOffset);
-        if (zoom < MIN_FOV) zoom = MIN_FOV;
-        if (zoom > MAX_FOV) zoom = MAX_FOV;
-        m_Camera->SetZoom(zoom);
-    }
-
- public:
-    void Update(float deltaTime) {
-        if (m_Camera == nullptr) return;
-
-        ProcessMouseMovement();
-
-        ProcessMouseScroll();
-
-        ProcessKeyboard(deltaTime);
-
-        m_Camera->SetTransform(*self.GetTransform());
-    }
-
-    explicit CameraController(Camera * camera) {
-        m_Camera = camera;
-    }
-};
 
 class MovingSphere : public Behaviour {
  public:
@@ -145,14 +54,14 @@ class MovingRotating2 : public Behaviour {
 int main() {
     auto engine = new Engine();
 
-    ShaderProgram skeletalShaderProgram = engine
+    ShaderProgram skeletalProgram = engine
         ->GetShaderManager()
         .LoadShaderProgram(skeletalVertexShaderSource, fragmentShaderSource);
 
     {
         // /* PIGEON */
         Model *pigeonModel = engine->GetModelManager().LoadModel("pigeon/scene.gltf");
-        pigeonModel->shader = &skeletalShaderProgram;
+        pigeonModel->shader = &skeletalProgram;
         auto pigeonAnimation = new SkeletalAnimationData("pigeon/scene.gltf", 0, pigeonModel);
 
         auto pigeonObj = engine->NewObject();
@@ -163,7 +72,8 @@ int main() {
 
     {
         /* Wolf */
-        Model *wolfModel = engine->GetModelManager().LoadModel("Wolf/Wolf-Blender-2.82a.gltf", &skeletalShaderProgram);
+        Model *wolfModel = engine->GetModelManager()
+            .LoadModel("Wolf/Wolf-Blender-2.82a.gltf", &skeletalProgram);
         wolfModel->meshes.pop_back();  // Delete Fur
         wolfModel->meshes.erase(wolfModel->meshes.begin() + 1);  // Delete floor
 
@@ -201,7 +111,7 @@ int main() {
 
     //     auto pigeonAnimation1 = new SkeletalAnimationData("XBot/Praying.dae", 0, pigeonModel);
 
-    //     auto pigeonObj = engine.NewObject();
+    //     auto pigeonObj = engine->NewObject();
     //     pigeonObj.AddTransform(Vec3(-6.f, -10.f, -10.f), Vec3(5.f), Mat4(1.0));
     //     pigeonObj.AddModel(*pigeonModel);
     //     auto& animManager = pigeonObj.AddSkeletalAnimationsManager(pigeonAnimation1);
@@ -237,58 +147,50 @@ int main() {
     Model *sphereModel = Model::fromMesh(Mesh::GetSphere(), material);
     Model *cubeModel = Model::fromMesh(Mesh::GetCube(), material);
 
-    auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model) {
-        auto obj = engine->NewObject();
-        obj.AddModel(*model);
-        obj.AddTransform(transform);
-        obj.AddCollider(primitive);
-        return obj;
-    };
-
-    auto setUpObjRigidBody = [=, &engine](Transform transform, auto primitive, Model *model,
-            Vec3 speed, float mass, Vec3 angUnlock) {
+    auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model,
+            Vec3 speed, Vec3 angularSpeed, float mass, Vec3 angUnlock) {
         auto obj = engine->NewObject();
         obj.AddModel(*model);
 
         obj.AddTransform(transform);
         obj.AddCollider(primitive);
         obj.AddRigidBody(RigidBody(mass, IBodyOBB(Vec3(1), mass), speed,
-                    Vec3(0), 0, Vec3(0, -mass * 10, 0), angUnlock, 0.05));
+                    angularSpeed, 0, Vec3(0, -mass * 10, 0), angUnlock, 0.05));
         return obj;
     };
 
+    auto cat = engine->NewObject();
+    cat.AddModel(*model);
+    auto &t = cat.AddTransform(Vec3(0.f, -5.f, -8.f), Vec3(0.1f), Mat4(1.0));
+    // cat.AddCollider(&model->meshes[0]);
+
+
+    auto staticAABB = setUpObj(
+        Transform(Vec3(2, -30, 2.0), Vec3(50), 0.f, Vec3(1)),
+        AABB {
+            Vec3(-0.5),
+            Vec3(0.5),
+        },
+        cubeModel,
+        Vec3(0, 0, 0),
+        Vec3(0),
+        0,
+        Vec3(0));
+
+
     auto obb = setUpObj(
-        Transform(Vec3(0, 0, 2.0), Vec3(1), 0.0f, Vec3(1)),
+        Transform(Vec3(2, 0, 2.0), Vec3(1), 45, Vec3(1)),
         OBB {
             Vec3(0, 0, 0),
             Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
             Vec3(0.5, 0.5, 0.5),
         },
-        cubeModel);
+        cubeModel,
+        Vec3(0, 0, 0),
+        Vec3(0.0, 0, 0),
+        1,
+        Vec3(1));
 
-    obb.AddBehaviour<MovingRotating>();
-
-    auto obb2 = setUpObj(
-        Transform(Vec3(-5, -3, 2.0), Vec3(2), 0.0f, Vec3(1)),
-        OBB {
-            Vec3(0, 0, 0),
-            Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
-            Vec3(0.5, 0.5, 0.5),
-        },
-        cubeModel);
-
-    obb2.AddBehaviour<MovingRotating2>();
-
-    auto obb3 = setUpObj(
-        Transform(Vec3(10, 13, 10.0), Vec3(2), 0.0f, Vec3(1)),
-        OBB {
-            Vec3(0, 0, 0),
-            Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
-            Vec3(0.5, 0.5, 0.5),
-        },
-        cubeModel);
-
-    obb3.AddBehaviour<MovingRotating>();
 
     auto getSphereObj = [=, &engine](Transform transform, Vec3 speed, float mass) {
         auto obj = engine->NewObject();
@@ -300,6 +202,22 @@ int main() {
             speed, Vec3(0), 0, Vec3(0, -mass * 10, 0), Vec3(1), 0.01));
         return obj;
     };
+
+    Object spheres[3] = {
+        getSphereObj(
+            Transform(Vec3(-10, 4, 2.0), Vec3(1), 0.f, Vec3(1)),
+            Vec3(5, 0, 0),
+            10),
+        getSphereObj(
+            Transform(Vec3(5, 4, 2.0), Vec3(1), 0.f, Vec3(1)),
+            Vec3(0, 0, 0),
+            4.f),
+        getSphereObj(
+            Transform(Vec3(10, 4, 2.0), Vec3(1.0), 0, Vec3(1)),
+            Vec3(0, 0, 0),
+            10000)
+    };
+
 
     class FpsText : public Behaviour {
      public:
@@ -348,8 +266,101 @@ int main() {
         glm::cos(glm::radians(12.5f)),
         glm::cos(glm::radians(15.0f)));
 
+    class CameraController : public Behaviour {
+     private:
+        enum MovementMode {Walk, Fly};
+        Camera * m_Camera;
+        float m_FlySpeed = 8;
+        float m_WalkSpeed = 15;
+        float m_MouseSensitivity = SENSIVITY;
+        MovementMode m_MovementMode = Fly;
+
+        void ProcessKeyboard(float deltaTime) {
+            if (s_Input->IsKeyPressed(Key::Space)) {
+                if (m_MovementMode == Fly) {
+                    m_MovementMode = Walk;
+                } else {
+                    m_MovementMode = Fly;
+                }
+            }
+
+            Vec3 front = m_Camera->GetFront();
+            if (m_MovementMode == Walk) {
+                front.y = 0;
+            }
+            front = glm::normalize(front);
+            Vec3 right = glm::normalize(glm::cross(front, Vec3(0, 1, 0)));
+
+            Vec3 direction = Vec3(0);
+
+            if (s_Input->IsKeyDown(Key::W))
+                direction += front;
+            if (s_Input->IsKeyDown(Key::S))
+                direction -= front;
+            if (s_Input->IsKeyDown(Key::A))
+                direction -= right;
+            if (s_Input->IsKeyDown(Key::D))
+                direction += right;
+            float moveSpeed;
+            if (m_MovementMode == Walk)
+                moveSpeed = m_WalkSpeed;
+            else /*m_MovementMode == Fly*/
+                moveSpeed = m_FlySpeed;
+            Transform *tr = self.GetTransform();
+            tr->Translate(direction * moveSpeed * deltaTime);
+        }
+
+        void ProcessMouseMovement() {
+            float xOffset = s_Input->OffsetX();
+            float yOffset = s_Input->OffsetY();
+
+            xOffset *= m_MouseSensitivity;
+            yOffset *= m_MouseSensitivity;
+
+            Transform *tr = self.GetTransform();
+
+            tr->Rotate(0, xOffset, 0);
+            tr->RotateGlobal(-yOffset, 0, 0);
+
+            // to update front vector
+            m_Camera->SetTransform(*self.GetTransform());
+
+            Vec3 front = m_Camera->GetFront();
+            if (abs(glm::dot(front, Vec3(0, 1, 0))) > MAX_DOT) {
+                tr->RotateGlobal(yOffset, 0, 0);
+            }
+        }
+
+        void ProcessMouseScroll() {
+            float scrollOffset = s_Input->ScrollOfsset();
+            float zoom = m_Camera->GetZoom();
+            zoom -= static_cast<float>(scrollOffset);
+            if (zoom < MIN_FOV) zoom = MIN_FOV;
+            if (zoom > MAX_FOV) zoom = MAX_FOV;
+            m_Camera->SetZoom(zoom);
+        }
+
+     public:
+        void Update(float deltaTime) {
+            if (m_Camera == nullptr) return;
+
+            ProcessMouseMovement();
+
+            ProcessMouseScroll();
+
+            ProcessKeyboard(deltaTime);
+
+            m_Camera->SetTransform(*self.GetTransform());
+        }
+
+        explicit CameraController(Camera * camera) {
+            m_Camera = camera;
+        }
+    };
+
     Object control = engine->NewObject();
     control.AddBehaviour<CameraController>(engine->camera);
     control.AddTransform(STARTING_POSITION, Vec3(1), Mat4(1));
+
     engine->Run();
 }

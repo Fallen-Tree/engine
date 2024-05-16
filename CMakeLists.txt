@@ -87,8 +87,10 @@ endif()
 
 add_executable(test src/main.cpp)
 add_executable(game src/game/main.cpp)
+add_executable(manifold src/main/main_rigidbody.cpp)
 target_link_libraries(test PUBLIC ENGINE)
 target_link_libraries(game PUBLIC ENGINE)
+target_link_libraries(manifold PUBLIC ENGINE)
 
 add_custom_command(TARGET ENGINE PRE_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory

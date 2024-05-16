@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <array>
 #include "logger.hpp"
 
 // TODO(theblek): Overload [] operator to get data for even slicker syntax
@@ -8,12 +9,9 @@ class PackedArray {
  public:
     using Index = int;
 
-    std::vector<T> entries;
+    std::array<T, MAX_SIZE> entries;
 
     PackedArray() : m_EntryCount(0) {
-        entries = std::vector<T>(MAX_SIZE);
-        m_EntryToIndex = std::vector<Index>(MAX_SIZE);
-        m_IndexToEntry = std::vector<Index>(MAX_SIZE);
         for (unsigned int i = 0; i < MAX_SIZE; i++) {
             m_EntryToIndex[i] = i;
             m_IndexToEntry[i] = i;
@@ -121,6 +119,6 @@ class PackedArray {
     }
 
     Index m_EntryCount;
-    std::vector<Index> m_EntryToIndex;
-    std::vector<Index> m_IndexToEntry;
+    std::array<Index, MAX_SIZE> m_EntryToIndex;
+    std::array<Index, MAX_SIZE> m_IndexToEntry;
 };
