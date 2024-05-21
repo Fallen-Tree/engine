@@ -24,7 +24,7 @@ class MovingBall : public Behaviour {
 
         Collider *collider = new Collider{Sphere{Vec3(0.0), 1.0}};
         RigidBody *rb = new RigidBody(mass, IBodySphere(1, mass),
-                0.9f, Vec3(0, -mass * gravity, 0), 0.0001f);
+                0.9f, Vec3(0, -mass * gravity, 0), 0.1f);
         Object ball = newDynamicBody<MovingBall>(transform, model, collider, rb);
         return ball;
     }
@@ -209,7 +209,7 @@ class Table : public Behaviour {
             Vec3{-width, h0, -length},
             Vec3{width, h, length},
         }};
-        float floor_friction = 0.1f;
+        float floor_friction = 0.5f;
         float floor_bounciness = 0.05f;
         float walls_bounciness = 0.9f;
         Object obj = newStaticBody<Table>(transform, model, col, floor_bounciness, floor_friction);
@@ -231,7 +231,7 @@ class Table : public Behaviour {
         for (int i = 0; i <= 1; ++i) {
             for (int j = 0; j <= 2; ++j) {
                 Vec3 pos = Vec3(table_w * (j - 1.0f) / 2.0f, top_y, table_l * (i - 0.5f));
-                Object hole = Hole::New(pos, gameManager);
+                //Object hole = Hole::New(pos, gameManager);
                 // model to show holes position (but not holes scale)
                 // newModel(new Transform(pos, Vec3(0.1), Mat4(1)), Model::loadFromFile("cube.obj"));
             }
