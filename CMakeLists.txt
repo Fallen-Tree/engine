@@ -63,6 +63,7 @@ add_subdirectory(thirdparty/tracy)
 
 target_include_directories(ENGINE PUBLIC thirdparty PUBLIC include)
 target_include_directories(ENGINE PUBLIC thirdparty/bass/c)
+target_include_directories(ENGINE PUBLIC thirdparty/tracy/public)
 
 if (UNIX)
     target_link_libraries(ENGINE PUBLIC 
