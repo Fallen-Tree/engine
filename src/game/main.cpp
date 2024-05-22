@@ -12,6 +12,7 @@ Engine *engine;
 
 // I'd like to move responsibility about default shader to engine
 ShaderProgram *defaultSP;
+ShaderProgram *skeletalSP;
 
 std::vector<Object> interactableObjects(0);
 
@@ -19,9 +20,12 @@ std::vector<Object> interactableObjects(0);
 void init() {
     engine = new Engine();
     std::string vertexShaderSource = "standart.vshader";
+    std::string skeletalVertexShaderSource = "skeletal.vshader";
     std::string fragmentShaderSource = "standart.fshader";
     defaultSP = new ShaderProgram(
         engine->GetShaderManager().LoadShaderProgram(vertexShaderSource, fragmentShaderSource));
+    skeletalSP = new ShaderProgram(
+        engine->GetShaderManager().LoadShaderProgram(skeletalVertexShaderSource, fragmentShaderSource));
 }
 
 void createUI() {
@@ -206,9 +210,11 @@ void buildRoom() {
     Model *plant2 = modelManager.LoadModel("Orchid/Orchid.obj");
     newModel(new Transform(Vec3(14, floor_y, 0), Vec3(0.3), Mat4(1.0)), plant2);
 
-    Model *dog = modelManager.LoadModel("ShibaInu.fbx");
-    Object dogObj = newModel(new Transform(Vec3(14, floor_y, 4), Vec3(1), Mat4(1.0)), dog);
-    dogObj.GetTransform()->Rotate(glm::radians(-90.0f), 0, 0);
+    Model *dog = modelManager.LoadModel("Shiba Inu.glb", skeletalSP);
+    Object dogObj = engine->NewObject();
+    dogObj.AddTransform(Vec3(14, floor_y, 4), Vec3(1), Mat4(1.0));
+    dogObj.AddModel(*dog);
+    dogObj.AddSkeletalAnimationsManager("Shiba Inu.glb", dog, TPoseType::FROMANIM, 0).PlayImmediately(1, 1);
 
     Model *chair = modelManager.LoadModel("Chair.obj");
     for (int i = 0; i < 4; ++i) {
@@ -218,6 +224,7 @@ void buildRoom() {
             new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f));
         interactableObjects.push_back(chairObj);
     }
+
 
     float table_y = 4.2f;
 
