@@ -568,7 +568,12 @@ CollisionManifold CollidePrimitive(Triangle t, Sphere s) {
 
 CollisionManifold CollidePrimitive(Sphere s, Triangle t) {
     CollisionManifold res;
-    res.collide = t.Distance2(s.center) <= s.radius * s.radius;
+    Vec3 closest = t.ClosestPoint(s.center);
+    float distance = s.radius - glm::length(closest - s.center);
+    res.collide = distance > 0;
+    res.collisionNormal = Norm(s.center - closest);
+    res.collisionPoint = closest;
+    res.penetrationDistance = distance;
     return res;
 }
 
@@ -652,7 +657,6 @@ CollisionManifold CollidePrimitive(Triangle t1, Triangle t2) {
 template<typename T>
 CollisionManifold CollideMeshAt(T t, Mesh *mesh, Transform transform) {
     CollisionManifold res;
-    // WARNING: This makes assumptions about data layout
     Mat4 meshMat = glm::transpose(transform.GetTransformMatrix());
     auto loadPos = [=](int i) {
         int id = mesh->getIndices()[i];

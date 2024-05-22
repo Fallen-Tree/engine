@@ -22,7 +22,7 @@ class MovingBall : public Behaviour {
         Material sphereMaterial = {4.f, Texture(diffuseSource)};
         model->setMaterial(sphereMaterial);
 
-        Collider *collider = new Collider{Sphere{Vec3(0.0), 1.0}};
+        Collider *collider = new Collider{Sphere{Vec3(0.0), 1.0}, 1};
         RigidBody *rb = new RigidBody(mass, IBodySphere(1, mass),
                 0.9f, Vec3(0, -mass * gravity, 0), 0.0001f);
         Object ball = newDynamicBody<MovingBall>(transform, model, collider, rb);
@@ -198,40 +198,40 @@ class Table : public Behaviour {
         model->setMaterial(material);
 
         // get full mesh of the table or make multiple objects for walls of the table.
-        // Collider *col = new Collider {&model->meshes[0]};
+        Collider *col = new Collider {&model->meshes[0], 1};
         float h0 = -0.5;
         float h = 0.85;
 
         float width = 0.9;
         float length = 0.45;
 
-        Collider *col = new Collider{AABB {
-            Vec3{-width, h0, -length},
-            Vec3{width, h, length},
-        }};
+        /* Collider *col = new Collider{AABB { */
+        /*     Vec3{-width, h0, -length}, */
+        /*     Vec3{width, h, length}, */
+        /* }}; */
         float floor_friction = 0.1f;
         float floor_bounciness = 0.05f;
         float walls_bounciness = 0.9f;
         Object obj = newStaticBody<Table>(transform, model, col, floor_bounciness, floor_friction);
 
         float wall_height = 0.3;
-        AABB walls[] = {
-            AABB {Vec3(width, h0, -length), Vec3(width + 0.01, h + wall_height, length)},
-            AABB {Vec3(-width - 0.01, h0, -length), Vec3(-width, h + wall_height, length)},
-            AABB {Vec3(-width, h0, length), Vec3(width, h + wall_height, length + 0.01)},
-            AABB {Vec3(-width, h0, -length - 0.01), Vec3(width, h + wall_height, -length)}
-        };
-        for (int i = 0; i < 4; ++i) {
-            Collider *col = new Collider{walls[i]};
-            newStaticBody(transform, col, walls_bounciness);
-        }
+        /* AABB walls[] = { */
+        /*     AABB {Vec3(width, h0, -length), Vec3(width + 0.01, h + wall_height, length)}, */
+        /*     AABB {Vec3(-width - 0.01, h0, -length), Vec3(-width, h + wall_height, length)}, */
+        /*     AABB {Vec3(-width, h0, length), Vec3(width, h + wall_height, length + 0.01)}, */
+        /*     AABB {Vec3(-width, h0, -length - 0.01), Vec3(width, h + wall_height, -length)} */
+        /* }; */
+        /* for (int i = 0; i < 4; ++i) { */
+        /*     Collider *col = new Collider{walls[i]}; */
+        /*     newStaticBody(transform, col, walls_bounciness); */
+        /* } */
         float top_y = position.y + 0.9f * scale.y;
         float table_w = scale.x * width * 2;
         float table_l = scale.z * length * 2;
         for (int i = 0; i <= 1; ++i) {
             for (int j = 0; j <= 2; ++j) {
                 Vec3 pos = Vec3(table_w * (j - 1.0f) / 2.0f, top_y, table_l * (i - 0.5f));
-                Object hole = Hole::New(pos, gameManager);
+                /* Object hole = Hole::New(pos, gameManager); */
                 // model to show holes position (but not holes scale)
                 // newModel(new Transform(pos, Vec3(0.1), Mat4(1)), Model::loadFromFile("cube.obj"));
             }

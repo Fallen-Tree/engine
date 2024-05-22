@@ -114,11 +114,7 @@ Engine::~Engine() {
 
 // TODO(theblek): reuse object ids
 Object Engine::NewObject() {
-    ObjectHandle handle = m_ObjectCount++;
-    m_NamesToHandles["default"].push_back(handle);
-    Logger::Info("Created object %d with \"default\" name", handle);
-    AddChild(ROOT, handle);
-    return Object(this, handle);
+    return NewObject("default");
 }
 
 Object Engine::NewObject(std::string name) {
@@ -387,6 +383,9 @@ bool Engine::Collide(ObjectHandle a, ObjectHandle b) {
         Logger::Warn("Trying to get collision data on objects with no colliders");
         return false;
     }
+    if (m_Colliders.GetData(a).layer != m_Colliders.GetData(b).layer) {
+        return false;
+    }
     return m_CollideCache[a][b].collide;
 }
 
@@ -498,6 +497,7 @@ void Engine::updateObjects(float deltaTime) {
             auto handle2 = m_Colliders.GetFromInternal(j);
             auto c1 = m_Colliders.GetData(handle);
             auto c2 = m_Colliders.GetData(handle2);
+            if (c1.layer != c2.layer) continue;
             auto t1 = GetGlobalTransform(handle);
             auto t2 = GetGlobalTransform(handle2);
             m_CollideCache[handle][handle2] = c1.Collide(t1, &c2, t2);

@@ -86,7 +86,6 @@ class TriggerArea : public Behaviour {
     virtual void OnCollision(Object other) = 0;
 
     void Update(float dt) override {
-        // I need a function too get all colliders (or objects) intersecting with this object
         std::vector<Object> colls = self.CollideAll();
         for (auto obj : colls) {
             OnCollision(obj);

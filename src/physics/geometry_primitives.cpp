@@ -194,18 +194,18 @@ Vec3 Triangle::ClosestPoint(Vec3 point) {
         return c;
     }
 
-    float va = glm::dot(normal, glm::cross(a - point, b - point));
-    if (va <= 0.0f && snom >= 0.0f && sdenom >= 0.0f) {
+    float vc = glm::dot(normal, glm::cross(a - point, b - point));
+    if (vc <= 0.0f && snom >= 0.0f && sdenom >= 0.0f) {
         return a + snom / (snom + sdenom) * ab;
     }
 
-    float vb = glm::dot(normal, glm::cross(b - point, c - point));
-    if (vb <= 0.0f && unom >= 0.0f && udenom >= 0.0f) {
-        return a + unom / (unom + udenom) * bc;
+    float va = glm::dot(normal, glm::cross(b - point, c - point));
+    if (va <= 0.0f && unom >= 0.0f && udenom >= 0.0f) {
+        return b + unom / (unom + udenom) * bc;
     }
 
-    float vc = glm::dot(normal, glm::cross(c - point, a - point));
-    if (vc <= 0.0f && tnom >= 0.0f && tdenom >= 0.0f) {
+    float vb = glm::dot(normal, glm::cross(c - point, a - point));
+    if (vb <= 0.0f && tnom >= 0.0f && tdenom >= 0.0f) {
         return a + tnom / (tnom + tdenom) * ac;
     }
 

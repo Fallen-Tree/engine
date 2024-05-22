@@ -9,6 +9,7 @@
 
 struct Collider {
     std::variant<AABB, Sphere, OBB, Mesh *> shape;
+    int layer = 0;
 
     static AABB GetDefaultAABB(Model*);
     static AABB GetDefaultAABB(Mesh*);

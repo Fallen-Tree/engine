@@ -36,9 +36,9 @@ void createUI() {
     };
 
     auto ocraFont = engine->GetFontManager().LoadFont("OCRAEXT.TTF", 20);
-    auto obj = engine->NewObject();
+    auto obj = engine->NewObject("Fps Text");
     obj.AddText(ocraFont, "", 0.85f, 0.95f, 1.f, Vec3(0, 0, 0));
-    obj.AddBehaviour<FpsText>();\
+    obj.AddBehaviour<FpsText>();
 
     auto pointer = engine->NewObject();
     pointer.AddText(ocraFont, "+", 0.5f, 0.5f, 1.f, Vec3(1.f, 1.f, 1.f));
@@ -312,7 +312,7 @@ int main() {
     auto hintText = reinterpret_cast<PublicText*>(
         PublicText::New(ocraFont, "0", Vec2(0.53f, 0.5f), 1.f, Vec3(1))
         .GetBehaviour());
-    Object player = engine->NewObject();
+    Object player = engine->NewObject("Player");
     player.AddBehaviour<PlayerController>(engine->camera, interactableObjects, hintText);
     player.AddTransform(Vec3(0.f, 1.5f, 14.f), Vec3(1), Mat4(1));
     player.AddCollider(AABB{Vec3(-0.6, -7, -0.6f), Vec3(0.6f, 1, 0.6f)});
