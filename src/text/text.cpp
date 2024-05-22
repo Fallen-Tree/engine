@@ -6,10 +6,6 @@
 #include <glm/glm.hpp>
 
 #include "text.hpp"
-#include "logger.hpp"
-#include "shaders.hpp"
-#include "user_config.hpp"
-#include "engine_config.hpp"
 #include "tracy/Tracy.hpp"
 
 void Text::RenderText() {
@@ -26,30 +22,36 @@ Text::Text(Font* font, std::string text, float x, float y, float scale, Vec3 col
     m_Color = color;
 }
 
-void Text::SetCoordinates(float x, float y) {
+Text& Text::SetRelativePosition(float x, float y) {
     m_RelX = x;
     m_RelY = y;
+    return *this;
 }
 
-void Text::SetScale(float scale) {
+Text& Text::SetScale(float scale) {
     m_Scale = scale;
+    return *this;
 }
 
-void Text::SetColor(Vec3 color) {
+Text& Text::SetColor(Vec3 color) {
     m_Color = color;
+    return *this;
 }
 
-void Text::SetRenderData(float x, float y, float scale, Vec3 color) {
+Text& Text::SetRenderData(float x, float y, float scale, Vec3 color) {
     m_RelX = x;
     m_RelY = y;
     m_Scale = scale;
     m_Color = color;
+    return *this;
 }
 
-void Text::SetContent(std::string text) {
+Text& Text::SetContent(std::string text) {
     m_Text = text;
+    return *this;
 }
 
-void Text::SetFont(Font *font) {
+Text& Text::SetFont(Font *font) {
     m_Font = font;
+    return *this;
 }

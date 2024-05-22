@@ -35,16 +35,19 @@ void createUI() {
         }
     };
 
-    auto ocraFont = engine->GetFontManager().LoadFont("OCRAEXT.TTF", 20);
+    auto ocra = engine->GetFontManager().LoadFont("OCRAEXT.TTF", 20);
     auto obj = engine->NewObject();
-    obj.AddText(ocraFont, "", 0.85f, 0.95f, 1.f, Vec3(0, 0, 0));
-    obj.AddBehaviour<FpsText>();\
+    obj.AddText()
+        .SetFont(ocra)
+        .SetRelativePosition(0.85f, 0.95f);
+    obj.AddBehaviour<FpsText>();
 
-    auto pointer = engine->NewObject();
-    pointer.AddText(ocraFont, "+", 0.5f, 0.5f, 1.f, Vec3(1.f, 1.f, 1.f));
-
-    // engine->NewObject().AddImage("hp.png", 0.03f, 0.15f, 0.4f);
-    // engine->NewObject().AddImage("hp_bar.png", 0.015f, 0.01f, 0.4f);
+    auto pointer = engine->NewObject()
+        .AddText()
+        .SetFont(ocra)
+        .SetContent("+")
+        .SetRelativePosition(0.5f, 0.5f)
+        .SetColor(Vec3(1.f, 1.f, 1.f));
 }
 
 void AddLantern(Vec3 pos) {
