@@ -81,7 +81,7 @@ int main() {
 
         auto wolfObj = engine->NewObject().SetName("Wolf");
         Logger::Info("%s", wolfObj.GetName().c_str());
-        wolfObj.AddTransform(Vec3(5.f, -10.f, -10.f), Vec3(10.f), Mat4(1.0));
+        wolfObj.AddTransform(Vec3(0.f, -5.f, -10.f), Vec3(10.f), Mat4(1.0));
         wolfObj.AddModel(*wolfModel);
         wolfObj.AddSkeletalAnimationsManager("Wolf/Wolf-Blender-2.82a.gltf", wolfModel).PlayImmediately(3, 1);
 
@@ -108,6 +108,35 @@ int main() {
        wolfObj.AddBehaviour<WolfBehaviour>();
     }
 
+    // Shiba inu (ETO FIASKO BRATAN)
+    {
+        /* Wolf */
+        Model *wolfModel = Model::loadFromFile("Husky.glb", skeletalShaderProgram);
+        auto wolfObj = engine->NewObject();
+        Logger::Info("%s", wolfObj.GetName().c_str());
+        wolfObj.AddTransform(Vec3(5.f, -5.f, -2.f), Vec3(1.f), Mat4(1.0));
+        wolfObj.AddModel(*wolfModel);
+        wolfObj.AddSkeletalAnimationsManager("Husky.glb", wolfModel, TPoseType::FROMANIM, 0);
+
+        class WolfBehaviour : public Behaviour {
+         public:
+            void Update(float dt) override {
+                left -= dt;
+                if (left < 0) {
+                    self.GetSkeletalAnimationsManager()->PlayImmediately(cur, 1);
+                    left = delay;
+                    cur++;
+                    cur %= 10;
+                }
+            }
+
+            float delay = 3.0f;
+            float left = delay;
+            int cur = 8;
+        };
+
+        wolfObj.AddBehaviour<WolfBehaviour>();
+    }
 
     {
         Model * model = Model::loadFromFile(catSource);
@@ -121,13 +150,6 @@ int main() {
         auto &t = cat.AddTransform(Vec3(0.f, -7.f, -5.f), Vec3(0.01f), Mat4(1.0));
         t.RotateGlobal(1.67f, Vec3(-1.f, 0.f, 0.f));
     }
-
-    // Shiba inu (ETO FIASKO BRATAN)
-    Model *model = Model::loadFromFile("ShibaInu.fbx");
-    model->shader = standartShaderProgram;
-    auto dog = engine->NewObject();
-    dog.AddModel(*model);
-    dog.AddTransform(Transform(Vec3(2, -5, 0.0), Vec3(1.f), glm::radians(-90.f), Vec3(1.0f, 0.f, 0.f)));
 
     Material material = {
         4.f,
@@ -193,13 +215,13 @@ int main() {
             Mat3(Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)),
             Vec3(0.5, 0.5, 0.5),
         },
-        cubeModel);    
+        cubeModel);
 
     obb3.AddBehaviour<MovingRotating>();
 
-    auto cat = engine->NewObject();
-    cat.AddModel(*model);
-    auto &t = cat.AddTransform(Vec3(0.f, -5.f, -8.f), Vec3(0.1f), Mat4(1.0));
+    // auto cat = engine->NewObject();
+    // cat.AddModel(*model);
+    // auto &t = cat.AddTransform(Vec3(0.f, -5.f, -8.f), Vec3(0.1f), Mat4(1.0));
 
 
     auto staticAABB = setUpObjRigidBody(
