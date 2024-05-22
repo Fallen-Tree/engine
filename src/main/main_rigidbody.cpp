@@ -124,6 +124,7 @@ int main() {
         obj.AddRigidBody(RigidBody(
             mass, IBodySphere(transform.GetScale().x, mass),
             speed, Vec3(0), 0, Vec3(0, -mass * 10, 0), Vec3(1), 0.01));
+        obj.GetRigidBody()->canRoll = true;
         return obj;
     };
 

@@ -96,6 +96,14 @@ void RigidBody::LinearCalculation(Transform *transform, float dt) {
     transform->Translate(velocity * dt);
 }
 
+inline Mat3 Star(Vec3 vec) {
+    return Mat3(
+            0, -vec[2], vec[1],
+            vec[2], 0, -vec[0],
+            -vec[1], vec[0], 0
+    );
+}
+
 void RigidBody::AngularCalculation(Transform *transform, float dt) {
     Vec3 omega = Vec3(0);
     if (m_Torque != Vec3(0)) {
@@ -111,16 +119,12 @@ void RigidBody::AngularCalculation(Transform *transform, float dt) {
         glm::cross(angle, r[0]),
         glm::cross(angle, r[1]),
         glm::cross(angle, r[2])));
+    //Mat3 mat = Star(angle) * r;
     transform->SetRotation(r + mat * dt);
 }
 
 void RigidBody::ApplyTorque(Vec3 force, Vec3 r) {
     m_Torque += glm::cross(r, force) * static_cast<float>(TORQUE_RATIO);
-}
-
-void RigidBody::LimitTorque(Vec3 force, Vec3 r) {
-    Vec3 torque = glm::cross(force, r) * static_cast<float>(TORQUE_RATIO);
-    m_Torque = TORQUE_SMOTHNESS * m_Torque + (1 - TORQUE_SMOTHNESS) * torque;
 }
 
 inline Vec3 CalculateFrictionDirection(Vec3 normal, Vec3 velocity) {
@@ -146,13 +150,16 @@ inline void RigidBody::ComputeFriction(Vec3 normalForce, float friction,
         m_ResForce -= m_ResForce * glm::abs(direction);
         m_ResForce -= Projection(m_ResForce, direction);
         velocity -= Projection(velocity, direction);
-        LimitTorque(frictionForce, r);
         return;
     }
 
     // otherwise apply full friction force
     m_ResForce += frictionForce;
-    LimitTorque(frictionForce, r);
+}
+
+inline void RigidBody::ApplyRollingTorque(Vec3 normalForce) {
+    auto delta = 0.5f;
+    ApplyTorque(normalForce, -velocity * delta);
 }
 
 inline float getRestitution(RigidBody *rigidBody, RigidBody *otherRigidBody) {
@@ -232,4 +239,12 @@ void RigidBody::ComputeForceTorque(RigidBody *otherRigidBody,
     auto friction = std::sqrt(kineticFriction * otherRigidBody->kineticFriction);
     ComputeFriction(normalForce, friction, r1, dt, normal);
     otherRigidBody->ComputeFriction(otherNormalForce, friction, r2, dt, -normal);
+
+    if (canRoll) {
+        ApplyRollingTorque(normalForce);
+    }
+
+    if (otherRigidBody->canRoll) {
+        otherRigidBody->ApplyRollingTorque(otherNormalForce);
+    }
 }

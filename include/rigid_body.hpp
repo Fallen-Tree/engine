@@ -26,6 +26,8 @@ public:
  // should be in {0, 1}
  Vec3 angularUnlock = Vec3(1);
 
+ // if true, rolling torque will apply
+ bool canRoll = false;
 
  RigidBody() = default;
  RigidBody(float mass, Mat3 iBody, Vec3 initalVelocity, Vec3 initalAngVelocity, 
@@ -59,11 +61,10 @@ private:
  void ComputeFriction(Vec3 normalForce, float friction, Vec3 r, float dt,
          Vec3 normal);
 
- // approximate m_Torque to torque
- // rate of approximating depends on TORQUE_SMOTHNESS
- void LimitTorque(Vec3 force, Vec3 r);
+ void ApplyRollingTorque(Vec3 normal);
 
  // resulant force
  Vec3 m_ResForce = Vec3(0); 
  Vec3 m_Torque = Vec3(0);
 };
+

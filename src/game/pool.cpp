@@ -25,6 +25,7 @@ class MovingBall : public Behaviour {
         Collider *collider = new Collider{Sphere{Vec3(0.0), 1.0}};
         RigidBody *rb = new RigidBody(mass, IBodySphere(1, mass),
                 0.9f, Vec3(0, -mass * gravity, 0), 0.1f);
+        rb->canRoll = true;
         Object ball = newDynamicBody<MovingBall>(transform, model, collider, rb);
         return ball;
     }
