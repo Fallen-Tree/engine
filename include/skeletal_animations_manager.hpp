@@ -71,7 +71,7 @@ class SkeletalAnimationsManager {
     void CalculateBoneTransform(const AssimpNodeData* node, glm::mat4 parentTransform);
     void CalculateBoneTransformMatrices(
         const AssimpNodeData* node, glm::mat4 parentTransform,
-        std::vector<glm::mat4> &boneMatrices,
+        glm::mat4 *boneMatrices,
         SkeletalAnimationData* m_CurrentAnimation, float);
 
     std::vector<glm::mat4> m_FinalBoneMatrices;
@@ -86,7 +86,7 @@ class SkeletalAnimationsManager {
     float m_InterpolationTime;
     float m_InterpolationTimeLeft;
     InterpolationType m_InterpolationType;
-    std::vector<glm::mat4> m_BonesFrom;
-    std::vector<glm::mat4> m_BonesTo;
-    std::vector<glm::mat4> m_BonesTPose;
+    glm::mat4* m_BonesFrom = new glm::mat4[MAX_BONES];
+    glm::mat4* m_BonesTo = new glm::mat4[MAX_BONES];
+    glm::mat4* m_BonesTPose = new glm::mat4[MAX_BONES];
 };
