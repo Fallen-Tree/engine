@@ -14,7 +14,7 @@ Model* ball_model = nullptr;
 class MovingBall : public Behaviour {
  public:
     static Object New(Vec3 position, float radius,
-     std::string diffuseSource, float mass = 1.0) {
+     std::string diffuseSource, float mass = 3.0) {
         Transform *transform = new Transform(position, Vec3(radius), Mat4(1.0));
 
         if (ball_model == nullptr) ball_model = engine->GetModelManager().LoadModel("pool/shar_1200.obj");
@@ -23,9 +23,9 @@ class MovingBall : public Behaviour {
         model->setMaterial(sphereMaterial);
 
         Collider *collider = new Collider{Sphere{Vec3(0.0), 1.0}};
-        RigidBody *rb = new RigidBody(mass, IBodySphere(1, mass),
+        RigidBody *rb = new RigidBody(mass, IBodySphere(radius, mass),
                 0.9f, Vec3(0, -mass * gravity, 0), 0.1f);
-        rb->canRoll = true;
+        rb->typeFriction = TypeFriction::rollingFriction;
         Object ball = newDynamicBody<MovingBall>(transform, model, collider, rb);
         return ball;
     }
@@ -211,7 +211,7 @@ class Table : public Behaviour {
             Vec3{width, h, length},
         }};
         float floor_friction = 0.5f;
-        float floor_bounciness = 0.05f;
+        float floor_bounciness = 0.00f;
         float walls_bounciness = 0.9f;
         Object obj = newStaticBody<Table>(transform, model, col, floor_bounciness, floor_friction);
 

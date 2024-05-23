@@ -9,6 +9,12 @@
 Mat3 IBodySphere(float radius, float mass);
 Mat3 IBodyOBB(Vec3 halfWidth, float mass);
 
+enum TypeFriction {
+    slidingFriction,
+    rollingFriction,
+    emptyFriction
+};
+
 class RigidBody {
 public:
  // degree of elasticity 
@@ -26,8 +32,7 @@ public:
  // should be in {0, 1}
  Vec3 angularUnlock = Vec3(1);
 
- // if true, rolling torque will apply
- bool canRoll = false;
+ TypeFriction typeFriction = TypeFriction::emptyFriction;
 
  RigidBody() = default;
  RigidBody(float mass, Mat3 iBody, Vec3 initalVelocity, Vec3 initalAngVelocity, 
@@ -59,9 +64,12 @@ private:
          Transform otherTransform, float dt);
 
  void ComputeFriction(Vec3 normalForce, float friction, Vec3 r, float dt,
-         Vec3 normal);
+         Vec3 normal, Transform tranform);
 
- void ApplyRollingTorque(Vec3 normal);
+ Vec3 ComputeRollingFriction(Vec3 normalForce, float friction, Vec3 direction,
+         Transform transform);
+
+ Vec3 ComputeSlidingFriction(Vec3 normalForce, float friction, Vec3 direction);
 
  // resulant force
  Vec3 m_ResForce = Vec3(0); 

@@ -66,9 +66,9 @@ void RigidBody::ResolveCollisions(RigidBody *otherRigidBody,
         manifold.penetrationDistance = 0;
 
     if (massInverse != 0)
-        tr1.Translate(manifold.collisionNormal * manifold.penetrationDistance);
+        tr1.Translate(manifold.collisionNormal * manifold.penetrationDistance * 0.5f);
     if (otherRigidBody->massInverse != 0)
-        tr2.Translate(-manifold.collisionNormal * manifold.penetrationDistance);
+        tr2.Translate(-manifold.collisionNormal * manifold.penetrationDistance * 0.5f);
 
     ComputeForceTorque(otherRigidBody, manifold,
             globalTransform, otherGlobalTransform, dt);
@@ -96,14 +96,6 @@ void RigidBody::LinearCalculation(Transform *transform, float dt) {
     transform->Translate(velocity * dt);
 }
 
-inline Mat3 Star(Vec3 vec) {
-    return Mat3(
-            0, -vec[2], vec[1],
-            vec[2], 0, -vec[0],
-            -vec[1], vec[0], 0
-    );
-}
-
 void RigidBody::AngularCalculation(Transform *transform, float dt) {
     Vec3 omega = Vec3(0);
     if (m_Torque != Vec3(0)) {
@@ -119,8 +111,7 @@ void RigidBody::AngularCalculation(Transform *transform, float dt) {
         glm::cross(angle, r[0]),
         glm::cross(angle, r[1]),
         glm::cross(angle, r[2])));
-    //Mat3 mat = Star(angle) * r;
-    transform->SetRotation(r + mat * dt);
+    transform->SetRotation(Mat4(glm::normalize((glm::quat(r + mat * dt)))));
 }
 
 void RigidBody::ApplyTorque(Vec3 force, Vec3 r) {
@@ -132,34 +123,62 @@ inline Vec3 CalculateFrictionDirection(Vec3 normal, Vec3 velocity) {
     return res;
 }
 
-inline void RigidBody::ComputeFriction(Vec3 normalForce, float friction,
-        Vec3 r, float dt, Vec3 normal) {
+inline Vec3 RigidBody::ComputeSlidingFriction(
+        Vec3 normalForce,
+        float friction,
+        Vec3 direction) {
+    return -direction * glm::length(friction * normalForce);
+}
+
+inline Vec3 RigidBody::ComputeRollingFriction(
+        Vec3 normalForce,
+        float friction,
+        Vec3 direction,
+        Transform transform) {
+    return -direction * glm::length(
+            normalForce * (friction / transform.GetScale().x));
+}
+
+inline void RigidBody::ComputeFriction(
+        Vec3 normalForce,
+        float friction,
+        Vec3 r,
+        float dt,
+        Vec3 normal,
+        Transform transform) {
     if (massInverse == 0)
         return;
+
     Vec3 direction = CalculateFrictionDirection(normal, velocity);
-    // Full friction force
-    Vec3 frictionForce = -direction * glm::length(friction * normalForce);
+    Vec3 frictionForce = Vec3(0);
+    switch (typeFriction) {
+        case slidingFriction:
+            frictionForce = ComputeSlidingFriction(
+                    normalForce, friction, direction);
+            break;
+        case rollingFriction:
+            frictionForce = ComputeRollingFriction(
+                    normalForce, friction, direction, transform);
+            ApplyTorque(normalForce, -direction * friction * glm::length(velocity));
+            break;
+        case emptyFriction:
+            return;
+        default:
+            Logger::Error("Unknown type of friction");
+            break;
+    }
 
     // if result force in direction of veloctiy is less than full friction
     // force, than rigid bodu will stop.
     auto projectionVel = Projection(velocity, direction);
     auto projectionForce = Projection(m_ResForce, direction);
-    if (glm::length(projectionForce +
-            + (projectionVel / (dt * massInverse)))
+    if (glm::length(projectionForce + (projectionVel / (dt * massInverse)))
             < glm::length(frictionForce)) {
-        m_ResForce -= m_ResForce * glm::abs(direction);
-        m_ResForce -= Projection(m_ResForce, direction);
-        velocity -= Projection(velocity, direction);
-        return;
+        frictionForce = -Projection(m_ResForce, direction);
     }
 
-    // otherwise apply full friction force
     m_ResForce += frictionForce;
-}
-
-inline void RigidBody::ApplyRollingTorque(Vec3 normalForce) {
-    auto delta = 0.5f;
-    ApplyTorque(normalForce, -velocity * delta);
+    ApplyTorque(frictionForce, r);
 }
 
 inline float getRestitution(RigidBody *rigidBody, RigidBody *otherRigidBody) {
@@ -237,14 +256,8 @@ void RigidBody::ComputeForceTorque(RigidBody *otherRigidBody,
 
     // Compute friction
     auto friction = std::sqrt(kineticFriction * otherRigidBody->kineticFriction);
-    ComputeFriction(normalForce, friction, r1, dt, normal);
-    otherRigidBody->ComputeFriction(otherNormalForce, friction, r2, dt, -normal);
-
-    if (canRoll) {
-        ApplyRollingTorque(normalForce);
-    }
-
-    if (otherRigidBody->canRoll) {
-        otherRigidBody->ApplyRollingTorque(otherNormalForce);
-    }
+    ComputeFriction(
+            normalForce, friction, r1, dt, normal, transform);
+    otherRigidBody->ComputeFriction(
+            otherNormalForce, friction, r2, dt, -normal, otherTransform);
 }
