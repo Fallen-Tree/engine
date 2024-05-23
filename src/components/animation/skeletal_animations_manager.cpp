@@ -4,14 +4,11 @@ SkeletalAnimationsManager::SkeletalAnimationsManager(
         SkeletalAnimationData* animation,
         TPoseType tposetype) {
     m_FinalBoneMatrices.reserve(MAX_BONES);
-    m_BonesFrom.reserve(MAX_BONES);
-    m_BonesTo.reserve(MAX_BONES);
-    m_BonesTPose.reserve(MAX_BONES);
     for (int i = 0; i < MAX_BONES; i++) {
         m_FinalBoneMatrices.push_back(glm::mat4(1.0f));
-        m_BonesFrom.push_back(glm::mat4(1.0f));
-        m_BonesTo.push_back(glm::mat4(1.0f));
-        m_BonesTPose.push_back(glm::mat4(1.0f));
+        m_BonesFrom[i] = (glm::mat4(1.0f));
+        m_BonesTo[i] = glm::mat4(1.0f);
+        m_BonesTPose[i] = glm::mat4(1.0f);
     }
     m_Animations.push_back(animation);
     m_CurrentAnimationIndex = -1;
@@ -31,15 +28,13 @@ SkeletalAnimationsManager::SkeletalAnimationsManager(
         TPoseType tposetype,
         int tposeAnimIndex) {
     m_FinalBoneMatrices.reserve(MAX_BONES);
-    m_BonesFrom.reserve(MAX_BONES);
-    m_BonesTo.reserve(MAX_BONES);
-    m_BonesTPose.reserve(MAX_BONES);
+
     m_CurrentAnimationIndex = -1;
     for (int i = 0; i < MAX_BONES; i++) {
         m_FinalBoneMatrices.push_back(glm::mat4(1.0f));
-        m_BonesFrom.push_back(glm::mat4(1.0f));
-        m_BonesTo.push_back(glm::mat4(1.0f));
-        m_BonesTPose.push_back(glm::mat4(1.0f));
+        m_BonesFrom[i] = (glm::mat4(1.0f));
+        m_BonesTo[i] = glm::mat4(1.0f);
+        m_BonesTPose[i] = glm::mat4(1.0f);
     }
 
     Assimp::Importer importer;
@@ -224,7 +219,7 @@ void SkeletalAnimationsManager::CalculateBoneTransform(
 
 void SkeletalAnimationsManager::CalculateBoneTransformMatrices(
     const AssimpNodeData* node, glm::mat4 parentTransform,
-    std::vector<glm::mat4> &boneMatrices, SkeletalAnimationData* m_CurrentAnimation, float currentTime) {
+    glm::mat4 *boneMatrices, SkeletalAnimationData* m_CurrentAnimation, float currentTime) {
 
     std::string nodeName = node->name;
     glm::mat4 nodeTransform = node->transformation;
