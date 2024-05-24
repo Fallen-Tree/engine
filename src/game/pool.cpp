@@ -14,7 +14,7 @@ Model* ball_model = nullptr;
 class MovingBall : public Behaviour {
  public:
     static Object New(Vec3 position, float radius,
-     std::string diffuseSource, float mass = 1.0) {
+     std::string diffuseSource, float mass = 3.0) {
         Transform *transform = new Transform(position, Vec3(radius), Mat4(1.0));
 
         if (ball_model == nullptr) ball_model = engine->GetModelManager().LoadModel("pool/shar_1200.obj");
@@ -23,8 +23,9 @@ class MovingBall : public Behaviour {
         model->setMaterial(sphereMaterial);
 
         Collider *collider = new Collider{Sphere{Vec3(0.0), 1.0}};
-        RigidBody *rb = new RigidBody(mass, IBodySphere(1, mass),
-                0.9f, Vec3(0, -mass * gravity, 0), 0.0001f);
+        RigidBody *rb = new RigidBody(mass, IBodySphere(radius, mass),
+                0.9f, Vec3(0, -mass * gravity, 0), 0.1f, rollingFriction);
+        rb->typeFriction = TypeFriction::rollingFriction;
         Object ball = newDynamicBody<MovingBall>(transform, model, collider, rb);
         auto& s = ball.AddSound(SoundType::SOUND_3D, "beat3.wav").SetVolume(0.5f).SetRadius(20.f);
         s.Start();
@@ -225,8 +226,8 @@ class Table : public Behaviour {
             Vec3{-width, h0, -length},
             Vec3{width, h, length},
         }};
-        float floor_friction = 0.1f;
-        float floor_bounciness = 0.05f;
+        float floor_friction = 0.5f;
+        float floor_bounciness = 0.00f;
         float walls_bounciness = 0.9f;
         Object obj = newStaticBody<Table>(transform, model, col, floor_bounciness, floor_friction);
 
@@ -248,7 +249,7 @@ class Table : public Behaviour {
         for (int i = 0; i <= 1; ++i) {
             for (int j = 0; j <= 2; ++j) {
                 Vec3 pos = Vec3(table_w * (j - 1.0f) / 2.0f, top_y, table_l * (i - 0.5f));
-                Object hole = Hole::New(pos, gameManager);
+                // Object hole = Hole::New(pos, gameManager);
                 // model to show holes position (but not holes scale)
                 // newModel(new Transform(pos, Vec3(0.1), Mat4(1)), Model::loadFromFile("cube.obj"));
             }

@@ -9,6 +9,12 @@
 Mat3 IBodySphere(float radius, float mass);
 Mat3 IBodyOBB(Vec3 halfWidth, float mass);
 
+enum TypeFriction {
+    slidingFriction,
+    rollingFriction,
+    emptyFriction
+};
+
 class RigidBody {
 public:
  // degree of elasticity 
@@ -26,14 +32,30 @@ public:
  // should be in {0, 1}
  Vec3 angularUnlock = Vec3(1);
 
+ TypeFriction typeFriction = TypeFriction::emptyFriction;
 
  RigidBody() = default;
- RigidBody(float mass, Mat3 iBody, Vec3 initalVelocity, Vec3 initalAngVelocity, 
-         float restitution, Vec3 defaultForce,
-         Vec3 angularUnlock, float kineticFriction); 
+ RigidBody(float mass,
+         Mat3 iBody,
+         Vec3 initalVelocity,
+         Vec3 initalAngVelocity, 
+         float restitution,
+         Vec3 defaultForce,
+         Vec3 angularUnlock,
+         float kineticFriction,
+         TypeFriction typeFriction); 
 
- RigidBody(float mass, Mat3 iBody, float restitution, Vec3 defaultForce,
-         float kineticFriction); 
+ RigidBody(float mass,
+         Mat3 iBody,
+         float restitution,
+         Vec3 defaultForce,
+         float kineticFriction,
+         TypeFriction typeFriction); 
+
+ RigidBody(float mass,
+         Mat3 iBody,
+         float restitution,
+         Vec3 defaultForce); 
 
  void Update(Transform *tranform, float dt);
 
@@ -57,13 +79,15 @@ private:
          Transform otherTransform, float dt);
 
  void ComputeFriction(Vec3 normalForce, float friction, Vec3 r, float dt,
-         Vec3 normal);
+         Vec3 normal, Transform tranform);
 
- // approximate m_Torque to torque
- // rate of approximating depends on TORQUE_SMOTHNESS
- void LimitTorque(Vec3 force, Vec3 r);
+ Vec3 ComputeRollingFriction(Vec3 normalForce, float friction, Vec3 direction,
+         Transform transform);
+
+ Vec3 ComputeSlidingFriction(Vec3 normalForce, float friction, Vec3 direction);
 
  // resulant force
  Vec3 m_ResForce = Vec3(0); 
  Vec3 m_Torque = Vec3(0);
 };
+

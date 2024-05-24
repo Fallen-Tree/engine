@@ -187,7 +187,7 @@ void buildRoom() {
     Object cube = newDynamicBody(
         new Transform(Vec3(18, floor_y + cc_scale + 0.1f, 0), Vec3(cc_scale), Mat4(1.0)), cc,
         new Collider{Collider::GetDefaultAABB(&cc->meshes[0])},
-        new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f));
+        new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f, slidingFriction));
     interactableObjects.push_back(cube);
 
     float chest_scale = 20.f;
@@ -198,7 +198,8 @@ void buildRoom() {
             new Transform(Vec3(-20, chest_y, i * 5 - 10), Vec3(chest_scale), Mat4(1.0)),
             chest,
             new Collider{Collider::GetDefaultAABB(&chest->meshes[0])},
-            new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f));
+            new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f,
+                slidingFriction));
         chestObj.GetTransform()->Rotate(0, glm::radians(90.0f), 0);
         interactableObjects.push_back(chestObj);
     }
@@ -290,7 +291,7 @@ void buildRoom() {
         Transform *chTransform = new Transform(Vec3(5 * i, floor_y, -15), Vec3(0.4), Mat4(1.0));
         Object chairObj = newDynamicBody(chTransform, chair,
             new Collider{Collider::GetDefaultAABB(&chair->meshes[0])},
-            new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f));
+            new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f, slidingFriction));
         interactableObjects.push_back(chairObj);
     }
 
@@ -319,7 +320,7 @@ void buildRoom() {
     Object pizzaObj = newDynamicBody(
         new Transform(Vec3(20, floor_y + table_y, 16), Vec3(0.1), Mat4(1.0)), pizza,
         new Collider{Collider::GetDefaultAABB(&pizza->meshes[0])},
-        new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f));
+        new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f, slidingFriction));
     pizzaObj.name = 1;
     interactableObjects.push_back(pizzaObj);
 
@@ -394,6 +395,6 @@ int main() {
     player.AddCollider(AABB{Vec3(-0.6, -7, -0.6f), Vec3(0.6f, 1, 0.6f)});
     float player_mass = 5.0f;
     player.AddRigidBody(player_mass, Mat4(0),
-                0.5f, Vec3(0, -gravity * player_mass, 0), 0.f);
+                0.5f, Vec3(0, -gravity * player_mass, 0), 0.f, slidingFriction);
     engine->Run();
 }
