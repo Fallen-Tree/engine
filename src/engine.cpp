@@ -459,7 +459,7 @@ void Engine::Run() {
         ZoneScopedN("Frame");
         float currentTime = static_cast<float>(glfwGetTime());
         deltaTime = currentTime - lastTime;
-        deltaTime = min(deltaTime, 0.03f);
+        deltaTime = std::min(deltaTime, 0.03f);
         Time::SetDeltaTime(deltaTime);
         lastTime = currentTime;
 
