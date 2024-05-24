@@ -219,7 +219,8 @@ void buildRoom() {
     }
 
 
-    dogModel->shader = new ShaderProgram(engine->GetShaderManager().LoadShaderProgram("skeletal.vshader", "standart.fshader"));
+    dogModel->shader = new ShaderProgram(
+        engine->GetShaderManager().LoadShaderProgram("skeletal.vshader", "standart.fshader"));
 
 
     Object dogObj = engine->NewObject();
@@ -230,7 +231,7 @@ void buildRoom() {
     dogObj.AddTransform(Transform(Vec3(14, floor_y, 4), Vec3(1.5f), Mat4(1.0)));
     dogObj.AddSound(SoundType::SOUND_3D, "dog-sniffing.wav", true).SetVolume(10.f).SetRadius(20.f);
     dogObj.AddChild(dogSound);
-    
+
     dogObj.AddModel(*dogModel);
     class DogBehaviour : public Behaviour {
      private:
@@ -238,11 +239,12 @@ void buildRoom() {
         float speed = 0.f;
         float phi = 0.04f;
         int prev = -1;
-    
+
      public:
         void Update(float dt) override {
             // Transform
-            self.GetTransform()->Translate(Vec3(sin(direction) * speed * dt, 0.f, cos(direction) * speed * dt));
+            self.GetTransform()->Translate(
+                Vec3(sin(direction) * speed * dt, 0.f, cos(direction) * speed * dt));
             self.GetTransform()->RotateGlobal(0.f, -phi * speed * dt, 0.f);
             direction -= phi * speed * dt;
 
@@ -260,7 +262,7 @@ void buildRoom() {
                 if (x % 3 == 0 && prev != 0) {
                     self.GetSkeletalAnimationsManager()->PlayImmediately(8, 1);
                     speed = 3.2f;
-                    prev = 0;     
+                    prev = 0;
                 } else if (x % 3 == 1 && prev != 1) {
                     self.GetSkeletalAnimationsManager()->PlayImmediately(3, 1);
                     speed = 9.f;
@@ -285,7 +287,7 @@ void buildRoom() {
     dogObj.AddBehaviour<DogBehaviour>();
     auto& dogAnim = dogObj.AddSkeletalAnimationsManager("Shiba Inu.glb", dogModel, TPoseType::FROMANIM, 11);
 
-   
+
     Model *chair = modelManager.LoadModel("Chair.obj");
     for (int i = 0; i < 4; ++i) {
         Transform *chTransform = new Transform(Vec3(5 * i, floor_y, -15), Vec3(0.4), Mat4(1.0));
@@ -329,9 +331,9 @@ void buildRoom() {
         .GetTransform()->Rotate(0, glm::radians(90.0f), 0);
 
     Model *boomboxModel = modelManager.LoadModel("record player.fbx");
-    auto boombox = newModel(new Transform(Vec3(20, floor_y + table_y, 14), Vec3(1.0, 1.0, 0.25), Mat4(1.0)), boomboxModel);
+    auto boombox = newModel(new Transform(Vec3(20, floor_y + table_y, 14),
+        Vec3(1.0, 1.0, 0.25), Mat4(1.0)), boomboxModel);
     boombox.GetTransform()->Rotate(glm::radians(-90.0f), 0, 0);
-
 }
 
 void poolTable() {
