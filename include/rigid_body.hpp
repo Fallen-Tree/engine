@@ -35,12 +35,27 @@ public:
  TypeFriction typeFriction = TypeFriction::emptyFriction;
 
  RigidBody() = default;
- RigidBody(float mass, Mat3 iBody, Vec3 initalVelocity, Vec3 initalAngVelocity, 
-         float restitution, Vec3 defaultForce,
-         Vec3 angularUnlock, float kineticFriction); 
+ RigidBody(float mass,
+         Mat3 iBody,
+         Vec3 initalVelocity,
+         Vec3 initalAngVelocity, 
+         float restitution,
+         Vec3 defaultForce,
+         Vec3 angularUnlock,
+         float kineticFriction,
+         TypeFriction typeFriction); 
 
- RigidBody(float mass, Mat3 iBody, float restitution, Vec3 defaultForce,
-         float kineticFriction); 
+ RigidBody(float mass,
+         Mat3 iBody,
+         float restitution,
+         Vec3 defaultForce,
+         float kineticFriction,
+         TypeFriction typeFriction); 
+
+ RigidBody(float mass,
+         Mat3 iBody,
+         float restitution,
+         Vec3 defaultForce); 
 
  void Update(Transform *tranform, float dt);
 

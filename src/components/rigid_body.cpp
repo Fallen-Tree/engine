@@ -21,20 +21,29 @@ Mat3 IBodyOBB(Vec3 halfWidth, float mass) {
     return res;
 }
 
+RigidBody::RigidBody(float mass, Mat3 iBody, float restitution, Vec3 defaultForce) {
+    SetMass(mass);
+    SetIbodyInverse(iBody);
+    this->restitution = restitution;
+    this->defaultForce = defaultForce;
+}
+
 RigidBody::RigidBody(float mass, Mat3 iBody, float restitution, Vec3 defaultForce,
-         float kineticFriction) {
+         float kineticFriction, TypeFriction typeFriction) {
     SetMass(mass);
     SetIbodyInverse(iBody);
     this->restitution = restitution;
     this->defaultForce = defaultForce;
     this->kineticFriction = kineticFriction;
+    this->typeFriction = typeFriction;
 }
 
 RigidBody::RigidBody(float mass, Mat3 iBody, Vec3 initalVelocity,
         Vec3 angularInitalVelocity, float restitution, Vec3 defaultForce,
-        Vec3 angularUnlock, float kineticFriction) {
+        Vec3 angularUnlock, float kineticFriction, TypeFriction typeFriction) {
     SetMass(mass);
     SetIbodyInverse(iBody);
+    this->typeFriction = typeFriction;
     this->velocity = initalVelocity;
     this->restitution = restitution;
     this->defaultForce = defaultForce;

@@ -32,7 +32,7 @@ Object newStaticBody(Transform *transform, Model *model, Collider *collider,
         float bounciness = 0.2f, float friction = 0.5f) {
     Object obj = newModel<T>(transform, model);
     obj.AddCollider(*collider);
-    obj.AddRigidBody(0.0f, Mat4(0), bounciness, Vec3(0), friction);
+    obj.AddRigidBody(0.0f, Mat4(0), bounciness, Vec3(0), friction, slidingFriction);
     return obj;
 }
 
@@ -40,7 +40,7 @@ Object newStaticBody(Transform *transform, Model *model, Collider *collider,
         float bounciness = 0.2f, float friction = 0.5f) {
     Object obj = newModel(transform, model);
     obj.AddCollider(*collider);
-    obj.AddRigidBody(0.0f, Mat4(0), bounciness, Vec3(0), friction);
+    obj.AddRigidBody(0.0f, Mat4(0), bounciness, Vec3(0), friction, slidingFriction);
     return obj;
 }
 
@@ -51,7 +51,7 @@ Object newStaticBody(Transform *transform, Collider *collider,
     Object obj = engine->NewObject();
     obj.AddTransform(*transform);
     obj.AddCollider(*collider);
-    obj.AddRigidBody(0.0f, Mat4(0), bounciness, Vec3(0), friction);
+    obj.AddRigidBody(0.0f, Mat4(0), bounciness, Vec3(0), friction, slidingFriction);
     return obj;
 }
 
@@ -60,7 +60,7 @@ Object newStaticBody(Transform *transform, Collider *collider,
     Object obj = engine->NewObject();
     obj.AddTransform(*transform);
     obj.AddCollider(*collider);
-    obj.AddRigidBody(0.0f, Mat4(0), bounciness, Vec3(0), friction);
+    obj.AddRigidBody(0.0f, Mat4(0), bounciness, Vec3(0), friction, slidingFriction);
     return obj;
 }
 
