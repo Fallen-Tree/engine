@@ -14,7 +14,7 @@ Model* ball_model = nullptr;
 class MovingBall : public Behaviour {
  public:
     static Object New(Vec3 position, float radius,
-     std::string diffuseSource, float mass = 1.0) {
+     std::string diffuseSource, float mass = 3.0) {
         Transform *transform = new Transform(position, Vec3(radius), Mat4(1.0));
 
         if (ball_model == nullptr) ball_model = engine->GetModelManager().LoadModel("pool/shar_1200.obj");
@@ -23,16 +23,32 @@ class MovingBall : public Behaviour {
         model->setMaterial(sphereMaterial);
 
         Collider *collider = new Collider{Sphere{Vec3(0.0), 1.0}};
-        RigidBody *rb = new RigidBody(mass, IBodySphere(1, mass),
-                0.9f, Vec3(0, -mass * gravity, 0), 0.0001f);
+        RigidBody *rb = new RigidBody(mass, IBodySphere(radius, mass),
+                0.9f, Vec3(0, -mass * gravity, 0), 0.1f, rollingFriction);
+        rb->typeFriction = TypeFriction::rollingFriction;
         Object ball = newDynamicBody<MovingBall>(transform, model, collider, rb);
+        auto& s = ball.AddSound(SoundType::SOUND_3D, "beat3.wav").SetVolume(0.5f).SetRadius(20.f);
+        s.Start();
+        s.Pause();
         return ball;
     }
 
     void Update(float dt) override {
-        // Vec3 pos = self.GetTransform()->GetTranslation();
-        // Logger::Info("ball pos: %f %f %f", pos.x, pos.y, pos.z);
-        // Logger::Info("name: %d", self.name);
+        auto balls = self.CollideAll();
+        for (auto ball : balls) {
+            if (ball.GetCollider()->shape.index() == 1) {
+                self.GetSound()->SetVolume(log2f(self.GetRigidBody()->velocity.length()) * 0.15f);
+                self.GetSound()->Start();
+                return;
+            }
+        }
+        for (auto ball : balls) {
+            if (ball.GetName() == "wall") {
+                self.GetSound()->SetVolume(log2f(self.GetRigidBody()->velocity.length()) * 0.12f);
+                self.GetSound()->Start();
+                return;
+            }
+        }
     }
 };
 
@@ -48,6 +64,7 @@ class Cue : public Behaviour {
         Transform *transform = new Transform(Vec3(0), Vec3(8), Mat4(0));
         Object newCue = newModel<Cue>(transform, model);
         newCue.AddAnimation();
+        newCue.AddSound(SoundType::SOUND_FLAT, "beat3.wav").SetVolume(0.1f);
         reinterpret_cast<Cue*>(newCue.GetBehaviour())->Init(objects, camera);
         return newCue;
     }
@@ -77,6 +94,7 @@ class Cue : public Behaviour {
         if (s_Input->IsKeyPressed(Key::MouseLeft)) {
             if (m_CurrentTarget != nullptr) {
                 m_Attacking = true;
+                self.GetSound()->Start();
                 Vec3 myPos = self.GetTransform()->GetTranslation();
                 Vec3 targetPos = m_CurrentTarget->GetTransform()->GetTranslation();
                 Vec3 direction = glm::normalize(targetPos - myPos);
@@ -113,7 +131,6 @@ class Cue : public Behaviour {
             closest.y = center.y;
             Vec3 onCircle = center + glm::normalize(closest - center) * m_CueDistance;
             self.GetTransform()->SetTranslation(onCircle);
-
             Vec3 toCenter = center - onCircle;
             float angle = glm::acos(glm::dot(toCenter, ray.direction) / m_CueDistance);
             self.GetTransform()->SetRotation(-glm::pi<float>()/2 + 0.06, glm::cross(Vec3{0.f, 1.f, 0.f}, toCenter));
@@ -209,8 +226,8 @@ class Table : public Behaviour {
             Vec3{-width, h0, -length},
             Vec3{width, h, length},
         }};
-        float floor_friction = 0.1f;
-        float floor_bounciness = 0.05f;
+        float floor_friction = 0.5f;
+        float floor_bounciness = 0.00f;
         float walls_bounciness = 0.9f;
         Object obj = newStaticBody<Table>(transform, model, col, floor_bounciness, floor_friction);
 
@@ -223,7 +240,8 @@ class Table : public Behaviour {
         };
         for (int i = 0; i < 4; ++i) {
             Collider *col = new Collider{walls[i]};
-            newStaticBody(transform, col, walls_bounciness);
+            auto obj = newStaticBody(transform, col, walls_bounciness);
+            obj.SetName("wall");
         }
         float top_y = position.y + 0.9f * scale.y;
         float table_w = scale.x * width * 2;
@@ -231,7 +249,7 @@ class Table : public Behaviour {
         for (int i = 0; i <= 1; ++i) {
             for (int j = 0; j <= 2; ++j) {
                 Vec3 pos = Vec3(table_w * (j - 1.0f) / 2.0f, top_y, table_l * (i - 0.5f));
-                Object hole = Hole::New(pos, gameManager);
+                // Object hole = Hole::New(pos, gameManager);
                 // model to show holes position (but not holes scale)
                 // newModel(new Transform(pos, Vec3(0.1), Mat4(1)), Model::loadFromFile("cube.obj"));
             }

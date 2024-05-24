@@ -9,9 +9,10 @@
 
 // Made this global for easier usage inside functions
 Engine *engine;
-
+Object dogSound;
 // I'd like to move responsibility about default shader to engine
 ShaderProgram *defaultSP;
+ShaderProgram *skeletalSP;
 
 std::vector<Object> interactableObjects(0);
 
@@ -19,9 +20,12 @@ std::vector<Object> interactableObjects(0);
 void init() {
     engine = new Engine();
     std::string vertexShaderSource = "standart.vshader";
+    std::string skeletalVertexShaderSource = "skeletal.vshader";
     std::string fragmentShaderSource = "standart.fshader";
     defaultSP = new ShaderProgram(
         engine->GetShaderManager().LoadShaderProgram(vertexShaderSource, fragmentShaderSource));
+    skeletalSP = new ShaderProgram(
+        engine->GetShaderManager().LoadShaderProgram(skeletalVertexShaderSource, fragmentShaderSource));
 }
 
 void createUI() {
@@ -55,7 +59,7 @@ void AddLantern(Vec3 pos) {
     Transform * tr = new Transform(pos, Vec3(1.0f), Mat4(1.0f));
     newModel(tr, lantern);
     engine->NewObject().AddPointLight(
-        Vec3(0.3f, 0.3f, 0.3f), Vec3(1.0f, 1.0f, 1.0f),
+        Vec3(0.5f, 0.5f, 0.5f), Vec3(1.0f, 1.0f, 1.0f),
         Vec3(1.0f, 1.0f, 1.0f), pos,
         1.f, 0.05f, 0.01f);
 }
@@ -186,7 +190,7 @@ void buildRoom() {
     Object cube = newDynamicBody(
         new Transform(Vec3(18, floor_y + cc_scale + 0.1f, 0), Vec3(cc_scale), Mat4(1.0)), cc,
         new Collider{Collider::GetDefaultAABB(&cc->meshes[0])},
-        new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f));
+        new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f, slidingFriction));
     interactableObjects.push_back(cube);
 
     float chest_scale = 20.f;
@@ -197,7 +201,8 @@ void buildRoom() {
             new Transform(Vec3(-20, chest_y, i * 5 - 10), Vec3(chest_scale), Mat4(1.0)),
             chest,
             new Collider{Collider::GetDefaultAABB(&chest->meshes[0])},
-            new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f));
+            new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f,
+                slidingFriction));
         chestObj.GetTransform()->Rotate(0, glm::radians(90.0f), 0);
         interactableObjects.push_back(chestObj);
     }
@@ -209,18 +214,92 @@ void buildRoom() {
     Model *plant2 = modelManager.LoadModel("Orchid/Orchid.obj");
     newModel(new Transform(Vec3(14, floor_y, 0), Vec3(0.3), Mat4(1.0)), plant2);
 
-    Model *dog = modelManager.LoadModel("ShibaInu.fbx");
-    Object dogObj = newModel(new Transform(Vec3(14, floor_y, 4), Vec3(1), Mat4(1.0)), dog);
-    dogObj.GetTransform()->Rotate(glm::radians(-90.0f), 0, 0);
+    Model *dogModel = modelManager.LoadModel("Shiba Inu.glb");
+    for (auto& mesh : dogModel->meshes) {
+        mesh.material.shininess = 0.8f;
+        mesh.material.specularColor = mesh.material.diffuseColor;
+        mesh.material.diffuseColor *= 1.5f;
+    }
+
+
+    dogModel->shader = new ShaderProgram(
+        engine->GetShaderManager().LoadShaderProgram("skeletal.vshader", "standart.fshader"));
+
+
+    Object dogObj = engine->NewObject();
+    dogSound = engine->NewObject();
+    dogSound.AddTransform(Vec3(0), Vec3(0), Mat4(1.f));
+    dogSound.AddSound(SoundType::SOUND_3D, "dog-panting-1.mp3", true).SetVolume(10.f).SetRadius(20.f);
+
+    dogObj.AddTransform(Transform(Vec3(14, floor_y, 4), Vec3(1.5f), Mat4(1.0)));
+    dogObj.AddSound(SoundType::SOUND_3D, "dog-sniffing.wav", true).SetVolume(10.f).SetRadius(20.f);
+    dogObj.AddChild(dogSound);
+
+    dogObj.AddModel(*dogModel);
+    class DogBehaviour : public Behaviour {
+     private:
+        float direction = 0.f;
+        float speed = 0.f;
+        float phi = 0.04f;
+        int prev = -1;
+
+     public:
+        void Update(float dt) override {
+            // Transform
+            self.GetTransform()->Translate(
+                Vec3(sin(direction) * speed * dt, 0.f, cos(direction) * speed * dt));
+            self.GetTransform()->RotateGlobal(0.f, -phi * speed * dt, 0.f);
+            direction -= phi * speed * dt;
+
+            // Animations
+            int x = rand();
+            if (x % 300 == 0) {
+                self.GetSkeletalAnimationsManager()->Stop();
+                self.GetSound()->Pause();
+                if (prev == 2) {
+                    dogSound.GetSound()->Start();
+                }
+            }
+
+            if (!self.GetSkeletalAnimationsManager()->IsPlaying()) {
+                if (x % 3 == 0 && prev != 0) {
+                    self.GetSkeletalAnimationsManager()->PlayImmediately(8, 1);
+                    speed = 3.2f;
+                    prev = 0;
+                } else if (x % 3 == 1 && prev != 1) {
+                    self.GetSkeletalAnimationsManager()->PlayImmediately(3, 1);
+                    speed = 9.f;
+                    prev = 1;
+                } else {
+                    if (prev == 2) {
+                        self.GetSkeletalAnimationsManager()->PlayImmediately(8, 1);
+                        speed = 3.2f;
+                        prev = 0;
+                    } else {
+                        speed = 0.f;
+                        self.GetSkeletalAnimationsManager()->PlayImmediately(2, 1);
+                        dogSound.GetSound()->Pause();
+                        self.GetSound()->Start();
+                        prev = 2;
+                    }
+                }
+            }
+        }
+    };
+
+    dogObj.AddBehaviour<DogBehaviour>();
+    auto& dogAnim = dogObj.AddSkeletalAnimationsManager("Shiba Inu.glb", dogModel, TPoseType::FROMANIM, 11);
+
 
     Model *chair = modelManager.LoadModel("Chair.obj");
     for (int i = 0; i < 4; ++i) {
         Transform *chTransform = new Transform(Vec3(5 * i, floor_y, -15), Vec3(0.4), Mat4(1.0));
         Object chairObj = newDynamicBody(chTransform, chair,
             new Collider{Collider::GetDefaultAABB(&chair->meshes[0])},
-            new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f));
+            new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f, slidingFriction));
         interactableObjects.push_back(chairObj);
     }
+
 
     float table_y = 4.2f;
 
@@ -246,7 +325,7 @@ void buildRoom() {
     Object pizzaObj = newDynamicBody(
         new Transform(Vec3(20, floor_y + table_y, 16), Vec3(0.1), Mat4(1.0)), pizza,
         new Collider{Collider::GetDefaultAABB(&pizza->meshes[0])},
-        new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f));
+        new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f, slidingFriction));
     pizzaObj.name = 1;
     interactableObjects.push_back(pizzaObj);
 
@@ -254,9 +333,10 @@ void buildRoom() {
     newModel(new Transform(Vec3(walls_x, floor_y + 8, 6), Vec3(0.5), Mat4(1.0)), painting)
         .GetTransform()->Rotate(0, glm::radians(90.0f), 0);
 
-    Model *boombox = modelManager.LoadModel("record player.fbx");
-    newModel(new Transform(Vec3(20, floor_y + table_y, 14), Vec3(1.0, 1.0, 0.25), Mat4(1.0)), boombox)
-        .GetTransform()->Rotate(glm::radians(-90.0f), 0, 0);
+    Model *boomboxModel = modelManager.LoadModel("record player.fbx");
+    auto boombox = newModel(new Transform(Vec3(20, floor_y + table_y, 14),
+        Vec3(1.0, 1.0, 0.25), Mat4(1.0)), boomboxModel);
+    boombox.GetTransform()->Rotate(glm::radians(-90.0f), 0, 0);
 }
 
 void poolTable() {
@@ -304,7 +384,6 @@ void poolTable() {
 }
 
 int main() {
-    // Logger::SetLoggingLevel(WARN);
     init();
 
     buildRoom();
@@ -319,8 +398,8 @@ int main() {
     player.AddBehaviour<PlayerController>(engine->camera, interactableObjects, hintText);
     player.AddTransform(Vec3(0.f, 1.5f, 14.f), Vec3(1), Mat4(1));
     player.AddCollider(AABB{Vec3(-0.6, -7, -0.6f), Vec3(0.6f, 1, 0.6f)});
-    float player_mass = 1.0f;
+    float player_mass = 5.0f;
     player.AddRigidBody(player_mass, Mat4(0),
-                0.5f, Vec3(0, -gravity * player_mass, 0), 0.f);
+                0.5f, Vec3(0, -gravity * player_mass, 0), 0.f, slidingFriction);
     engine->Run();
 }

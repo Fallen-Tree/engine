@@ -61,8 +61,12 @@ Sound& Sound::Pause() {
     BASS_ChannelPause(m_Channel);
     return *this;
 }
+Sound& Sound::Stop() {
+    BASS_ChannelStop(m_Channel);
+    return *this;
+}
 Sound& Sound::Start() {
-    BASS_ChannelStart(m_Channel);
+    BASS_ChannelPlay(m_Channel, 1);
     return *this;
 }
 

@@ -143,19 +143,19 @@ class MovingRotating2 : public Behaviour {
 };
 
 int main() {
-    auto engine = Engine();
+    auto engine = new Engine();
 
     ShaderProgram skeletalShaderProgram = engine
-        .GetShaderManager()
+        ->GetShaderManager()
         .LoadShaderProgram(skeletalVertexShaderSource, fragmentShaderSource);
 
     {
         // /* PIGEON */
-        Model *pigeonModel = Model::loadFromFile("pigeon/scene.gltf");
+        Model *pigeonModel = engine->GetModelManager().LoadModel("pigeon/scene.gltf");
         pigeonModel->shader = &skeletalShaderProgram;
         auto pigeonAnimation = new SkeletalAnimationData("pigeon/scene.gltf", 0, pigeonModel);
 
-        auto pigeonObj = engine.NewObject();
+        auto pigeonObj = engine->NewObject();
         pigeonObj.AddTransform(Vec3(0.f, -10.f, -10.f), Vec3(10.f), Mat4(1.0));
         pigeonObj.AddModel(*pigeonModel);
         pigeonObj.AddSkeletalAnimationsManager(pigeonAnimation).PlayImmediately(0, 0);
@@ -163,11 +163,11 @@ int main() {
 
     {
         /* Wolf */
-        Model *wolfModel = Model::loadFromFile("Wolf/Wolf-Blender-2.82a.gltf", &skeletalShaderProgram);
+        Model *wolfModel = engine->GetModelManager().LoadModel("Wolf/Wolf-Blender-2.82a.gltf", &skeletalShaderProgram);
         wolfModel->meshes.pop_back();  // Delete Fur
         wolfModel->meshes.erase(wolfModel->meshes.begin() + 1);  // Delete floor
 
-        auto wolfObj = engine.NewObject();
+        auto wolfObj = engine->NewObject();
         wolfObj.AddTransform(Vec3(5.f, -10.f, -10.f), Vec3(10.f), Mat4(1.0));
         wolfObj.AddModel(*wolfModel);
         wolfObj.AddSkeletalAnimationsManager("Wolf/Wolf-Blender-2.82a.gltf", wolfModel).PlayImmediately(3, 1);
@@ -212,20 +212,20 @@ int main() {
 
 
     {
-        Model * model = Model::loadFromFile(catSource);
+        Model * model = engine->GetModelManager().LoadModel(catSource);
         Material cat_material = {
             4.f,
             Texture("/Cat_diffuse.png", "/Cat_specular.png")
         };
-        auto cat = engine.NewObject();
+        auto cat = engine->NewObject();
         cat.AddModel(*model);
         auto &t = cat.AddTransform(Vec3(0.f, -7.f, -5.f), Vec3(0.01f), Mat4(1.0));
         t.RotateGlobal(1.67f, Vec3(-1.f, 0.f, 0.f));
     }
 
     // Shiba inu (ETO FIASKO BRATAN)
-    Model *model = Model::loadFromFile("ShibaInu.fbx");
-    auto dog = engine.NewObject();
+    Model *model = engine->GetModelManager().LoadModel("ShibaInu.fbx");
+    auto dog = engine->NewObject();
     dog.AddModel(*model);
     // dog.AddSkeletalAnimationsManager("ShibaInu.fbx", model).PlayImmediately(14, 1);
     dog.AddTransform(Transform(Vec3(2, -5, 0.0), Vec3(1.f), glm::radians(-90.f), Vec3(1.0f, 0.f, 0.f)));
@@ -238,11 +238,23 @@ int main() {
     Model *cubeModel = Model::fromMesh(Mesh::GetCube(), material);
 
     auto setUpObj = [=, &engine](Transform transform, auto primitive, Model *model) {
-        auto obj = engine.NewObject();
+        auto obj = engine->NewObject();
+        obj.AddModel(*model);
+        obj.AddTransform(transform);
+        obj.AddCollider(primitive);
+        return obj;
+    };
+
+    auto setUpObjRigidBody = [=, &engine](Transform transform, auto primitive, Model *model,
+            Vec3 speed, float mass, Vec3 angUnlock) {
+        auto obj = engine->NewObject();
         obj.AddModel(*model);
 
         obj.AddTransform(transform);
         obj.AddCollider(primitive);
+        obj.AddRigidBody(RigidBody(mass, IBodyOBB(Vec3(1), mass), speed,
+                    Vec3(0), 0, Vec3(0, -mass * 10, 0), angUnlock, 0.05,
+                    slidingFriction));
         return obj;
     };
 
@@ -280,32 +292,16 @@ int main() {
     obb3.AddBehaviour<MovingRotating>();
 
     auto getSphereObj = [=, &engine](Transform transform, Vec3 speed, float mass) {
-        auto obj = engine.NewObject();
+        auto obj = engine->NewObject();
         obj.AddTransform(transform);
         obj.AddModel(*sphereModel);
         obj.AddCollider(Sphere{ Vec3(0), 1.f });
-        obj.AddBehaviour<Moving>();
+        obj.AddRigidBody(RigidBody(
+            mass, IBodySphere(transform.GetScale().x, mass),
+            speed, Vec3(0), 0, Vec3(0, -mass * 10, 0), Vec3(1), 0.01,
+            rollingFriction));
         return obj;
     };
-
-    /*
-    Object spheres[1] = {
-        getSphereObj(
-            Transform(Vec3(0, -1, 2.0), Vec3(1), 0.f, Vec3(1)),
-            Vec3(10, 0, 0),
-            4)
-        getSphereObj(
-            Transform(Vec3(0, -1, 2.0), Vec3(1), 0.f, Vec3(1)),
-            Vec3(0, 0, 0),
-            4.f),
-        getSphereObj(
-            Transform(Vec3(10, -1, 2.0), Vec3(1.0), 0, Vec3(1)),
-            Vec3(0, 0, 0),
-    };
-*/
-
-    // cat.AddChild(aabb);
-    // cat.AddBehaviour<Moving>();
 
     class FpsText : public Behaviour {
      public:
@@ -318,44 +314,46 @@ int main() {
     };
 
     {
-        auto ocraFont = engine.GetFontManager().LoadFont("OCRAEXT.TTF", 20);
-        auto obj = engine.NewObject();
+        auto ocraFont = engine->GetFontManager().LoadFont("OCRAEXT.TTF", 20);
+        auto obj = engine->NewObject();
         obj.AddText(ocraFont, "", 0.85f, 0.95f, 1.f, Vec3(0, 0, 0));
+        auto obj2 = engine->NewObject();
+        obj2.AddText(ocraFont, "+", 0.49f, 0.49f, 1.f, Vec3(0, 0, 0));
         obj.AddBehaviour<FpsText>();
     }
 
-    engine.NewObject().AddSound(SoundType::SOUND_FLAT, "georgian_disco.mp3").SetVolume(0.05f).Start();
+    engine->NewObject().AddSound(SoundType::SOUND_FLAT, "georgian_disco.mp3").SetVolume(0.05f).Start();
 
-    engine.NewObject().AddImage("hp.png", 0.03f, 0.15f, 0.4f);
-    engine.NewObject().AddImage("hp_bar.png", 0.015f, 0.01f, 0.4f);
+    engine->NewObject().AddImage("hp.png", 0.03f, 0.15f, 0.4f);
+    engine->NewObject().AddImage("hp_bar.png", 0.015f, 0.01f, 0.4f);
 
-    engine.NewObject().AddPointLight(
+    engine->NewObject().AddPointLight(
         Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
         Vec3(1.0f, 1.0f, 1.0f), Vec3(-0.2, -0.5, -1.2),
         1.f, 0.09f, 0.032f);
 
-    engine.NewObject().AddPointLight(
+    engine->NewObject().AddPointLight(
         Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
         Vec3(1.0f, 1.0f, 1.0f), Vec3(2.3f, -3.3f, -4.0f),
         1.f, 0.09f, 0.032f);
 
-    engine.NewObject().AddPointLight(
+    engine->NewObject().AddPointLight(
         Vec3(0.2f, 0.2f, 0.2f), Vec3(0.5f, 0.5f, 0.5f),
         Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0f,  0.0f, -3.0f),
         1.f, 0.09f, 0.032f);
 
-    engine.NewObject().AddDirLight(
+    engine->NewObject().AddDirLight(
         Vec3(0.05f, 0.05f, 0.05f), Vec3(0.4f, 0.4f, 0.4f),
         Vec3(0.5f, 0.5f, 0.5f),  Vec3(-0.2f, -1.0f, -0.3f));
 
-    engine.NewObject().AddSpotLight(Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
+    engine->NewObject().AddSpotLight(Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
         Vec3(1.0f, 1.0f, 1.0f), Vec3(1.0f, 1.0f, 1.0f),
         1.0f, 0.09f, 0.032f, Vec3(0),
         glm::cos(glm::radians(12.5f)),
         glm::cos(glm::radians(15.0f)));
 
-    Object control = engine.NewObject();
-    control.AddBehaviour<CameraController>(engine.camera);
+    Object control = engine->NewObject();
+    control.AddBehaviour<CameraController>(engine->camera);
     control.AddTransform(STARTING_POSITION, Vec3(1), Mat4(1));
-    engine.Run();
+    engine->Run();
 }

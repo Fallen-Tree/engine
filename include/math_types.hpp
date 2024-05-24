@@ -1,5 +1,10 @@
 #pragma once
+#include <algorithm>
 #include <glm/glm.hpp>
+
+inline bool isCloseToZero(float x) {
+    return std::abs(x) <= FLT_EPSILON;
+}
 
 typedef glm::fvec2 Vec2;
 typedef glm::ivec2 Vec2Int;
@@ -13,4 +18,4 @@ typedef glm::fmat4 Mat4;
 
 Vec3 Mul(Vec3, Mat4);
 Vec3 Norm(Vec3);
-Vec3 Projection(Vec3 vec, Vec3 axes);
+Vec3 Projection(Vec3 vec, Vec3 axis);

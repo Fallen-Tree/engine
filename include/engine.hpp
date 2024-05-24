@@ -1,7 +1,9 @@
-#pragma once
+ #pragma once
 #include <vector>
 #include <variant>
 #include <string>
+#include <map>
+#include <set>
 #include <tracy/Tracy.hpp>
 #include "collider.hpp"
 #include "collisions.hpp"
@@ -27,6 +29,7 @@
 #include "shader_manager.hpp"
 #include "font_manager.hpp"
 #include "model_manager.hpp"
+#include "manifold.hpp"
 
 extern Input *s_Input;
 
@@ -82,12 +85,20 @@ class Engine {
 
     void RemoveObject(ObjectHandle);
     Object NewObject();
+    Object NewObject(std::string);
     bool IsObjectValid(ObjectHandle);
+
+    void SetObjectName(ObjectHandle, std::string);
+    std::string GetObjectName(ObjectHandle);
+    std::vector<ObjectHandle> GetHandlesByName(std::string name);
+
     void AddChild(ObjectHandle parent, ObjectHandle child);
     Object GetParent(ObjectHandle node);
 
     bool Collide(ObjectHandle, ObjectHandle);
     std::vector<Object> CollideAll(ObjectHandle);
+
+    std::optional<ObjectHandle> GlobalRaycast(Ray ray);
 
     Camera* SwitchCamera(Camera* newCamera);
     void Run();
@@ -119,7 +130,10 @@ class Engine {
     ComponentArray<SpotLight> m_SpotLights;
 
     ComponentArray<Behaviour *> m_Behaviours;
+
     int m_ObjectCount;
+    std::vector<std::string> m_Names;
+    std::map<std::string, std::vector<ObjectHandle>> m_NamesToHandles;
 
     // Hierarchy tree
     PackedArray<ObjectHandle, MAX_OBJECT_COUNT> m_Parents;
@@ -128,7 +142,7 @@ class Engine {
     // Collision cache
     // TODO(theblek): Make this a binary search tree
     // Or just an ordered array and do binary search. Should be fast enough.
-    std::vector<std::vector<bool>> m_CollideCache;
+    std::vector<std::vector<CollisionManifold>> m_CollideCache;
 
     ShaderManager m_ShaderManager;
     FontManager m_FontManager;

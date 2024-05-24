@@ -13,14 +13,15 @@ class PlayerController : public Behaviour {
  private:
     enum MovementMode {Walk, Run, Fly};
     Camera * m_Camera;
-    float m_FlySpeed = 3;
-    float m_RunSpeed = 10;
-    float m_WalkSpeed = 5;
+    float m_FlySpeed = 25;
+    float m_RunSpeed = 15;
+    float m_WalkSpeed = 10;
     float m_MouseSensitivity = SENSIVITY;
     Vec3 lastStandPosition;
     MovementMode m_MovementMode = Walk;
     int camShakeDir = 1;
     float jump_power = 8;
+    float mass = 5.f;
     Vec3 cameraOffset = Vec3(0);
 
     void ProcessKeyboard(float deltaTime) {
@@ -28,7 +29,7 @@ class PlayerController : public Behaviour {
         if (s_Input->IsKeyPressed(Key::F)) {
             if (m_MovementMode == Fly) {
                 m_MovementMode = Walk;
-                self.GetRigidBody()->defaultForce = Vec3(0, -gravity, 0);
+                self.GetRigidBody()->defaultForce = Vec3(0, -gravity * mass, 0);
                 tr->SetTranslation(lastStandPosition);
                 tr->SetScale(Vec3(1.f));
             } else {

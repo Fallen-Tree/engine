@@ -6,3 +6,9 @@ Model *ModelManager::LoadModel(std::string file) {
     }
     return m_Models[file];
 }
+
+Model *ModelManager::LoadModel(std::string file, ShaderProgram *shader) {
+    auto res = LoadModel(file);
+    res->shader = shader;
+    return res;
+}
