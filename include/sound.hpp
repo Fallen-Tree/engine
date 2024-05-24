@@ -29,6 +29,7 @@ class Sound {
     SoundType GetType();
 
     Sound& Start();
+    Sound& Stop();
     Sound& Pause();
 
     // Last volume will be saved

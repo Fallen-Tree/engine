@@ -27,6 +27,11 @@ Object newModel(Transform *transform, Model *model) {
     return obj;
 }
 
+// Object newSkeletalAnimationModel(Tranfsorm *transform, Model *model) {
+    
+//     return obj;
+// }
+
 template<typename T>
 Object newStaticBody(Transform *transform, Model *model, Collider *collider,
         float bounciness = 0.2f, float friction = 0.5f) {

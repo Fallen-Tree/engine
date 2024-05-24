@@ -445,12 +445,12 @@ void Engine::Run() {
     glEnable(GL_DEPTH_TEST);
 
     // FPS variables
-    float lastFpsShowedTime = -2.f;
     int lastRenderedFrame = -1;
     int fpsFrames = 0;
     const float frameTime = 1.f / FPS_LIMIT;
     float deltaTime = 0.0f;
     float lastTime = static_cast<float>(glfwGetTime());
+    float lastFpsShowedTime = lastTime;
 
 
     // render loop

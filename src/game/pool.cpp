@@ -26,10 +26,21 @@ class MovingBall : public Behaviour {
         RigidBody *rb = new RigidBody(mass, IBodySphere(1, mass),
                 0.9f, Vec3(0, -mass * gravity, 0), 0.0001f);
         Object ball = newDynamicBody<MovingBall>(transform, model, collider, rb);
+        auto& s = ball.AddSound(SoundType::SOUND_3D, "beat3.wav").SetVolume(0.5f).SetRadius(20.f);
+        s.Start();
+        s.Pause();
         return ball;
     }
 
     void Update(float dt) override {
+        auto balls = self.CollideAll();
+        for (auto ball : balls) {
+            if (ball.GetCollider()->shape.index() == 1) {
+                self.GetSound()->SetVolume(log2f(self.GetRigidBody()->velocity.length()) * 0.2f);
+                self.GetSound()->Start();
+                break;
+            }
+        }
         // Vec3 pos = self.GetTransform()->GetTranslation();
         // Logger::Info("ball pos: %f %f %f", pos.x, pos.y, pos.z);
         // Logger::Info("name: %d", self.name);
@@ -48,6 +59,7 @@ class Cue : public Behaviour {
         Transform *transform = new Transform(Vec3(0), Vec3(8), Mat4(0));
         Object newCue = newModel<Cue>(transform, model);
         newCue.AddAnimation();
+        newCue.AddSound(SoundType::SOUND_FLAT, "beat3.wav").SetVolume(0.3f);
         reinterpret_cast<Cue*>(newCue.GetBehaviour())->Init(objects, camera);
         return newCue;
     }
@@ -77,6 +89,7 @@ class Cue : public Behaviour {
         if (s_Input->IsKeyPressed(Key::MouseLeft)) {
             if (m_CurrentTarget != nullptr) {
                 m_Attacking = true;
+                self.GetSound()->Start();
                 Vec3 myPos = self.GetTransform()->GetTranslation();
                 Vec3 targetPos = m_CurrentTarget->GetTransform()->GetTranslation();
                 Vec3 direction = glm::normalize(targetPos - myPos);
@@ -113,7 +126,6 @@ class Cue : public Behaviour {
             closest.y = center.y;
             Vec3 onCircle = center + glm::normalize(closest - center) * m_CueDistance;
             self.GetTransform()->SetTranslation(onCircle);
-
             Vec3 toCenter = center - onCircle;
             float angle = glm::acos(glm::dot(toCenter, ray.direction) / m_CueDistance);
             self.GetTransform()->SetRotation(-glm::pi<float>()/2 + 0.06, glm::cross(Vec3{0.f, 1.f, 0.f}, toCenter));
