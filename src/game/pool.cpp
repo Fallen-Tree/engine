@@ -232,7 +232,7 @@ class Table : public Behaviour {
         for (int i = 0; i <= 1; ++i) {
             for (int j = 0; j <= 2; ++j) {
                 Vec3 pos = Vec3(table_w * (j - 1.0f) / 2.0f, top_y, table_l * (i - 0.5f));
-                //Object hole = Hole::New(pos, gameManager);
+                // Object hole = Hole::New(pos, gameManager);
                 // model to show holes position (but not holes scale)
                 // newModel(new Transform(pos, Vec3(0.1), Mat4(1)), Model::loadFromFile("cube.obj"));
             }
