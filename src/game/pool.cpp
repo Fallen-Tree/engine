@@ -36,14 +36,18 @@ class MovingBall : public Behaviour {
         auto balls = self.CollideAll();
         for (auto ball : balls) {
             if (ball.GetCollider()->shape.index() == 1) {
-                self.GetSound()->SetVolume(log2f(self.GetRigidBody()->velocity.length()) * 0.2f);
+                self.GetSound()->SetVolume(log2f(self.GetRigidBody()->velocity.length()) * 0.15f);
                 self.GetSound()->Start();
-                break;
+                return;
             }
         }
-        // Vec3 pos = self.GetTransform()->GetTranslation();
-        // Logger::Info("ball pos: %f %f %f", pos.x, pos.y, pos.z);
-        // Logger::Info("name: %d", self.name);
+        for (auto ball : balls) {
+            if (ball.GetName() == "wall") {
+                self.GetSound()->SetVolume(log2f(self.GetRigidBody()->velocity.length()) * 0.12f);
+                self.GetSound()->Start();
+                return;
+            }
+        }
     }
 };
 
@@ -59,7 +63,7 @@ class Cue : public Behaviour {
         Transform *transform = new Transform(Vec3(0), Vec3(8), Mat4(0));
         Object newCue = newModel<Cue>(transform, model);
         newCue.AddAnimation();
-        newCue.AddSound(SoundType::SOUND_FLAT, "beat3.wav").SetVolume(0.3f);
+        newCue.AddSound(SoundType::SOUND_FLAT, "beat3.wav").SetVolume(0.1f);
         reinterpret_cast<Cue*>(newCue.GetBehaviour())->Init(objects, camera);
         return newCue;
     }
@@ -235,7 +239,8 @@ class Table : public Behaviour {
         };
         for (int i = 0; i < 4; ++i) {
             Collider *col = new Collider{walls[i]};
-            newStaticBody(transform, col, walls_bounciness);
+            auto obj = newStaticBody(transform, col, walls_bounciness);
+            obj.SetName("wall");
         }
         float top_y = position.y + 0.9f * scale.y;
         float table_w = scale.x * width * 2;
