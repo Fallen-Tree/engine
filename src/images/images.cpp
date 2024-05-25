@@ -10,47 +10,67 @@
 #include "user_config.hpp"
 #include "tracy/Tracy.hpp"
 
-Image::Image(std::string path, float relX, float relY, float scale) {
-  path = GetResourcePath(Resource::IMAGE, path);
-  m_Visible = true;
-  m_RelX = relX;
-  m_RelY = relY;
-  m_Scale = scale;
+Image::Image(std::string path) {
+    path = GetResourcePath(Resource::IMAGE, path);
+    m_Visible = true;
 
-  int nrComponents;
-  unsigned char *data = reinterpret_cast<unsigned char*>(
+    int nrComponents;
+    unsigned char *data = reinterpret_cast<unsigned char*>(
     stbi_load(path.c_str(), &m_Width, &m_Height, &nrComponents, 0));
 
-  if (!data) {
+    if (!data) {
       stbi_image_free(data);
       Logger::Error("IMAGE::LOADER::FILE_NOT_FOUND_FAILED: %s", path.c_str());
       return;
-  }
+    }
 
-  glGenTextures(1, &m_TextureID);
-  glBindTexture(GL_TEXTURE_2D, m_TextureID);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glGenTextures(1, &m_TextureID);
+    glBindTexture(GL_TEXTURE_2D, m_TextureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-  glBindTexture(GL_TEXTURE_2D, 0);
-  stbi_image_free(data);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    stbi_image_free(data);
 
-  glGenVertexArrays(1, &m_VAO);
-  glGenBuffers(1, &m_VBO);
-  glBindVertexArray(m_VAO);
-  glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindVertexArray(0);
+    glGenVertexArrays(1, &m_VAO);
+    glGenBuffers(1, &m_VBO);
+    glBindVertexArray(m_VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 }
 
-void Image::SetShaderProgram(ShaderProgram sp) {
+Image::Image(std::string path, float relX, float relY) {
+  m_RelX = relX;
+  m_RelY = relY;
+}
+
+Image::Image(std::string path, float relX, float relY, float scale) {
+  m_RelX = relX;
+  m_RelY = relY;
+  m_Scale = scale;
+}
+
+Image& Image::SetShaderProgram(ShaderProgram sp) {
     m_ShaderProgram = sp;
+    return *this;
+}
+
+Image& Image::SetRelativePosition(float x, float y) {
+    m_RelX = x;
+    m_RelY = y;
+    return *this;
+}
+
+Image& Image::SetScale(float scale) {
+    m_Scale = scale;
+    return *this;
 }
 
 ShaderProgram Image::GetShaderProgram() {
@@ -110,13 +130,3 @@ void Image::Hide() {
 void Image::Show() {
   m_Visible = true;
 }
-
-void Image::SetScale(float scale) {
-  m_Scale = scale;
-}
-
-void Image::SetPosition(float relX, float relY) {
-  m_RelX = relX;
-  m_RelY = relY;
-}
-

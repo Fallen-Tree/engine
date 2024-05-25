@@ -40,7 +40,3 @@
 
 #define DUMP                        0.05
 #define TORQUE_RATIO                1
-// value in [0,1]
-// the more higher the smoother
-// used in LimitTorque
-#define TORQUE_SMOTHNESS            0.5f

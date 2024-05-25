@@ -20,7 +20,9 @@ class Image {
     // coordinates of screen also starts from left bottom corner
     // Scale
     Image() = default;
-    Image(std::string, float, float, float);
+    Image(std::string);
+    Image(std::string, float x, float y);
+    Image(std::string, float x, float y, float scale);
     // Render image
     void Render();
     // to not render picture, default
@@ -28,8 +30,8 @@ class Image {
     // to render picture again
     void Show();
 
-    void SetScale(float);
-    void SetPosition(float, float);
-    void SetShaderProgram(ShaderProgram);
+    Image& SetScale(float);
+    Image& SetRelativePosition(float, float);
+    Image& SetShaderProgram(ShaderProgram);
     ShaderProgram GetShaderProgram();
 };

@@ -536,10 +536,12 @@ CollisionManifold CollidePrimitive(AABB aabb, Sphere s) {
 
 CollisionManifold CollidePrimitive(Sphere s, AABB aabb) {
     CollisionManifold res;
-    auto distanceSq = aabb.Distance2(s.center);
     Vec3 p = aabb.ClosestPoint(s.center);
+    auto distanceSq = glm::length(p - s.center);
 
     res.collide = distanceSq <= s.radius * s.radius;
+    if (!res.collide)
+        return res;
 
     if (isCloseToZero(distanceSq)) {
         auto aabbCenter = (aabb.max + aabb.min) / 2.f;
