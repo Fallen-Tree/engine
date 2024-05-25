@@ -22,11 +22,12 @@ class MovingBall : public Behaviour {
         Material sphereMaterial = {4.f, Texture(diffuseSource)};
         model->setMaterial(sphereMaterial);
 
-        Collider *collider = new Collider{Sphere{Vec3(0.0), 1.0}, 1};
+        Collider *collider = new Collider{Sphere{Vec3(0.0), 1.0}, Collider::Layer1 | Collider::Layer2};
         RigidBody *rb = new RigidBody(mass, IBodySphere(radius, mass),
                 0.9f, Vec3(0, -mass * gravity, 0), 0.1f, rollingFriction);
         rb->typeFriction = TypeFriction::rollingFriction;
         Object ball = newDynamicBody<MovingBall>(transform, model, collider, rb);
+        ball.SetName("Ball");
         auto& s = ball.AddSound(SoundType::SOUND_3D, "beat3.wav").SetVolume(0.5f).SetRadius(20.f);
         s.Start();
         s.Pause();
@@ -216,7 +217,7 @@ class Table : public Behaviour {
 
         // get full mesh of the table or make multiple objects for walls of the table.
         auto colliderModel = engine->GetModelManager().LoadModel("pool/stol_collider2.obj");
-        Collider *col = new Collider {&colliderModel->meshes[0], 1};
+        Collider *col = new Collider {&colliderModel->meshes[0], Collider::Layer2};
         float h0 = -0.5;
         float h = 0.85;
 

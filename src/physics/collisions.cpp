@@ -564,7 +564,7 @@ CollisionManifold CollidePrimitive(Sphere s, AABB aabb) {
     Vec3 outsidePoint = s.center - res.normals[0] * s.radius;
     float distance = glm::length(p - outsidePoint);
     res.pointCnt = 1;
-    res.normals[0] = p + (outsidePoint - p) * 0.5f;
+    res.points[0] = p + (outsidePoint - p) * 0.5f;
     res.penetrationDistance = distance * 0.5f;
     return res;
 }

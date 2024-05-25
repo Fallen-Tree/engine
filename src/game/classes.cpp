@@ -22,7 +22,6 @@ Object newModel(Transform *transform, Model *model) {
 Object newModel(Transform *transform, Model *model) {
     Object obj = engine->NewObject();
     obj.AddTransform(*transform);
-    model->shader = defaultSP;
     obj.AddModel(*model);
     return obj;
 }
