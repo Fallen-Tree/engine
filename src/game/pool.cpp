@@ -129,7 +129,7 @@ class Cue : public Behaviour {
             Vec3 center = m_CurrentTarget->GetTransform()->GetTranslation();
             Vec3 closest = ray.origin + glm::dot(center - ray.origin, ray.direction) * ray.direction;
             closest.y = center.y;
-            Vec3 onCircle = center - glm::normalize(closest - center) * m_CueDistance;
+            Vec3 onCircle = center + glm::normalize(closest - center) * m_CueDistance;
             self.GetTransform()->SetTranslation(onCircle);
             Vec3 toCenter = center - onCircle;
             float angle = glm::acos(glm::dot(toCenter, ray.direction) / m_CueDistance);
@@ -215,7 +215,8 @@ class Table : public Behaviour {
         model->setMaterial(material);
 
         // get full mesh of the table or make multiple objects for walls of the table.
-        Collider *col = new Collider {&model->meshes[0], 1};
+        auto colliderModel = engine->GetModelManager().LoadModel("pool/stol_collider2.obj");
+        Collider *col = new Collider {&colliderModel->meshes[0], 1};
         float h0 = -0.5;
         float h = 0.85;
 
