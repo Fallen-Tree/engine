@@ -24,7 +24,7 @@ class MovingBall : public Behaviour {
 
         Collider *collider = new Collider{Sphere{Vec3(0.0), 1.0}, 1};
         RigidBody *rb = new RigidBody(mass, IBodySphere(radius, mass),
-                0.5f, Vec3(0, -mass * gravity, 0), 0.1f, rollingFriction);
+                0.9f, Vec3(0, -mass * gravity, 0), 0.1f, rollingFriction);
         rb->typeFriction = TypeFriction::rollingFriction;
         Object ball = newDynamicBody<MovingBall>(transform, model, collider, rb);
         auto& s = ball.AddSound(SoundType::SOUND_3D, "beat3.wav").SetVolume(0.5f).SetRadius(20.f);
@@ -129,7 +129,7 @@ class Cue : public Behaviour {
             Vec3 center = m_CurrentTarget->GetTransform()->GetTranslation();
             Vec3 closest = ray.origin + glm::dot(center - ray.origin, ray.direction) * ray.direction;
             closest.y = center.y;
-            Vec3 onCircle = center + glm::normalize(closest - center) * m_CueDistance;
+            Vec3 onCircle = center - glm::normalize(closest - center) * m_CueDistance;
             self.GetTransform()->SetTranslation(onCircle);
             Vec3 toCenter = center - onCircle;
             float angle = glm::acos(glm::dot(toCenter, ray.direction) / m_CueDistance);
@@ -227,7 +227,7 @@ class Table : public Behaviour {
         /*     Vec3{width, h, length}, */
         /* }}; */
         float floor_friction = 0.1f;
-        float floor_bounciness = 0.05f;
+        float floor_bounciness = 0.8f;
         float walls_bounciness = 0.9f;
         Object obj = newStaticBody<Table>(transform, model, col, floor_bounciness, floor_friction);
 
