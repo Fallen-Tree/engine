@@ -1,4 +1,3 @@
-#include <variant>
 #include <optional>
 #include "logger.hpp"
 #include "math_types.hpp"
@@ -72,7 +71,8 @@ inline std::vector<Vec3> ClipEdgesToAABB(
 
 CollisionManifold CollidePrimitive(OBB obb, AABB aabb) {
     auto res = CollidePrimitive(aabb, obb);
-    res.collisionNormal *= -1;
+    for (int i = 0; i < res.pointCnt; i++)
+        res.normals[i] *= -1;
     return res;
 }
 
@@ -147,10 +147,13 @@ CollisionManifold CollidePrimitive(AABB aabb, OBB obb) {
     std::vector<Vec3> c1 = ClipEdgesToOBB(aabb.GetEdges(), obb);
     std::vector<Vec3> c2 = ClipEdgesToAABB(obb.GetEdges(), aabb);
 
+    // TODO(someone): add multiple points, not their aggregate
+    res.pointCnt = 1;
+    res.collide = true;
+    res.normals[0] = axis;
+
     if (c1.size() == 0 && c2.size() == 0) {
-        res.collisionPoint = obb.ClosestPoint((aabb.max + aabb.min) / 2.f);
-        res.collide = true;
-        res.collisionNormal = axis;
+        res.points[0] = obb.ClosestPoint((aabb.max + aabb.min) / 2.f);
         return res;
     }
 
@@ -158,18 +161,15 @@ CollisionManifold CollidePrimitive(AABB aabb, OBB obb) {
     for (auto i : c1) p += i;
     for (auto i : c2) p += i;
 
-    res.collisionPoint = p / static_cast<float>(c1.size() + c2.size());
+    res.points[0] = p / static_cast<float>(c1.size() + c2.size());
 
     Interval i = obb.GetInterval(axis);
     float distance = (i.max - i.min) * 0.5f
         - res.penetrationDistance * 0.5f;
     Vec3 pointOnPlane = obb.center
         + axis * distance;
-    res.collisionPoint += (axis *
-            glm::dot(axis, pointOnPlane - res.collisionPoint));
-
-    res.collide = true;
-    res.collisionNormal = axis;
+    res.points[0] += (axis *
+            glm::dot(axis, pointOnPlane - res.points[0]));
     return res;  // Seperating axis not found
 }
 
@@ -214,7 +214,8 @@ CollisionManifold CollidePrimitive(Triangle triangle, OBB obb) {
 
 CollisionManifold CollidePrimitive(OBB obb, Triangle triangle) {
     auto res = CollidePrimitive(triangle, obb);
-    res.collisionNormal *= 1;
+    for (int i = 0; i < res.pointCnt; i++)
+        res.normals[i] *= 1;
     return res;
 }
 
@@ -289,10 +290,11 @@ CollisionManifold CollidePrimitive(OBB a, OBB b) {
     std::vector<Vec3> c1 = ClipEdgesToOBB(b.GetEdges(), a);
     std::vector<Vec3> c2 = ClipEdgesToOBB(a.GetEdges(), b);
 
+    res.pointCnt = 1;
+    res.collide = true;
+    res.normals[0] = -axis;
     if (c1.size() == 0 && c2.size() == 0) {
-        res.collisionPoint = a.ClosestPoint(b.center);
-        res.collide = true;
-        res.collisionNormal = -axis;
+        res.points[0] = a.ClosestPoint(b.center);
         return res;
     }
 
@@ -300,17 +302,14 @@ CollisionManifold CollidePrimitive(OBB a, OBB b) {
     for (auto i : c1) p += i;
     for (auto i : c2) p += i;
 
-    res.collisionPoint = p / static_cast<float>(c1.size() + c2.size());
+    res.points[0] = p / static_cast<float>(c1.size() + c2.size());
 
     Interval i = a.GetInterval(axis);
     float distance = (i.max - i.min) * 0.5f
         - res.penetrationDistance * 0.5f;
     Vec3 pointOnPlane = a.center + axis * distance;
-    res.collisionPoint += (axis *
-            glm::dot(axis, pointOnPlane - res.collisionPoint));
-
-    res.collide = true;
-    res.collisionNormal = -axis;
+    res.points[0] += (axis *
+            glm::dot(axis, pointOnPlane - res.points[0]));
 
     return res;
 }
@@ -328,27 +327,30 @@ CollisionManifold CollidePrimitive(Sphere a, OBB b) {
         if (isCloseToZero(mSq))  // here manifold can be strange
             return res;
         // Closest point is at the center of the sphere
-        res.collisionNormal = Norm(p - b.center);
+        res.normals[0] = Norm(p - b.center);
     } else {
-        res.collisionNormal = Norm(a.center - p);
+        res.normals[0] = Norm(a.center - p);
     }
 
-    Vec3 outsidePoint = a.center - res.collisionNormal * a.radius;
+    Vec3 outsidePoint = a.center - res.normals[0] * a.radius;
     float distance = glm::length(p - outsidePoint);
-    res.collisionPoint = p + (outsidePoint - p) * 0.5f;
+    res.pointCnt = 1;
+    res.points[0] = p + (outsidePoint - p) * 0.5f;
     res.penetrationDistance = distance * 0.5f;
     return res;
 }
 
 CollisionManifold CollidePrimitive(OBB a, Sphere b) {
     auto res = CollidePrimitive(b, a);
-    res.collisionNormal *= -1;
+    for (int i = 0; i < res.pointCnt; i++)
+        res.normals[i] *= -1;
     return res;
 }
 
 CollisionManifold CollidePrimitive(Plane a, OBB b) {
     auto res = CollidePrimitive(b, a);
-    res.collisionNormal *= -1;
+    for (int i = 0; i < res.pointCnt; i++)
+        res.normals[i] *= -1;
     return res;
 }
 
@@ -363,7 +365,8 @@ CollisionManifold CollidePrimitive(OBB a, Plane b) {
 
 CollisionManifold CollidePrimitive(Plane p, AABB a) {
     auto res = CollidePrimitive(a, p);
-    res.collisionNormal *= -1;
+    for (int i = 0; i < res.pointCnt; i++)
+        res.normals[i] *= -1;
     return res;
 }
 
@@ -431,15 +434,17 @@ CollisionManifold CollidePrimitive(AABB a1, AABB a2) {
         return res;
     }
 
-    res.collisionPoint = Vec3(0);
+    res.pointCnt = 1;
     res.collide = true;
-    res.collisionNormal = -(*hitNormal);
+    res.points[0] = Vec3(0);
+    res.normals[0] = -(*hitNormal);
     return res;
 }
 
 CollisionManifold CollidePrimitive(Triangle t, AABB a) {
     auto res = CollidePrimitive(a, t);
-    res.collisionNormal *= -1;
+    for (int i = 0; i < res.pointCnt; i++)
+        res.normals[i] *= -1;
     return res;
 }
 
@@ -519,18 +524,20 @@ CollisionManifold CollidePrimitive(Sphere s1, Sphere s2) {
         return res;
     float r = s1.radius + s2.radius;
     Vec3 d = s1.center - s2.center;
-    res.collisionNormal = Norm(d);
+    res.pointCnt = 1;
+    res.normals[0] = Norm(d);
     res.penetrationDistance = fabsf(glm::length(d) - r) * 0.5f;
     // dtp - Distance to intersection point
     float dtp = s1.radius - res.penetrationDistance;
     Vec3 contact = s1.center + d * dtp;
-    res.collisionPoint = contact;
+    res.points[0] = contact;
     return res;
 }
 
 CollisionManifold CollidePrimitive(AABB aabb, Sphere s) {
     auto res = CollidePrimitive(s, aabb);
-    res.collisionNormal *= -1;
+    for (int i = 0; i < res.pointCnt; i++)
+        res.normals[i] *= -1;
     return res;
 }
 
@@ -549,14 +556,15 @@ CollisionManifold CollidePrimitive(Sphere s, AABB aabb) {
         if (isCloseToZero(mSq))  // here manifold can be strange
             return res;
         // Closest point is at the center of the sphere
-        res.collisionNormal = Norm(p - aabbCenter);
+        res.normals[0] = Norm(p - aabbCenter);
     } else {
-        res.collisionNormal = Norm(s.center - p);
+        res.normals[0] = Norm(s.center - p);
     }
 
-    Vec3 outsidePoint = s.center - res.collisionNormal * s.radius;
+    Vec3 outsidePoint = s.center - res.normals[0] * s.radius;
     float distance = glm::length(p - outsidePoint);
-    res.collisionPoint = p + (outsidePoint - p) * 0.5f;
+    res.pointCnt = 1;
+    res.normals[0] = p + (outsidePoint - p) * 0.5f;
     res.penetrationDistance = distance * 0.5f;
     return res;
 }
@@ -564,7 +572,8 @@ CollisionManifold CollidePrimitive(Sphere s, AABB aabb) {
 CollisionManifold CollidePrimitive(Sphere, Triangle);
 CollisionManifold CollidePrimitive(Triangle t, Sphere s) {
     auto res = CollidePrimitive(s, t);
-    res.collisionNormal *= -1;
+    for (int i = 0; i < res.pointCnt; i++)
+        res.normals[i] *= -1;
     return res;
 }
 
@@ -573,8 +582,9 @@ CollisionManifold CollidePrimitive(Sphere s, Triangle t) {
     Vec3 closest = t.ClosestPoint(s.center);
     float distance = s.radius - glm::length(closest - s.center);
     res.collide = distance > 0;
-    res.collisionNormal = Norm(s.center - closest);
-    res.collisionPoint = closest;
+    res.pointCnt = res.collide ? 1 : 0;
+    res.normals[0] = Norm(s.center - closest);
+    res.points[0] = closest;
     res.penetrationDistance = distance;
     return res;
 }
@@ -658,21 +668,43 @@ CollisionManifold CollidePrimitive(Triangle t1, Triangle t2) {
 // There should be an overload CollidePrimitive(T, Triangle);
 template<typename T>
 CollisionManifold CollideMeshAt(T t, Mesh *mesh, Transform transform) {
-    CollisionManifold res;
     Mat4 meshMat = glm::transpose(transform.GetTransformMatrix());
     auto loadPos = [=](int i) {
         int id = mesh->getIndices()[i];
         Vec4 res = Vec4 {mesh->getPoints()[id].Position, 1.0} * meshMat;
         return Vec3{ res.x / res.w, res.y / res.w, res.z / res.w };
     };
+    CollisionManifold result;
+    result.penetrationDistance = 0;
+    // This is compile-time known so should be optimized
+    int pointCapacity = (sizeof result.points) / sizeof(Vec3);
+    assert(pointCapacity == 4);
     for (int i = 0; i < mesh->getLenIndices(); i+=3) {
         Triangle tri = Triangle(loadPos(i), loadPos(i + 1), loadPos(i + 2));
         auto manifold = CollidePrimitive(t, tri);
         if (manifold.collide) {
-            return manifold;
+            result.collide = true;
+            int newPointCnt = std::min(result.pointCnt + manifold.pointCnt, pointCapacity);
+            int uniqueNewPoints = 0;
+            for (int i = result.pointCnt; i < newPointCnt; i++) {
+                bool unique = true;
+                for (int j = 0; j < result.pointCnt; j++)
+                    unique = unique && glm::dot(manifold.normals[i - result.pointCnt], result.normals[j]) < 0.8f;
+                if (!unique) continue;
+                uniqueNewPoints += 1; 
+                result.points[i] = manifold.points[i - result.pointCnt];
+                result.normals[i] = manifold.normals[i - result.pointCnt];
+            }
+            result.pointCnt += uniqueNewPoints;
+            result.penetrationDistance += manifold.penetrationDistance;
+            if (result.pointCnt == pointCapacity) {
+                result.penetrationDistance /= result.pointCnt;
+                return result;
+            }
         }
     }
-    return res;
+    result.penetrationDistance /= result.pointCnt;
+    return result;
 }
 template CollisionManifold CollideMeshAt<AABB>(AABB, Mesh *, Transform);
 template CollisionManifold CollideMeshAt<Sphere>(Sphere, Mesh *, Transform);
