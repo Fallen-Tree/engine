@@ -26,7 +26,6 @@ void main()
     gl_Position = projection * view * model * vec4(position, 1.0f);
     Normal = mat3(transpose(inverse(model))) * aNormal;
     FragPos = vec3(model * vec4(position, 1.0));
-    FragPosDirLight[0] = dirLightSpace[0] * vec4(FragPos, 1.0f);
     for (int i = 0; i < lenArrDirL; i++)
         FragPosDirLight[i] = dirLightSpace[i] * vec4(FragPos, 1.0f);
     for (int i = 0; i < lenArrSpotL; i++)

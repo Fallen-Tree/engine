@@ -40,7 +40,7 @@ unsigned int fps = 0;
 
 std::chrono::time_point<std::chrono::high_resolution_clock> _startTime;
 
-const unsigned int SHADOW_WIDTH = 2048, SHADOW_HEIGHT = 2048;
+const unsigned int SHADOW_WIDTH = 4096, SHADOW_HEIGHT = 4096;
 
 unsigned int depthFBO;
 unsigned int depthMap;
@@ -121,7 +121,7 @@ Engine::Engine() : m_FontManager(m_ShaderManager) {
     depthMapImage
         .AddImage(depthMap, SHADOW_WIDTH, SHADOW_HEIGHT)
         .SetRelativePosition(0.01f, 0.01f)
-        .SetScale(0.2f);
+        .SetScale(0.1f);
 
     auto program = m_ShaderManager.LoadShaderProgram(standartVertexShader, fragmentShader);
     m_ShaderManager.SetDefault(program);
@@ -655,8 +655,6 @@ void Engine::Render(int scr_width, int scr_height) {
                     shader->SetVec3("material.specularColor", mesh.material.specularColor);
                 } else {
                     shader->SetInt("useTextures", 1);
-                    shader->SetInt("material.duffuse", 0);
-                    shader->SetInt("material.specular", 1);
                 }
 
                 glBindVertexArray(mesh.VAO);
@@ -669,7 +667,7 @@ void Engine::Render(int scr_width, int scr_height) {
     glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    float size = 45.f;
+    float size = 40.f;
     Mat4 projection = glm::ortho(-size, size, -size, size, .1f, 60.f);
     auto pos = -20.f  * Norm(m_DirLights.entries[0].direction);
     Mat4 view = glm::lookAt(pos, Vec3(0), Vec3(0.f, 0.f, 1.f));
@@ -709,9 +707,9 @@ void Engine::Render(int scr_width, int scr_height) {
             char str[100];
             shader.SetInt("material.diffuse", 0);
             shader.SetInt("material.specular", 1);
+            shader.SetInt("shadowMap", 2);
             glActiveTexture(GL_TEXTURE2);
             glBindTexture(GL_TEXTURE_2D, depthMap);
-            shader.SetInt("shadowMap", 2);
             assert(m_PointLights.GetSize() == 0);
             for (int i = 0; i < m_PointLights.GetSize(); i++) {
                 snprintf(str, sizeof(str), "pointLights[%d].position", i);

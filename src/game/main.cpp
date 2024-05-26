@@ -223,7 +223,7 @@ void buildRoom() {
 
 
     dogModel->shader = new ShaderProgram(
-        engine->GetShaderManager().LoadShaderProgram("skeletal.vshader", "standart.fshader"));
+        engine->GetShaderManager().LoadShaderProgram("skeletal.vshader", "standart2.fshader"));
 
 
     Object dogObj = engine->NewObject();
