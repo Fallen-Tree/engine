@@ -337,7 +337,8 @@ Transform &Engine::AddTransform(ObjectHandle id, Transform v) {
 }
 
 Model &Engine::AddModel(ObjectHandle id, Model v) {
-    if (v.shader == nullptr) {
+    if (v.shader == nullptr || !v.shader->IsValid()) {
+        Logger::Info("Set defualt shader for %s", GetObjectName(id).c_str());
         v.shader = m_ShaderManager.GetDefault();
     }
     m_Models.SetData(id, v);
@@ -618,7 +619,7 @@ void Engine::updateObjects(float deltaTime) {
 void Engine::Render(int scr_width, int scr_height) {
     ZoneScoped;
 
-    auto call_render = [&](ShaderProgram *shader) {
+    auto call_render = [this](ShaderProgram *iShader) {
         for (int model_i = 0; model_i < m_Models.GetSize(); model_i++) {
             ZoneScopedN("Render Call");
             ObjectHandle id = m_Models.GetFromInternal(model_i);
@@ -627,8 +628,7 @@ void Engine::Render(int scr_width, int scr_height) {
             auto &model = m_Models.GetData(id);
             auto transform = GetGlobalTransform(id);
 
-            if (shader == nullptr)
-                shader = model.shader;
+            auto shader = iShader == nullptr ? model.shader : iShader;
             if (shader == nullptr) {
                 Logger::Warn("No shader connected with Model! Model will not be rendered.");
                 continue;
@@ -655,6 +655,8 @@ void Engine::Render(int scr_width, int scr_height) {
                     shader->SetVec3("material.specularColor", mesh.material.specularColor);
                 } else {
                     shader->SetInt("useTextures", 1);
+                    shader->SetInt("material.diffuse", 0);
+                    shader->SetInt("material.specular", 1);
                 }
 
                 glBindVertexArray(mesh.VAO);
@@ -703,13 +705,20 @@ void Engine::Render(int scr_width, int scr_height) {
         Mat4 view = camera->GetViewMatrix();
         Vec3 viewPos = camera->GetPosition();
         for (auto [key, shader] : m_ShaderManager) {
+            Logger::Info("Shader (%s %s) %d", key.first.c_str(), key.second.c_str(), shader.m_Program);
             shader.Use();
-            char str[100];
+
+            shader.SetMat4("projection", projection);
+            shader.SetMat4("view", view);
+            shader.SetVec3("viewPos", viewPos);
+
             shader.SetInt("material.diffuse", 0);
             shader.SetInt("material.specular", 1);
             shader.SetInt("shadowMap", 2);
             glActiveTexture(GL_TEXTURE2);
             glBindTexture(GL_TEXTURE_2D, depthMap);
+
+            char str[100];
             assert(m_PointLights.GetSize() == 0);
             for (int i = 0; i < m_PointLights.GetSize(); i++) {
                 snprintf(str, sizeof(str), "pointLights[%d].position", i);
@@ -768,10 +777,6 @@ void Engine::Render(int scr_width, int scr_height) {
                 shader.SetFloat(str, m_SpotLights.entries[i].quadraticDistCoeff);
             }
             shader.SetInt("lenArrSpotL", m_SpotLights.GetSize());
-            shader.SetMat4("projection", projection);
-
-            shader.SetMat4("view", view);
-            shader.SetVec3("viewPos", viewPos);
         }
     }
     call_render(nullptr);

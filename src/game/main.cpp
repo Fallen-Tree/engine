@@ -58,10 +58,10 @@ void AddLantern(Vec3 pos) {
     Model *lantern = engine->GetModelManager().LoadModel("Lantern/one_mesh.obj");
     Transform * tr = new Transform(pos, Vec3(1.0f), Mat4(1.0f));
     newModel(tr, lantern);
-    /* engine->NewObject().AddPointLight( */
-    /*     Vec3(0.5f, 0.5f, 0.5f), Vec3(1.0f, 1.0f, 1.0f), */
-    /*     Vec3(1.0f, 1.0f, 1.0f), pos, */
-    /*     1.f, 0.05f, 0.01f); */
+    engine->NewObject().AddPointLight(
+        Vec3(0.5f, 0.5f, 0.5f), Vec3(1.0f, 1.0f, 1.0f),
+        Vec3(1.0f, 1.0f, 1.0f), pos,
+        1.f, 0.05f, 0.01f);
 }
 
 void createLights() {
@@ -221,12 +221,10 @@ void buildRoom() {
         mesh.material.diffuseColor *= 1.5f;
     }
 
-
     dogModel->shader = new ShaderProgram(
-        engine->GetShaderManager().LoadShaderProgram("skeletal.vshader", "standart2.fshader"));
+        engine->GetShaderManager().LoadShaderProgram("skeletal.vshader", "standart.fshader"));
 
-
-    Object dogObj = engine->NewObject();
+    Object dogObj = engine->NewObject("Dog");
     dogSound = engine->NewObject();
     dogSound.AddTransform(Vec3(0), Vec3(0), Mat4(1.f));
     dogSound.AddSound(SoundType::SOUND_3D, "dog-panting-1.mp3", true).SetVolume(10.f).SetRadius(20.f);
@@ -235,7 +233,9 @@ void buildRoom() {
     dogObj.AddSound(SoundType::SOUND_3D, "dog-sniffing.wav", true).SetVolume(10.f).SetRadius(20.f);
     dogObj.AddChild(dogSound);
 
-    dogObj.AddModel(*dogModel);
+    auto &m = dogObj.AddModel(*dogModel);
+    Logger::Info("Shader = %d", m.shader->m_Program);
+
     class DogBehaviour : public Behaviour {
      private:
         float direction = 0.f;

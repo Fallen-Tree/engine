@@ -75,7 +75,6 @@ Image::Image(std::string path, float relX, float relY, float scale) {
 }
 
 Image& Image::SetShaderProgram(ShaderProgram sp) {
-    Logger::Info("Shader program set!");
     m_ShaderProgram = sp;
     return *this;
 }
