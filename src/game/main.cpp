@@ -58,37 +58,35 @@ void AddLantern(Vec3 pos) {
     Model *lantern = engine->GetModelManager().LoadModel("Lantern/one_mesh.obj");
     Transform * tr = new Transform(pos, Vec3(1.0f), Mat4(1.0f));
     newModel(tr, lantern);
-    engine->NewObject().AddPointLight(
-        Vec3(0.5f, 0.5f, 0.5f), Vec3(1.0f, 1.0f, 1.0f),
-        Vec3(1.0f, 1.0f, 1.0f), pos,
-        1.f, 0.05f, 0.01f);
+    /* engine->NewObject().AddPointLight( */
+    /*     Vec3(0.5f, 0.5f, 0.5f), Vec3(1.0f, 1.0f, 1.0f), */
+    /*     Vec3(1.0f, 1.0f, 1.0f), pos, */
+    /*     1.f, 0.05f, 0.01f); */
 }
 
 void createLights() {
-    engine->NewObject().AddPointLight(
-        Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
-        Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0, 10.0, 0.0),
-        1.f, 0.0f, 0.01f);
+    /* engine->NewObject().AddPointLight( */
+    /*     Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f), */
+    /*     Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0, 10.0, 0.0), */
+    /*     1.f, 0.0f, 0.01f); */
 
-    engine->NewObject().AddPointLight(
-        Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
-        Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0f, 10.0f, -20.0f),
-        1.f, 0.0f, 0.01f);
+    /* engine->NewObject().AddPointLight( */
+    /*     Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f), */
+    /*     Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0f, 10.0f, -20.0f), */
+    /*     1.f, 0.0f, 0.01f); */
 
-    engine->NewObject().AddPointLight(
-        Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
-        Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0f,  10.0f, 20.0f),
-        1.f, 0.0f, 0.01f);
-    /*
+    /* engine->NewObject().AddPointLight( */
+    /*     Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f), */
+    /*     Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0f,  10.0f, 20.0f), */
+    /*     1.f, 0.0f, 0.01f); */
     engine->NewObject().AddDirLight(
-        Vec3(0.05f, 0.05f, 0.05f), Vec3(0.4f, 0.4f, 0.4f),
-        Vec3(0.5f, 0.5f, 0.5f),  Vec3(-0.2f, -1.0f, -0.3f));
-    */
-    engine->NewObject().AddSpotLight(Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
-        Vec3(1.0f, 1.0f, 1.0f), Vec3(1.0f, 1.0f, 1.0f),
-        1.0f, 0.09f, 0.032f, Vec3(0),
-        glm::cos(glm::radians(12.5f)),
-        glm::cos(glm::radians(15.0f)));
+        Vec3(0.2f), Vec3(1.0f),
+        Vec3(1.0f),  Vec3(-0.2f, -1.0f, -0.3f));
+    /* engine->NewObject().AddSpotLight(Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f), */
+    /*     Vec3(1.0f, 1.0f, 1.0f), Vec3(1.0f, 1.0f, 1.0f), */
+    /*     1.0f, 0.09f, 0.032f, Vec3(0), */
+    /*     glm::cos(glm::radians(12.5f)), */
+    /*     glm::cos(glm::radians(15.0f))); */
     /*
     engine->NewObject().AddSpotLight(Vec3(0.0f, 0.0f, 0.0f), Vec3(0.5f, 0.5f, 0.5f),
         Vec3(0.3f, 0.3f, .3f), Vec3(1.0f, 1.0f, 1.0f),
@@ -99,29 +97,31 @@ void createLights() {
 }
 
 void buildRoom() {
+    createLights();
     float floor_y = -6.0f;
 
     float wall_scale = 4.0f;
     int walls_cnt = 2;
     Vec3 wall_y = Vec3(0, floor_y, 0);
-    Model *w2 = engine->GetModelManager().LoadModel("wall.fbx");
-    for (int i = -walls_cnt; i <= walls_cnt; ++i) {
-        newModel(
-            new Transform(Vec3(i, 0, -walls_cnt) * 4.0f * wall_scale + wall_y,
-                Vec3(wall_scale), Mat4(1.0)), w2);
-        newModel(
-            new Transform(Vec3(i, 0, walls_cnt) * 4.0f * wall_scale + wall_y,
-                Vec3(wall_scale), Mat4(1.0)), w2)
-            .GetTransform()->Rotate(0, glm::radians(180.0f), 0);
-        newModel(
-            new Transform(Vec3(-walls_cnt, 0, i) * 4.0f * wall_scale + wall_y,
-                Vec3(wall_scale), Mat4(1.0)), w2)
-            .GetTransform()->Rotate(0, glm::radians(90.0f), 0);
-        newModel(
-            new Transform(Vec3(walls_cnt, 0, i) * 4.0f * wall_scale + wall_y,
-                Vec3(wall_scale), Mat4(1.0)), w2)
-            .GetTransform()->Rotate(0, glm::radians(-90.0f), 0);
-    }
+    /* Model *w2 = engine->GetModelManager().LoadModel("wall.fbx"); */
+    /* for (int i = -walls_cnt; i <= walls_cnt; ++i) { */
+    /*     newModel( */
+    /*         new Transform(Vec3(i, 0, -walls_cnt) * 4.0f * wall_scale + wall_y, */
+    /*             Vec3(wall_scale), Mat4(1.0)), w2); */
+    /*     newModel( */
+    /*         new Transform(Vec3(i, 0, walls_cnt) * 4.0f * wall_scale + wall_y, */
+    /*             Vec3(wall_scale), Mat4(1.0)), w2) */
+    /*         .GetTransform()->Rotate(0, glm::radians(180.0f), 0); */
+    /*     newModel( */
+    /*         new Transform(Vec3(-walls_cnt, 0, i) * 4.0f * wall_scale + wall_y, */
+    /*             Vec3(wall_scale), Mat4(1.0)), w2) */
+    /*         .GetTransform()->Rotate(0, glm::radians(90.0f), 0); */
+    /*     newModel( */
+    /*         new Transform(Vec3(walls_cnt, 0, i) * 4.0f * wall_scale + wall_y, */
+    /*             Vec3(wall_scale), Mat4(1.0)), w2) */
+    /*         .GetTransform()->Rotate(0, glm::radians(-90.0f), 0); */
+    /* } */
+    /* engine->NewObject().AddImage("hp.png", 0.03f, 0.15f, 0.4f); */
 
     float walls_x = walls_cnt * wall_scale * 4.5f + 3.8f;
     newStaticBody(new Transform(Vec3(0), Vec3(1), Mat4(1)), new Collider{AABB {
@@ -165,25 +165,25 @@ void buildRoom() {
         }
     }
 
-    Model *ceil = engine->GetModelManager().LoadModel("floor/one_mesh.obj");
+    /* Model *ceil = engine->GetModelManager().LoadModel("floor/one_mesh.obj"); */
 
-    int ceil_cnt = 2;
+    /* int ceil_cnt = 2; */
 
-    float ceil_scale = 5.0f;
-    float ceil_y = floor_y + 20.0f;
-    for (int i = -ceil_cnt; i <= ceil_cnt; ++i) {
-        for (int j = -ceil_cnt; j <= ceil_cnt; ++j) {
-        newModel(new Transform(Vec3(i, 0, j) * 3.5f * ceil_scale + Vec3(0, ceil_y + (i & 1) * 0.01f, 0),
-                Vec3(ceil_scale), Mat4(1.0)), ceil)
-            .GetTransform()->Rotate(glm::radians(180.f), 0, 0);
-        }
-    }
+    /* float ceil_scale = 5.0f; */
+    /* float ceil_y = floor_y + 20.0f; */
+    /* for (int i = -ceil_cnt; i <= ceil_cnt; ++i) { */
+    /*     for (int j = -ceil_cnt; j <= ceil_cnt; ++j) { */
+    /*     newModel(new Transform(Vec3(i, 0, j) * 3.5f * ceil_scale + Vec3(0, ceil_y + (i & 1) * 0.01f, 0), */
+    /*             Vec3(ceil_scale), Mat4(1.0)), ceil) */
+    /*         .GetTransform()->Rotate(glm::radians(180.f), 0, 0); */
+    /*     } */
+    /* } */
 
-    for (int i = -1; i <= 1; ++i) {
-        for (int j = -1; j <= 1; ++j) {
-            AddLantern(Vec3(i * 25, 12, j * 25));
-        }
-    }
+    /* for (int i = -1; i <= 1; ++i) { */
+    /*     for (int j = -1; j <= 1; ++j) { */
+    /*         AddLantern(Vec3(i * 25, 12, j * 25)); */
+    /*     } */
+    /* } */
 
     float cc_scale = 1.5f;
     Model *cc = engine->GetModelManager().LoadModel("CompanionCube/Portal_Companion_Cube.obj");

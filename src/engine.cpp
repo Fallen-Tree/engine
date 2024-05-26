@@ -40,6 +40,12 @@ unsigned int fps = 0;
 
 std::chrono::time_point<std::chrono::high_resolution_clock> _startTime;
 
+const unsigned int SHADOW_WIDTH = 2048, SHADOW_HEIGHT = 2048;
+
+unsigned int depthFBO;
+unsigned int depthMap;
+Object depthMapImage;
+
 Camera* Engine::SwitchCamera(Camera* newCamera) {
     if (!newCamera) {
         Logger::Error("ENGINE::ARGUMENT_IN_SWITCHCAMERA_NULL!\n");
@@ -95,6 +101,27 @@ Engine::Engine() : m_FontManager(m_ShaderManager) {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return;
     }
+
+    glGenFramebuffers(1, &depthFBO);
+    glGenTextures(1, &depthMap);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 
+                 SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); 
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);  
+
+    glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    depthMapImage = NewObject("DepthMapImage");
+    depthMapImage
+        .AddImage(depthMap, SHADOW_WIDTH, SHADOW_HEIGHT)
+        .SetRelativePosition(0.01f, 0.01f)
+        .SetScale(0.2f);
 
     auto program = m_ShaderManager.LoadShaderProgram(standartVertexShader, fragmentShader);
     m_ShaderManager.SetDefault(program);
@@ -459,7 +486,7 @@ void Engine::Run() {
         ZoneScopedN("Frame");
         float currentTime = static_cast<float>(glfwGetTime());
         deltaTime = currentTime - lastTime;
-        deltaTime = min(deltaTime, 0.03f);
+        deltaTime = std::min(deltaTime, 0.03f);
         Time::SetDeltaTime(deltaTime);
         lastTime = currentTime;
 
@@ -590,6 +617,72 @@ void Engine::updateObjects(float deltaTime) {
 
 void Engine::Render(int scr_width, int scr_height) {
     ZoneScoped;
+
+    auto call_render = [&](ShaderProgram *shader) {
+        for (int model_i = 0; model_i < m_Models.GetSize(); model_i++) {
+            ZoneScopedN("Render Call");
+            ObjectHandle id = m_Models.GetFromInternal(model_i);
+            if (!m_Transforms.HasData(id)) continue;
+
+            auto &model = m_Models.GetData(id);
+            auto transform = GetGlobalTransform(id);
+
+            if (shader == nullptr)
+                shader = model.shader;
+            if (shader == nullptr) {
+                Logger::Warn("No shader connected with Model! Model will not be rendered.");
+                continue;
+            }
+
+            shader->Use();
+            shader->SetMat4("model", transform.GetTransformMatrix());
+
+            if (m_SkeletalAnimationsManagers.HasData(id)) {
+                auto bones = m_SkeletalAnimationsManagers.GetData(id).GetFinalBoneMatrices();
+                for (int i = 0; i < bones.size(); ++i) {
+                    shader->SetMat4(("finalBonesMatrices[" + std::to_string(i) + "]").c_str(), bones[i]);
+                }
+            }
+
+            for (RenderMesh mesh : model.meshes) {
+                ZoneScopedN("Render Mesh");
+                shader->SetFloat("material.shininess", mesh.material.shininess);
+                mesh.material.texture.bind();
+
+                if (mesh.material.texture.countComponents() == 0) {
+                    shader->SetInt("useTextures", 0);
+                    shader->SetVec3("material.diffuseColor", mesh.material.diffuseColor);
+                    shader->SetVec3("material.specularColor", mesh.material.specularColor);
+                } else {
+                    shader->SetInt("useTextures", 1);
+                    shader->SetInt("material.duffuse", 0);
+                    shader->SetInt("material.specular", 1);
+                }
+
+                glBindVertexArray(mesh.VAO);
+                glDrawElements(GL_TRIANGLES, mesh.getLenIndices(), GL_UNSIGNED_INT, 0);
+            }
+        }
+    };
+
+    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    float size = 45.f;
+    Mat4 projection = glm::ortho(-size, size, -size, size, .1f, 60.f);
+    auto pos = -20.f  * Norm(m_DirLights.entries[0].direction);
+    Mat4 view = glm::lookAt(pos, Vec3(0), Vec3(0.f, 0.f, 1.f));
+    Mat4 lightSpace = projection * view;
+    auto shader = GetShaderManager().LoadShaderProgram("depth.vshader", "empty.fshader");
+    shader.Use();
+    shader.SetMat4("lightSpace", lightSpace);
+    call_render(&shader);
+
+    // Configure and render somehow to generate shadow map
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
+    glViewport(viewportStartX, viewportStartY, viewportWidth, viewportHeight);
     // Coloring all window (black)
     glClearColor(0.f, 0.f, 0.f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -607,117 +700,85 @@ void Engine::Render(int scr_width, int scr_height) {
             static_cast<float>(viewportHeight)
         });
     {
-    ZoneScopedN("Send Lights+Camera data");
-    Mat4 projection = camera->GetProjectionMatrix();
-    Mat4 view = camera->GetViewMatrix();
-    Vec3 viewPos = camera->GetPosition();
-    for (auto [key, shader] : m_ShaderManager) {
-        shader.Use();
-        char str[100];
-        for (int i = 0; i < m_PointLights.GetSize(); i++) {
-            snprintf(str, sizeof(str), "pointLights[%d].position", i);
-            shader.SetVec3(str, m_PointLights.entries[i].position);
-            snprintf(str, sizeof(str), "pointLights[%d].ambient", i);
-            shader.SetVec3(str, m_PointLights.entries[i].ambient);
-            snprintf(str, sizeof(str), "pointLights[%d].diffuse", i);
-            shader.SetVec3(str, m_PointLights.entries[i].diffuse);
-            snprintf(str, sizeof(str), "pointLights[%d].specular", i);
-            shader.SetVec3(str, m_PointLights.entries[i].specular);
-            snprintf(str, sizeof(str), "pointLights[%d].linearDistCoeff", i);
-            shader.SetFloat(str, m_PointLights.entries[i].linearDistCoeff);
-            snprintf(str, sizeof(str), "pointLights[%d].quadraticDistCoeff", i);
-            shader.SetFloat(str, m_PointLights.entries[i].quadraticDistCoeff);
-            snprintf(str, sizeof(str), "pointLights[%d].constDistCoeff", i);
-            shader.SetFloat(str, m_PointLights.entries[i].constDistCoeff);
-        }
-
-        shader.SetInt("lenArrPointL", m_PointLights.GetSize());
-        // directionLight
-        for (int i = 0; i < m_DirLights.GetSize(); i++) {
-            snprintf(str, sizeof(str), "dirLight[%d].ambinet", i);
-            shader.SetVec3(str, m_DirLights.entries[i].ambient);
-            snprintf(str, sizeof(str), "dirLight[%d].specular", i);
-            shader.SetVec3(str, m_DirLights.entries[i].specular);
-            snprintf(str, sizeof(str), "dirLight[%d].direction", i);
-            shader.SetVec3(str, m_DirLights.entries[i].direction);
-            snprintf(str, sizeof(str), "dirLight[%d].diffuse", i);
-            shader.SetVec3(str, m_DirLights.entries[i].diffuse);
-        }
-        shader.SetInt("lenArrDirL", m_DirLights.GetSize());
-        // spotLight
-        for (int i = 0; i < m_SpotLights.GetSize(); i++) {
-            snprintf(str, sizeof(str), "spotLight[%d].diffuse", i);
-            shader.SetVec3(str, m_SpotLights.entries[i].diffuse);
-            snprintf(str, sizeof(str), "spotLight[%d].direction", i);
-            shader.SetVec3(str, camera->GetFront());
-            snprintf(str, sizeof(str), "spotLight[%d].ambient", i);
-            shader.SetVec3(str, m_SpotLights.entries[i].ambient);
-            snprintf(str, sizeof(str), "spotLight[%d].position", i);
-            shader.SetVec3(str, camera->GetPosition());
-            snprintf(str, sizeof(str), "spotLight[%d].specular", i);
-            shader.SetVec3(str, m_SpotLights.entries[i].specular);
-            snprintf(str, sizeof(str), "spotLight[%d].cutOff", i);
-            shader.SetFloat(str, m_SpotLights.entries[i].cutOff);
-            snprintf(str, sizeof(str), "spotLight[%d].linearDistCoeff", i);
-            shader.SetFloat(str, m_SpotLights.entries[i].linearDistCoeff);
-            snprintf(str, sizeof(str), "spotLight[%d].outerCutOff", i);
-            shader.SetFloat(str, m_SpotLights.entries[i].outerCutOff);
-            snprintf(str, sizeof(str), "spotLight[%d].constDistCoeff", i);
-            shader.SetFloat(str, m_SpotLights.entries[i].constDistCoeff);
-            snprintf(str, sizeof(str), "spotLight[%d].quadraticDistCoeff", i);
-            shader.SetFloat(str, m_SpotLights.entries[i].quadraticDistCoeff);
-        }
-        shader.SetInt("lenArrSpotL", m_SpotLights.GetSize());
-        shader.SetMat4("projection", projection);
-
-        shader.SetMat4("view", view);
-        shader.SetVec3("viewPos", viewPos);
-    }
-    }
-    for (int model_i = 0; model_i < m_Models.GetSize(); model_i++) {
-        ZoneScopedN("Render Call");
-        ObjectHandle id = m_Models.GetFromInternal(model_i);
-        if (!m_Transforms.HasData(id)) continue;
-
-        auto &model = m_Models.GetData(id);
-        auto transform = GetGlobalTransform(id);
-
-        ShaderProgram* shader = model.shader;
-        if (shader == nullptr) {
-            Logger::Warn("No shader connected with Model! Model will not be rendered.");
-            continue;
-        }
-
-        shader->Use();
-        shader->SetMat4("model", transform.GetTransformMatrix());
-
-        if (m_SkeletalAnimationsManagers.HasData(id)) {
-            auto bones = m_SkeletalAnimationsManagers.GetData(id).GetFinalBoneMatrices();
-            for (int i = 0; i < bones.size(); ++i) {
-                shader->SetMat4(("finalBonesMatrices[" + std::to_string(i) + "]").c_str(), bones[i]);
-            }
-        }
-
-        for (RenderMesh mesh : model.meshes) {
-            ZoneScopedN("Render Mesh");
-            shader->SetFloat("material.shininess", mesh.material.shininess);
-            mesh.material.texture.bind();
-
-            if (mesh.material.texture.countComponents() == 0) {
-                shader->SetInt("useTextures", 0);
-                shader->SetVec3("material.diffuseColor", mesh.material.diffuseColor);
-                shader->SetVec3("material.specularColor", mesh.material.specularColor);
-            } else {
-                shader->SetInt("useTextures", 1);
-                shader->SetInt("material.duffuse", 0);
-                shader->SetInt("material.specular", 1);
+        ZoneScopedN("Send Lights+Camera data");
+        Mat4 projection = camera->GetProjectionMatrix();
+        Mat4 view = camera->GetViewMatrix();
+        Vec3 viewPos = camera->GetPosition();
+        for (auto [key, shader] : m_ShaderManager) {
+            shader.Use();
+            char str[100];
+            shader.SetInt("material.diffuse", 0);
+            shader.SetInt("material.specular", 1);
+            glActiveTexture(GL_TEXTURE2);
+            glBindTexture(GL_TEXTURE_2D, depthMap);
+            shader.SetInt("shadowMap", 2);
+            assert(m_PointLights.GetSize() == 0);
+            for (int i = 0; i < m_PointLights.GetSize(); i++) {
+                snprintf(str, sizeof(str), "pointLights[%d].position", i);
+                shader.SetVec3(str, m_PointLights.entries[i].position);
+                snprintf(str, sizeof(str), "pointLights[%d].ambient", i);
+                shader.SetVec3(str, m_PointLights.entries[i].ambient);
+                snprintf(str, sizeof(str), "pointLights[%d].diffuse", i);
+                shader.SetVec3(str, m_PointLights.entries[i].diffuse);
+                snprintf(str, sizeof(str), "pointLights[%d].specular", i);
+                shader.SetVec3(str, m_PointLights.entries[i].specular);
+                snprintf(str, sizeof(str), "pointLights[%d].linearDistCoeff", i);
+                shader.SetFloat(str, m_PointLights.entries[i].linearDistCoeff);
+                snprintf(str, sizeof(str), "pointLights[%d].quadraticDistCoeff", i);
+                shader.SetFloat(str, m_PointLights.entries[i].quadraticDistCoeff);
+                snprintf(str, sizeof(str), "pointLights[%d].constDistCoeff", i);
+                shader.SetFloat(str, m_PointLights.entries[i].constDistCoeff);
             }
 
-            glBindVertexArray(mesh.VAO);
-            glDrawElements(GL_TRIANGLES, mesh.getLenIndices(), GL_UNSIGNED_INT, 0);
+            shader.SetInt("lenArrPointL", m_PointLights.GetSize());
+            // directionLight
+            assert(m_DirLights.GetSize() == 1);
+            shader.SetMat4("dirLightSpace[0]", lightSpace);
+            for (int i = 0; i < m_DirLights.GetSize(); i++) {
+                snprintf(str, sizeof(str), "dirLights[%d].ambient", i);
+                shader.SetVec3(str, m_DirLights.entries[i].ambient);
+                snprintf(str, sizeof(str), "dirLights[%d].specular", i);
+                shader.SetVec3(str, m_DirLights.entries[i].specular);
+                snprintf(str, sizeof(str), "dirLights[%d].direction", i);
+                shader.SetVec3(str, m_DirLights.entries[i].direction);
+                snprintf(str, sizeof(str), "dirLights[%d].diffuse", i);
+                shader.SetVec3(str, m_DirLights.entries[i].diffuse);
+            }
+            shader.SetInt("lenArrDirL", m_DirLights.GetSize());
+            // spotLight
+            assert(m_SpotLights.GetSize() == 0);
+            for (int i = 0; i < m_SpotLights.GetSize(); i++) {
+                snprintf(str, sizeof(str), "spotLights[%d].diffuse", i);
+                shader.SetVec3(str, m_SpotLights.entries[i].diffuse);
+                snprintf(str, sizeof(str), "spotLights[%d].direction", i);
+                shader.SetVec3(str, camera->GetFront());
+                snprintf(str, sizeof(str), "spotLights[%d].ambient", i);
+                shader.SetVec3(str, m_SpotLights.entries[i].ambient);
+                snprintf(str, sizeof(str), "spotLights[%d].position", i);
+                shader.SetVec3(str, camera->GetPosition());
+                snprintf(str, sizeof(str), "spotLights[%d].specular", i);
+                shader.SetVec3(str, m_SpotLights.entries[i].specular);
+                snprintf(str, sizeof(str), "spotLights[%d].cutOff", i);
+                shader.SetFloat(str, m_SpotLights.entries[i].cutOff);
+                snprintf(str, sizeof(str), "spotLights[%d].linearDistCoeff", i);
+                shader.SetFloat(str, m_SpotLights.entries[i].linearDistCoeff);
+                snprintf(str, sizeof(str), "spotLights[%d].outerCutOff", i);
+                shader.SetFloat(str, m_SpotLights.entries[i].outerCutOff);
+                snprintf(str, sizeof(str), "spotLights[%d].constDistCoeff", i);
+                shader.SetFloat(str, m_SpotLights.entries[i].constDistCoeff);
+                snprintf(str, sizeof(str), "spotLights[%d].quadraticDistCoeff", i);
+                shader.SetFloat(str, m_SpotLights.entries[i].quadraticDistCoeff);
+            }
+            shader.SetInt("lenArrSpotL", m_SpotLights.GetSize());
+            shader.SetMat4("projection", projection);
+
+            shader.SetMat4("view", view);
+            shader.SetVec3("viewPos", viewPos);
         }
     }
+    call_render(nullptr);
 
+    assert(m_Images.GetSize() == 1);
     for (auto &image : m_Images) {
         image.Render();
     }
