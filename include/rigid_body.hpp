@@ -74,10 +74,6 @@ private:
 
  void AngularCalculation(Transform *transform, float dt);
 
- void ComputeForceTorque(RigidBody* otherRigidBody,
-         CollisionManifold manifold, Transform tranform,
-         Transform otherTransform, float dt);
-
  void ComputeFriction(Vec3 normalForce, float friction, Vec3 r, float dt,
          Vec3 normal, Transform tranform);
 

@@ -1,10 +1,7 @@
 #include "rigid_body.hpp"
 #include "logger.hpp"
-#include "time.hpp"
 #include "pretty_print.hpp"
 #include "engine_config.hpp"
-#include "user_config.hpp"
-#include "collider.hpp"
 
 Mat3 IBodySphere(float radius, float mass) {
     return Mat3(2.f/5 * mass * radius * radius);
@@ -90,13 +87,10 @@ void RigidBody::ResolveCollisions(RigidBody *otherRigidBody,
         CollisionManifold manifold,
         Transform globalTransform, Transform otherGlobalTransform,
         Transform& tr1, Transform& tr2, float dt) {
-    auto epsilon = 0.000001;
-
-    if (massInverse == 0 && otherRigidBody->massInverse == 0) {
+    if (massInverse == 0 && otherRigidBody->massInverse == 0)
         return;
-    }
 
-    if (manifold.penetrationDistance <= epsilon)
+    if (manifold.penetrationDistance <= EPS)
         manifold.penetrationDistance = 0;
 
     Vec3 avgNormal = Vec3(0);
@@ -109,12 +103,6 @@ void RigidBody::ResolveCollisions(RigidBody *otherRigidBody,
     if (otherRigidBody->massInverse != 0)
         tr2.Translate(-avgNormal * manifold.penetrationDistance * 0.5f);
 
-    /* if (manifold.pointCnt > 1) { */
-    /*     Logger::Info("%d collision points with avg normal: %s", manifold.pointCnt, ToString(avgNormal)); */
-    /*     for (int i = 0; i < manifold.pointCnt; i++) { */
-    /*         Logger::Info(ToString(manifold.normals[i])); */
-    /*     } */
-    /* } */
     // Compute Force and Torque per collision point/normal
     for (int i = 0; i < manifold.pointCnt; i++) {
         Vec3 rv = velocity - otherRigidBody->velocity;
