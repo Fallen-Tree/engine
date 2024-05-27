@@ -27,6 +27,9 @@ Shader ShaderManager::LoadShader(ShaderType type, std::string filename) {
 
 void ShaderManager::SetDefault(std::string vertex, std::string fragment) {
     m_DefaultShader = LoadShaderProgram(vertex, fragment);
+}
+
+void ShaderManager::SetDefaultDepthShader(std::string vertex) {
     m_DefaultDepthShader = LoadShaderProgram(vertex, "empty.fshader");
 }
 

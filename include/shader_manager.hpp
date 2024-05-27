@@ -10,6 +10,7 @@ class ShaderManager {
      ShaderProgram LoadShaderProgram(std::string vertexFilename, std::string fragmentFilename);
      Shader LoadShader(ShaderType type, std::string filename);
      void SetDefault(std::string vertexFilename, std::string fragmentFilename);
+     void SetDefaultDepthShader(std::string vertexFilename);
      ShaderProgram &GetDefault();
      ShaderProgram &GetDefaultDepth();
 
