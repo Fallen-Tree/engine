@@ -221,8 +221,8 @@ void buildRoom() {
         mesh.material.diffuseColor *= 1.5f;
     }
 
-    dogModel->shader = new ShaderProgram(
-        engine->GetShaderManager().LoadShaderProgram("skeletal.vshader", "standart.fshader"));
+    dogModel->shader = engine->GetShaderManager()
+        .LoadShaderProgram("skeletal.vshader", "standart.fshader");
 
     Object dogObj = engine->NewObject("Dog");
     dogSound = engine->NewObject();
@@ -234,7 +234,6 @@ void buildRoom() {
     dogObj.AddChild(dogSound);
 
     auto &m = dogObj.AddModel(*dogModel);
-    Logger::Info("Shader = %d", m.shader->m_Program);
 
     class DogBehaviour : public Behaviour {
      private:

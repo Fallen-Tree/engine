@@ -3,9 +3,6 @@
 #include "engine.hpp"
 #include "object.hpp"
 #include "behaviour.hpp"
-#include "collisions.hpp"
-#include "logger.hpp"
-#include "sound.hpp"
 #include <glm/gtx/string_cast.hpp>
 
 const char *cubeSource = "cube2.obj";

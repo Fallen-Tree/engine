@@ -123,8 +123,7 @@ Engine::Engine() : m_FontManager(m_ShaderManager) {
         .SetRelativePosition(0.01f, 0.01f)
         .SetScale(0.1f);
 
-    auto program = m_ShaderManager.LoadShaderProgram(standartVertexShader, fragmentShader);
-    m_ShaderManager.SetDefault(program);
+    m_ShaderManager.SetDefault(standartVertexShader, fragmentShader);
 }
 
 Engine::~Engine() {
@@ -337,10 +336,10 @@ Transform &Engine::AddTransform(ObjectHandle id, Transform v) {
 }
 
 Model &Engine::AddModel(ObjectHandle id, Model v) {
-    if (v.shader == nullptr || !v.shader->IsValid()) {
-        Logger::Info("Set defualt shader for %s", GetObjectName(id).c_str());
+    if (!v.shader.IsValid())
         v.shader = m_ShaderManager.GetDefault();
-    }
+    if (!v.depthShader.IsValid())
+        v.depthShader = m_ShaderManager.GetDefaultDepth();
     m_Models.SetData(id, v);
     return m_Models.GetData(id);
 }
@@ -619,7 +618,7 @@ void Engine::updateObjects(float deltaTime) {
 void Engine::Render(int scr_width, int scr_height) {
     ZoneScoped;
 
-    auto call_render = [this](ShaderProgram *iShader) {
+    auto call_render = [this](bool depthPass) {
         for (int model_i = 0; model_i < m_Models.GetSize(); model_i++) {
             ZoneScopedN("Render Call");
             ObjectHandle id = m_Models.GetFromInternal(model_i);
@@ -628,35 +627,35 @@ void Engine::Render(int scr_width, int scr_height) {
             auto &model = m_Models.GetData(id);
             auto transform = GetGlobalTransform(id);
 
-            auto shader = iShader == nullptr ? model.shader : iShader;
-            if (shader == nullptr) {
-                Logger::Warn("No shader connected with Model! Model will not be rendered.");
+            auto &shader = depthPass ? model.depthShader : model.shader;
+            if (!shader.IsValid()) {
+                Logger::Warn("No valid shader connected with Model! Model will not be rendered.");
                 continue;
             }
 
-            shader->Use();
-            shader->SetMat4("model", transform.GetTransformMatrix());
+            shader.Use();
+            shader.SetMat4("model", transform.GetTransformMatrix());
 
             if (m_SkeletalAnimationsManagers.HasData(id)) {
                 auto bones = m_SkeletalAnimationsManagers.GetData(id).GetFinalBoneMatrices();
                 for (int i = 0; i < bones.size(); ++i) {
-                    shader->SetMat4(("finalBonesMatrices[" + std::to_string(i) + "]").c_str(), bones[i]);
+                    shader.SetMat4(("finalBonesMatrices[" + std::to_string(i) + "]").c_str(), bones[i]);
                 }
             }
 
             for (RenderMesh mesh : model.meshes) {
                 ZoneScopedN("Render Mesh");
-                shader->SetFloat("material.shininess", mesh.material.shininess);
+                shader.SetFloat("material.shininess", mesh.material.shininess);
                 mesh.material.texture.bind();
 
                 if (mesh.material.texture.countComponents() == 0) {
-                    shader->SetInt("useTextures", 0);
-                    shader->SetVec3("material.diffuseColor", mesh.material.diffuseColor);
-                    shader->SetVec3("material.specularColor", mesh.material.specularColor);
+                    shader.SetInt("useTextures", 0);
+                    shader.SetVec3("material.diffuseColor", mesh.material.diffuseColor);
+                    shader.SetVec3("material.specularColor", mesh.material.specularColor);
                 } else {
-                    shader->SetInt("useTextures", 1);
-                    shader->SetInt("material.diffuse", 0);
-                    shader->SetInt("material.specular", 1);
+                    shader.SetInt("useTextures", 1);
+                    shader.SetInt("material.diffuse", 0);
+                    shader.SetInt("material.specular", 1);
                 }
 
                 glBindVertexArray(mesh.VAO);
@@ -677,7 +676,7 @@ void Engine::Render(int scr_width, int scr_height) {
     auto shader = GetShaderManager().LoadShaderProgram("depth.vshader", "empty.fshader");
     shader.Use();
     shader.SetMat4("lightSpace", lightSpace);
-    call_render(&shader);
+    call_render(true);
 
     // Configure and render somehow to generate shadow map
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -779,7 +778,7 @@ void Engine::Render(int scr_width, int scr_height) {
             shader.SetInt("lenArrSpotL", m_SpotLights.GetSize());
         }
     }
-    call_render(nullptr);
+    call_render(false);
 
     assert(m_Images.GetSize() == 1);
     for (auto &image : m_Images) {
