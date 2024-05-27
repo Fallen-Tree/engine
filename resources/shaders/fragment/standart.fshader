@@ -1,4 +1,4 @@
-#version 330 core
+#version 460 core
 
 struct Material {
     float shininess;
@@ -43,7 +43,7 @@ struct SpotLight {
 
 #define NR_POINT_LIGHTS 10
 #define NR_SPOT_LIGHTS 3
-#define NR_DIR_LIGHTS 1
+#define NR_DIR_LIGHTS 2
 
 in vec3 Normal;
 in vec3 FragPos;
@@ -68,7 +68,7 @@ uniform int useTextures;
 uniform Material material; 
 uniform vec3 viewPos;
 
-uniform sampler2D shadowMap;
+uniform sampler2D shadowMapDir[NR_DIR_LIGHTS];
 
 out vec4 FragColor;
 
@@ -162,7 +162,7 @@ vec3 CalcDirLight(int id, vec3 normal, vec3 viewDir)
     float shadow = 1.f;
     vec3 projCoords = FragPosDirLight[id].xyz / FragPosDirLight[id].w;
     projCoords = projCoords * 0.5 + 0.5;
-    float closestDepth = texture(shadowMap, projCoords.xy).r;
+    float closestDepth = texture(shadowMapDir[id], projCoords.xy).r;
     float currentDepth = projCoords.z;
     if (currentDepth - 0.005f > closestDepth)
         shadow = 0.f;

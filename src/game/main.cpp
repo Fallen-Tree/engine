@@ -80,8 +80,12 @@ void createLights() {
     /*     Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0f,  10.0f, 20.0f), */
     /*     1.f, 0.0f, 0.01f); */
     engine->NewObject().AddDirLight(
-        Vec3(0.2f), Vec3(1.0f),
-        Vec3(1.0f),  Vec3(-0.2f, -1.0f, -0.3f));
+        Vec3(0.2f), Vec3(0.7f),
+        Vec3(0.7f),  Vec3(-0.2f, -1.0f, -0.3f));
+
+    /* engine->NewObject().AddDirLight( */
+    /*     Vec3(0.2f), Vec3(0.7f, 0.1f, 0.1f), */
+    /*     Vec3(0.7f, 0.1f, 0.1f),  Vec3(0.5f, -1.0f, 0.2f)); */
     /* engine->NewObject().AddSpotLight(Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f), */
     /*     Vec3(1.0f, 1.0f, 1.0f), Vec3(1.0f, 1.0f, 1.0f), */
     /*     1.0f, 0.09f, 0.032f, Vec3(0), */
@@ -223,6 +227,8 @@ void buildRoom() {
 
     dogModel->shader = engine->GetShaderManager()
         .LoadShaderProgram("skeletal.vshader", "standart.fshader");
+    dogModel->depthShader = engine->GetShaderManager()
+        .LoadDepthProgram("depth_skeletal.vshader");
 
     Object dogObj = engine->NewObject("Dog");
     dogSound = engine->NewObject();

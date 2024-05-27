@@ -40,3 +40,6 @@
 
 #define DUMP                        0.05
 #define TORQUE_RATIO                1
+
+#define SHADOW_WIDTH                4096
+#define SHADOW_HEIGHT               4096

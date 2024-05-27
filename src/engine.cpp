@@ -40,12 +40,6 @@ unsigned int fps = 0;
 
 std::chrono::time_point<std::chrono::high_resolution_clock> _startTime;
 
-const unsigned int SHADOW_WIDTH = 4096, SHADOW_HEIGHT = 4096;
-
-unsigned int depthFBO;
-unsigned int depthMap;
-Object depthMapImage;
-
 Camera* Engine::SwitchCamera(Camera* newCamera) {
     if (!newCamera) {
         Logger::Error("ENGINE::ARGUMENT_IN_SWITCHCAMERA_NULL!\n");
@@ -102,28 +96,8 @@ Engine::Engine() : m_FontManager(m_ShaderManager) {
         return;
     }
 
-    glGenFramebuffers(1, &depthFBO);
-    glGenTextures(1, &depthMap);
-    glBindTexture(GL_TEXTURE_2D, depthMap);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 
-                 SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);  
-
-    glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    depthMapImage = NewObject("DepthMapImage");
-    depthMapImage
-        .AddImage(depthMap, SHADOW_WIDTH, SHADOW_HEIGHT)
-        .SetRelativePosition(0.01f, 0.01f)
-        .SetScale(0.1f);
-
-    m_ShaderManager.SetDefault(standartVertexShader, fragmentShader);
+    m_ShaderManager.SetDefault("standart.vshader", fragmentShader);
+    m_ShaderManager.SetDefaultDepth("depth.vshader");
 }
 
 Engine::~Engine() {
@@ -618,7 +592,7 @@ void Engine::updateObjects(float deltaTime) {
 void Engine::Render(int scr_width, int scr_height) {
     ZoneScoped;
 
-    auto call_render = [this](bool depthPass) {
+    auto call_render = [this](bool depthPass, Mat4 lightSpace=Mat4(0)) {
         for (int model_i = 0; model_i < m_Models.GetSize(); model_i++) {
             ZoneScopedN("Render Call");
             ObjectHandle id = m_Models.GetFromInternal(model_i);
@@ -634,6 +608,9 @@ void Engine::Render(int scr_width, int scr_height) {
             }
 
             shader.Use();
+            if (depthPass) {
+                shader.SetMat4("lightSpace", lightSpace);
+            }
             shader.SetMat4("model", transform.GetTransformMatrix());
 
             if (m_SkeletalAnimationsManagers.HasData(id)) {
@@ -665,18 +642,19 @@ void Engine::Render(int scr_width, int scr_height) {
     };
 
     glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-    glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
-    glClear(GL_DEPTH_BUFFER_BIT);
+    std::vector<Mat4> lightSpaceDir;
+    for (auto light : m_DirLights) {
+        glBindFramebuffer(GL_FRAMEBUFFER, light.depthFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
 
-    float size = 40.f;
-    Mat4 projection = glm::ortho(-size, size, -size, size, .1f, 60.f);
-    auto pos = -20.f  * Norm(m_DirLights.entries[0].direction);
-    Mat4 view = glm::lookAt(pos, Vec3(0), Vec3(0.f, 0.f, 1.f));
-    Mat4 lightSpace = projection * view;
-    auto shader = GetShaderManager().LoadShaderProgram("depth.vshader", "empty.fshader");
-    shader.Use();
-    shader.SetMat4("lightSpace", lightSpace);
-    call_render(true);
+        float size = 40.f;
+        Mat4 projection = glm::ortho(-size, size, -size, size, .1f, 60.f);
+        auto pos = -20.f  * light.direction;
+        Mat4 view = glm::lookAt(pos, Vec3(0), Vec3(0.f, 0.f, 1.f));
+        Mat4 lightSpace = projection * view;
+        call_render(true, lightSpace);
+        lightSpaceDir.push_back(lightSpace);
+    }
 
     // Configure and render somehow to generate shadow map
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -703,8 +681,9 @@ void Engine::Render(int scr_width, int scr_height) {
         Mat4 projection = camera->GetProjectionMatrix();
         Mat4 view = camera->GetViewMatrix();
         Vec3 viewPos = camera->GetPosition();
+
+
         for (auto [key, shader] : m_ShaderManager) {
-            Logger::Info("Shader (%s %s) %d", key.first.c_str(), key.second.c_str(), shader.m_Program);
             shader.Use();
 
             shader.SetMat4("projection", projection);
@@ -713,9 +692,10 @@ void Engine::Render(int scr_width, int scr_height) {
 
             shader.SetInt("material.diffuse", 0);
             shader.SetInt("material.specular", 1);
-            shader.SetInt("shadowMap", 2);
-            glActiveTexture(GL_TEXTURE2);
-            glBindTexture(GL_TEXTURE_2D, depthMap);
+            for (int i = 0; i < m_DirLights.GetSize(); i++) {
+                glActiveTexture(GL_TEXTURE2 + i);
+                glBindTexture(GL_TEXTURE_2D, m_DirLights.entries[i].depthMap);
+            }
 
             char str[100];
             assert(m_PointLights.GetSize() == 0);
@@ -738,9 +718,11 @@ void Engine::Render(int scr_width, int scr_height) {
 
             shader.SetInt("lenArrPointL", m_PointLights.GetSize());
             // directionLight
-            assert(m_DirLights.GetSize() == 1);
-            shader.SetMat4("dirLightSpace[0]", lightSpace);
             for (int i = 0; i < m_DirLights.GetSize(); i++) {
+                snprintf(str, sizeof(str), "shadowMapDir[%d]", i);
+                shader.SetInt(str, 2 + i);
+                snprintf(str, sizeof(str), "dirLightSpace[%d]", i);
+                shader.SetMat4(str, lightSpaceDir[i]);
                 snprintf(str, sizeof(str), "dirLights[%d].ambient", i);
                 shader.SetVec3(str, m_DirLights.entries[i].ambient);
                 snprintf(str, sizeof(str), "dirLights[%d].specular", i);
@@ -780,7 +762,6 @@ void Engine::Render(int scr_width, int scr_height) {
     }
     call_render(false);
 
-    assert(m_Images.GetSize() == 1);
     for (auto &image : m_Images) {
         image.Render();
     }

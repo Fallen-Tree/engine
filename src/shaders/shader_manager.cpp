@@ -14,6 +14,10 @@ ShaderProgram ShaderManager::LoadShaderProgram(std::string vFile, std::string fF
     return m_ShaderPrograms[pair];
 }
 
+ShaderProgram ShaderManager::LoadDepthProgram(std::string vFile) {
+    return LoadShaderProgram(vFile, "empty.fshader");
+}
+
 Shader ShaderManager::LoadShader(ShaderType type, std::string filename) {
     switch (type) {
         case ShaderType::Fragment:
@@ -29,7 +33,7 @@ void ShaderManager::SetDefault(std::string vertex, std::string fragment) {
     m_DefaultShader = LoadShaderProgram(vertex, fragment);
 }
 
-void ShaderManager::SetDefaultDepthShader(std::string vertex) {
+void ShaderManager::SetDefaultDepth(std::string vertex) {
     m_DefaultDepthShader = LoadShaderProgram(vertex, "empty.fshader");
 }
 
