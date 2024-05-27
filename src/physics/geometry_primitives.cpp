@@ -9,8 +9,8 @@ Plane::Plane(Triangle triangle) {
 }
 
 Plane::Plane(Vec3 normal, Vec3 point) {
-    this->normal = normal;
-    d = -glm::dot(normal, point);
+    this->normal = Norm(normal);
+    d = glm::dot(this->normal, point);
 }
 
 Plane::Plane(Vec3 normal, float distance) {
@@ -21,20 +21,13 @@ Plane::Plane(Vec3 normal, float distance) {
 std::vector<Plane> AABB::GetPlanes() {
     std::vector<Plane> result;
     result.resize(6);
-    Vec3 center = (max + min) * 0.5f;
 
-    result[0] = Plane(
-            Vec3(1, 0, 0), glm::dot(Vec3(1, 0, 0), Vec3(max.x, center.y, center.z)));
-    result[1] = Plane(
-            Vec3(-1, 0, 0), -glm::dot(Vec3(1, 0, 0), Vec3(min.x, center.y, center.z)));
-    result[2] = Plane(
-            Vec3(0, 1, 0), glm::dot(Vec3(0, 1, 0), Vec3(center.x, max.y, center.z)));
-    result[3] = Plane(
-            Vec3(0, -1, 0), -glm::dot(Vec3(0, 1, 0), Vec3(center.x, min.y, center.z)));
-    result[4] = Plane(
-            Vec3(0, 0, 1), glm::dot(Vec3(0, 0, 1), Vec3(center.x, center.y, max.z)));
-    result[5] = Plane(
-            Vec3(0, 0, -1), -glm::dot(Vec3(0, 0, -1), Vec3(center.x, center.y, min.z)));
+    result[0] = Plane(Vec3(1, 0, 0), max.x);
+    result[1] = Plane(Vec3(-1, 0, 0), -min.x);
+    result[2] = Plane(Vec3(0, 1, 0), max.y);
+    result[3] = Plane(Vec3(0, -1, 0), -min.y);
+    result[4] = Plane(Vec3(0, 0, 1), max.z);
+    result[5] = Plane(Vec3(0, 0, -1), -min.z);
 
     return result;
 }
