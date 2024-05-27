@@ -250,8 +250,8 @@ void RigidBody::ComputeForceTorque(RigidBody *otherRigidBody,
     auto r1 = collisionPoint - transform.GetTranslation();
     auto r2 = collisionPoint - otherTransform.GetTranslation();
 
-    ApplyTorque(normalForce, r1);
-    otherRigidBody->ApplyTorque(otherNormalForce, r2);
+    ApplyTorque(normalForce * 3.f, r1);
+    otherRigidBody->ApplyTorque(otherNormalForce * 3.f, r2);
 
     // Compute impulse
     if (velAlongNormal <= 0) {

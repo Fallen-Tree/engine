@@ -91,6 +91,22 @@ Vec3 AABB::ClosestPoint(Vec3 point) {
     return result;
 }
 
+OBB AABB::ToOBB() {
+    return OBB {
+        (max + min) * 0.5f,
+        Mat3 {
+            Vec3(1, 0, 0),
+            Vec3(0, 1, 0),
+            Vec3(0, 0, 1),
+        },
+        Vec3(
+            std::abs((max.x - min.x) * 0.5f),
+            std::abs((max.y - min.y) * 0.5f),
+            std::abs((max.z - min.z) * 0.5f)
+        )
+    };
+}
+
 Interval AABB::GetInterval(Vec3 axis) {
     Vec3 i = min;
     Vec3 a = max;

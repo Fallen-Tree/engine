@@ -11,8 +11,12 @@ AABB Collider::GetDefaultAABB(Mesh* m) {
     Vec3 max = min;
 
     for (int i = 0; i < len; i ++) {
-        min = glm::min(min, cur[i].Position);
-        max = glm::max(max, cur[i].Position);
+        min.x = glm::min(min.x, cur[i].Position.x);
+        min.y = glm::min(min.y, cur[i].Position.y);
+        min.z = glm::min(min.z, cur[i].Position.z);
+        max.x = glm::max(max.x, cur[i].Position.x);
+        max.y = glm::max(max.y, cur[i].Position.y);
+        max.z = glm::max(max.z, cur[i].Position.z);
     }
     return AABB{min, max};
 }
