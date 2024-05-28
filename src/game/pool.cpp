@@ -44,7 +44,7 @@ class MovingBall : public Behaviour {
         Material sphereMaterial = {4.f, Texture(diffuseSource)};
         model->setMaterial(sphereMaterial);
 
-        Collider *collider = new Collider{Sphere{Vec3(0.0), 1.0}, Collider::Layer1 | Collider::Layer2 | Collider::Layer5};
+        Collider *collider = new Collider{Sphere{Vec3(0.0), 1.0}, Collider::Layer1 | Collider::Layer2 | Collider::Layer5 | Collider::Layer6};
         RigidBody *rb = new RigidBody(mass, IBodySphere(radius, mass),
                 0.9f, Vec3(0, -mass * gravity, 0), 0.1f, rollingFriction);
         rb->typeFriction = TypeFriction::rollingFriction;
@@ -199,6 +199,9 @@ class Table : public Behaviour {
         auto colliderWalls = engine->GetModelManager().LoadModel("pool/table_collider_walls.obj");
         Collider *colWalls = new Collider {&colliderWalls->meshes[0], Collider::Layer5};
 
+        auto colliderHoles = engine->GetModelManager().LoadModel("pool/table_collider_holes.obj");
+        Collider *colHoles = new Collider {&colliderWalls->meshes[0], Collider::Layer6};
+
 
         AABB aabb = Collider::GetDefaultAABB(model);
         aabb.max.y -= 0.5f;
@@ -219,11 +222,14 @@ class Table : public Behaviour {
 
         float floor_friction = 0.16f;
         float floor_bounciness = 0.1f;
-        float walls_bounciness = 0.9f; 
+        float holes_bounciness = 0.3f;
+        float walls_bounciness = 0.7f; 
         float walls_friction = 0.1f;
         // TODO(us): can we somehow assign different bounciness to floor and walls?
         Object floor = newStaticBody<Table>(transform, nullptr, colFloor, floor_bounciness, floor_friction);
+        Object holes = newStaticBody<Table>(transform, nullptr, colHoles, holes_bounciness, floor_friction);
         Object walls = newStaticBody<Table>(transform, model, colWalls, walls_bounciness, walls_friction);
+        holes.SetName("Wall");
         walls.SetName("Wall");
 
         return walls;
