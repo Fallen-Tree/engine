@@ -39,4 +39,4 @@
 // rigid body
 
 #define DUMP                        0.05
-#define TORQUE_RATIO                0.5f
+#define TORQUE_RATIO                0.3f
