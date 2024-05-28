@@ -9,6 +9,7 @@ struct Sphere;
 struct Ray;
 struct AABB;
 struct Line;
+struct OBB;
 
 struct Interval {
     float min;
@@ -31,6 +32,7 @@ struct AABB {
 
     bool IsPointIn(Vec3);
 
+    OBB ToOBB();
 };
 
 struct Sphere {

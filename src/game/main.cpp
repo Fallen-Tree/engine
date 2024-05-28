@@ -198,10 +198,10 @@ void buildRoom() {
     Model *chest = engine->GetModelManager().LoadModel("Chest/model.obj");
     for (int i = 0; i < 4; ++i) {
         Object chestObj = newDynamicBody(
-            new Transform(Vec3(-20, chest_y, i * 5 - 10), Vec3(chest_scale), Mat4(1.0)),
+            new Transform(Vec3(-20, chest_y, i * 5 - 10), Vec3(chest_scale), 0, Vec3(1)),
             chest,
-            new Collider{Collider::GetDefaultAABB(&chest->meshes[0])},
-            new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f,
+            new Collider{Collider::GetDefaultAABB(&chest->meshes[0]).ToOBB()},
+            new RigidBody(1.0f, IBodyOBB(Vec3(1), 20.f), 0.5f, Vec3(0, -gravity, 0), 1.0f,
                 slidingFriction));
         chestObj.GetTransform()->Rotate(0, glm::radians(90.0f), 0);
         interactableObjects.push_back(chestObj);
@@ -293,10 +293,10 @@ void buildRoom() {
 
     Model *chair = modelManager.LoadModel("Chair.obj");
     for (int i = 0; i < 4; ++i) {
-        Transform *chTransform = new Transform(Vec3(5 * i, floor_y, -15), Vec3(0.4), Mat4(1.0));
+        Transform *chTransform = new Transform(Vec3(5 * i, floor_y, -15), Vec3(0.5), 0, Vec3(1));
         Object chairObj = newDynamicBody(chTransform, chair,
             new Collider{Collider::GetDefaultAABB(&chair->meshes[0])},
-            new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f, slidingFriction));
+            new RigidBody(1.0f, IBodyOBB(Vec3(0), 20.f), 0.2f, Vec3(0, -gravity, 0), 1.0f, slidingFriction));
         interactableObjects.push_back(chairObj);
     }
 
