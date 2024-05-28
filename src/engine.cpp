@@ -644,7 +644,7 @@ void Engine::Render(int scr_width, int scr_height) {
         glBindFramebuffer(GL_FRAMEBUFFER, light.depthFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
 
-        float size = 45.f;
+        float size = 50.f;
         Mat4 projection = glm::ortho(-size, size, -size, size, .1f, 60.f);
         auto pos = -20.f  * light.direction;
         Mat4 view = glm::lookAt(pos, Vec3(0), Vec3(0.f, 0.f, 1.f));

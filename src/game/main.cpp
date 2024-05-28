@@ -59,22 +59,30 @@ void AddLantern(Vec3 pos) {
     Transform * tr = new Transform(pos, Vec3(1.0f), Mat4(1.0f));
     newModel(tr, lantern);
     engine->NewObject().AddPointLight(
-        Vec3(0.1f, 0.1f, 0.1f), Vec3(0.5f),
-        Vec3(0.5f), pos,
-        1.f, 0.07f, 0.02f);
+        Vec3(0.5f, 0.5f, 0.5f), Vec3(1.f),
+        Vec3(1.f), pos,
+        1.f, 0.05f, 0.01f);
 }
 
 void createLights() {
     engine->NewObject().AddDirLight(
-        Vec3(0.01f), Vec3(0.3f),
-        Vec3(0.3f),  Vec3(-0.2f, -1.0f, -0.3f));
+        Vec3(0.01f), Vec3(0.5f, 0.4f, 0.4f), Vec3(0.5f, 0.4f, 0.4f),
+        Vec3(-0.0f, -1.0f, -0.5f));
 
     auto spotLight = engine->NewObject();
     auto light = spotLight.AddSpotLight(
-        Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f), Vec3(1.0f, 1.0f, 1.0f),
-        0.9f, 0.08f, 0.022f,
-        glm::cos(glm::radians(15.f)), glm::cos(glm::radians(25.0f)));
+        Vec3(0.1f, 0.1f, 0.1f), Vec3(1.0f, 1.0f, 1.0f), Vec3(1.0f, 1.0f, 1.0f),
+        0.2f, 0.02f, 0.01f,
+        glm::cos(glm::radians(15.f)), glm::cos(glm::radians(35.0f)));
     spotLight.AddTransform(Vec3(0.f, 9.f, 0.f), Vec3(1.f), Mat4(1.f));
+
+    /* Vec3 lightPos = pos; */
+    /* lightPos.y = 9.f; */
+    /* light.AddSpotLight( */
+    /*     Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f), Vec3(1.0f, 1.0f, 1.0f), */
+    /*     0.9f, 0.08f, 0.022f, */
+    /*     glm::cos(glm::radians(15.f)), glm::cos(glm::radians(25.0f))); */
+    /* light.AddTransform(lightPos, Vec3(1.f), Mat4(1.f)); */
 }
 
 void buildRoom() {
@@ -85,14 +93,13 @@ void buildRoom() {
     int walls_cnt = 2;
     Vec3 wall_y = Vec3(0, floor_y, 0);
     Model *w2 = engine->GetModelManager().LoadModel("wall.fbx");
+    for (auto &mesh : w2->meshes) {
+        mesh.material.shininess = 4.f;
+    }
     for (int i = -walls_cnt; i <= walls_cnt; ++i) {
         newModel(
             new Transform(Vec3(i, 0, -walls_cnt) * 4.0f * wall_scale + wall_y,
                 Vec3(wall_scale), Mat4(1.0)), w2);
-        newModel(
-            new Transform(Vec3(i, 0, walls_cnt) * 4.0f * wall_scale + wall_y,
-                Vec3(wall_scale), Mat4(1.0)), w2)
-            .GetTransform()->Rotate(0, glm::radians(180.0f), 0);
         newModel(
             new Transform(Vec3(-walls_cnt, 0, i) * 4.0f * wall_scale + wall_y,
                 Vec3(wall_scale), Mat4(1.0)), w2)
@@ -145,22 +152,23 @@ void buildRoom() {
         }
     }
 
-    /* Model *ceil = engine->GetModelManager().LoadModel("floor/one_mesh.obj"); */
+    Model *ceil = engine->GetModelManager().LoadModel("floor/one_mesh.obj");
 
-    /* int ceil_cnt = 2; */
+    int ceil_cnt = 2;
 
-    /* float ceil_scale = 5.0f; */
-    /* float ceil_y = floor_y + 20.0f; */
-    /* for (int i = -ceil_cnt; i <= ceil_cnt; ++i) { */
-    /*     for (int j = -ceil_cnt; j <= ceil_cnt; ++j) { */
-    /*     newModel(new Transform(Vec3(i, 0, j) * 3.5f * ceil_scale + Vec3(0, ceil_y + (i & 1) * 0.01f, 0), */
-    /*             Vec3(ceil_scale), Mat4(1.0)), ceil) */
-    /*         .GetTransform()->Rotate(glm::radians(180.f), 0, 0); */
-    /*     } */
-    /* } */
+    float ceil_scale = 5.0f;
+    float ceil_y = floor_y + 20.0f;
+    for (int i = -ceil_cnt; i <= ceil_cnt; ++i) {
+        for (int j = -ceil_cnt; j <= ceil_cnt - 1; ++j) {
+            newModel(new Transform(Vec3(i, 0, j) * 3.5f * ceil_scale + Vec3(0, ceil_y + (i & 1) * 0.01f, 0),
+                    Vec3(ceil_scale), Mat4(1.0)), ceil)
+                .GetTransform()->Rotate(glm::radians(180.f), 0, 0);
+        }
+    }
 
     for (int i = -1; i <= 1; ++i) {
-        for (int j = -1; j <= 1; ++j) {
+        for (int j = -1; j <= 0; ++j) {
+            if (i == 0 && j == 0) continue;
             AddLantern(Vec3(i * 25, 12, j * 25));
         }
     }
@@ -285,7 +293,7 @@ void buildRoom() {
     float table_y = 4.2f;
 
     Model *table = modelManager.LoadModel("Table_Small/Table_Small.obj");
-    newStaticBody(new Transform(Vec3(20, floor_y, 14), Vec3(0.05), Mat4(1.0)), table,
+    newStaticBody(new Transform(Vec3(20, floor_y, 19), Vec3(0.05), Mat4(1.0)), table,
         new Collider{Collider::GetDefaultAABB(&table->meshes[0])});
 
     Model *table2 = modelManager.LoadModel("Desk/desk.obj");
@@ -304,7 +312,7 @@ void buildRoom() {
 
     Model *pizza = modelManager.LoadModel("Pizza slice/Pizza_Slice_01.obj");
     Object pizzaObj = newDynamicBody(
-        new Transform(Vec3(20, floor_y + table_y, 16), Vec3(0.1), Mat4(1.0)), pizza,
+        new Transform(Vec3(20, floor_y + table_y, 21), Vec3(0.1), Mat4(1.0)), pizza,
         new Collider{Collider::GetDefaultAABB(&pizza->meshes[0])},
         new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f, slidingFriction));
     pizzaObj.name = 1;
@@ -315,7 +323,7 @@ void buildRoom() {
         .GetTransform()->Rotate(0, glm::radians(90.0f), 0);
 
     Model *boomboxModel = modelManager.LoadModel("record player.fbx");
-    auto boombox = newModel(new Transform(Vec3(20, floor_y + table_y, 14),
+    auto boombox = newModel(new Transform(Vec3(20, floor_y + table_y, 19),
         Vec3(1.0, 1.0, 0.25), Mat4(1.0)), boomboxModel);
     boombox.GetTransform()->Rotate(glm::radians(-90.0f), 0, 0);
 }
