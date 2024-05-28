@@ -69,8 +69,18 @@ uniform Material material;
 uniform vec3 viewPos;
 
 uniform sampler2D shadowMapDir[NR_DIR_LIGHTS];
+uniform sampler2D shadowMapSpot[NR_SPOT_LIGHTS];
+
+uniform float nearPlane;
+uniform float farPlane;
 
 out vec4 FragColor;
+
+float LinearizeDepth(float depth)
+{
+    float z = depth * 2.0 - 1.0; // Back to NDC 
+    return (2.0 * nearPlane * farPlane) / (farPlane + nearPlane - z * (farPlane - nearPlane));
+}
 
 vec3 Diffuse;
 vec3 Specular;
@@ -139,10 +149,19 @@ vec3 CalcSpotLight(int id, vec3 normal, vec3 viewDir)
     float theta = dot(lightDir, normalize(-light.direction)); 
     float epsilon = light.cutOff - light.outerCutOff;
     float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
+
+    float shadow = 1.f;
+    vec3 projCoords = FragPosSpotLight[id].xyz / FragPosSpotLight[id].w;
+    projCoords = projCoords * 0.5 + 0.5;
+    float closestDepth = texture(shadowMapSpot[id], projCoords.xy).r;
+    float currentDepth = projCoords.z;
+    if (currentDepth - 0.00002f > closestDepth)
+        shadow = 0.f;
+
     // combine results
     vec3 ambient = light.ambient * Diffuse * attenuation * intensity; 
-    vec3 diffuse = light.diffuse * diff * Diffuse * attenuation * intensity; 
-    vec3 specular = light.specular * spec * Specular * attenuation * intensity;
+    vec3 diffuse = shadow * light.diffuse * diff * Diffuse * attenuation * intensity; 
+    vec3 specular = shadow * light.specular * spec * Specular * attenuation * intensity;
     return (ambient + diffuse + specular);
 }
 

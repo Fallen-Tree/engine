@@ -98,6 +98,14 @@ Vec2 Camera::GetScreenSize() {
     return m_ScreenSize;
 }
 
+float Camera::GetNearPlane() {
+    return m_NearPlane;
+}
+
+float Camera::GetFarPlane() {
+    return m_FarPlane;
+}
+
 Vec3 NewFront(Mat4 rotation) {
     // normalize the vectors, because their length gets closer to 0 the more you look
     // up or down which results in slower movement.

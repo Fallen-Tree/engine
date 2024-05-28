@@ -177,12 +177,6 @@ int main() {
         Vec3(0.05f, 0.05f, 0.05f), Vec3(0.4f, 0.4f, 0.4f),
         Vec3(0.5f, 0.5f, 0.5f),  Vec3(-0.2f, -1.0f, -0.3f));
 
-    engine->NewObject().AddSpotLight(Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
-        Vec3(1.0f, 1.0f, 1.0f), Vec3(1.0f, 1.0f, 1.0f),
-        1.0f, 0.09f, 0.032f, Vec3(0),
-        glm::cos(glm::radians(12.5f)),
-        glm::cos(glm::radians(15.0f)));
-
     class CameraController : public Behaviour {
      private:
         enum MovementMode {Walk, Fly};
