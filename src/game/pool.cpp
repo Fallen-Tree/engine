@@ -9,6 +9,28 @@
 #include "classes.cpp"
 
 float gravity = 9.8;
+
+class GameManager : public Behaviour {
+ private:
+    PublicText *text;
+    void ShowScore(int score) {
+        text->SetContent("Score: " + std::to_string(score));
+    }
+
+ public:
+    int score = 0;
+
+    explicit GameManager(PublicText *text) {
+        this->text = text;
+    }
+
+    void Update(float dt) override {
+        ShowScore(score);
+    }
+};
+
+
+GameManager* gameManager;
 Model* ball_model = nullptr;
 // Classes for pool
 class MovingBall : public Behaviour {
@@ -50,7 +72,15 @@ class MovingBall : public Behaviour {
                 return;
             }
         }
+
+        if (!on_floor && self.GetTransform()->GetTranslation().y < -5.f) {
+            gameManager->score += 100;
+            on_floor = 1;
+        }
     }
+
+ private:
+    bool on_floor = 0;
 };
 
 class Cue : public Behaviour {
@@ -150,28 +180,9 @@ class Cue : public Behaviour {
     Camera *m_Camera;
 };
 
-class GameManager : public Behaviour {
- private:
-    PublicText *text;
-    void ShowScore(int score) {
-        text->SetContent("Score: " + std::to_string(score));
-    }
-
- public:
-    int score = 0;
-
-    explicit GameManager(PublicText *text) {
-        this->text = text;
-    }
-
-    void Update(float dt) override {
-        ShowScore(score);
-    }
-};
-
 class Table : public Behaviour {
  public:
-    static Object New(Vec3 position, Vec3 scale, GameManager *gameManager) {
+    static Object New(Vec3 position, Vec3 scale) {
         Transform *transform = new Transform(position, scale, Mat4(1.0));
 
         Model *model = engine->GetModelManager().LoadModel("pool/stol_1.obj");
