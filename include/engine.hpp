@@ -99,7 +99,7 @@ class Engine {
     bool Collide(ObjectHandle, ObjectHandle);
     std::vector<Object> CollideAll(ObjectHandle);
 
-    std::optional<ObjectHandle> GlobalRaycast(Ray ray);
+    std::optional<ObjectHandle> GlobalRaycast(Ray ray, int layer, float maxDist);
 
     Camera* SwitchCamera(Camera* newCamera);
     void Run();

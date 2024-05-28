@@ -114,3 +114,8 @@ bool Object::Collide(Object other) {
 std::vector<Object> Object::CollideAll() {
     return m_Engine->CollideAll(m_Handle);
 }
+
+std::optional<Object> Object::GlobalRaycast(Ray ray, int layer, float maxDist) {
+    auto handle = m_Engine->GlobalRaycast(ray, layer, maxDist);
+    return handle ? Object(m_Engine, *handle) : std::optional<Object>();
+}

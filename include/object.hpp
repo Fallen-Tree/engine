@@ -12,8 +12,6 @@
 
 class Object {
  public:
-    int name = 0;
-
     Object(const Object &) = default;
     Object(Object &&) = default;
     Object& operator=(const Object &);
@@ -116,6 +114,7 @@ class Object {
     Object GetParent();
     bool Collide(Object other);
     std::vector<Object> CollideAll();
+    std::optional<Object> GlobalRaycast(Ray ray, int layer, float maxDist=1e18);
 
  private:
     Engine *m_Engine;

@@ -132,7 +132,7 @@ class PlayerController : public Behaviour {
     const float MAX_HIT_DIST = 15.0f;
     const float holdDistance = 7.0f;
     const float throwPower = 20.0f;
-    const int FOOD_NAME = 1;
+    const std::string FOOD_NAME = "Pizza";
 
     void ProcessTargeting(float deltaTime) {
         if (m_MovementMode == Fly) {
@@ -140,25 +140,13 @@ class PlayerController : public Behaviour {
             return;
         }
         Ray ray = Ray(m_Camera->GetPosition(), m_Camera->GetPosition() + m_Camera->GetFront());
-        Object target;
-        bool has_target = false;
-        float closest = MAX_HIT_DIST;
-        for (int i = 0; i < m_InteractableObjects.size(); i++) {
-            Object obj = m_InteractableObjects[i];
-            auto hit = obj.GetCollider()->RaycastHit(*obj.GetTransform(), ray);
-            if (hit && *hit < closest) {
-                target = obj;
-                target.name = obj.name;
-                has_target = true;
-                closest = *hit;
-            }
-        }
+        auto target = self.GlobalRaycast(ray, Collider::Layer4, MAX_HIT_DIST);
 
         if (hasHoldObj) {
             // how to move to new line in this text?
             m_HintText->SetContent("E to drop / Q to throw");
-        } else if (has_target) {
-            if (target.name == FOOD_NAME) {
+        } else if (target) {
+            if (target->GetName() == FOOD_NAME) {
                 m_HintText->SetContent("press E to eat");
             } else {
                 m_HintText->SetContent("press E to grab");
@@ -170,18 +158,13 @@ class PlayerController : public Behaviour {
         if (s_Input->IsKeyPressed(Key::E)) {
             if (hasHoldObj) {
                 hasHoldObj = false;
-            } else {
-                if (has_target) {
-                    if (target.name == FOOD_NAME) {
-                        // delete food and apply shader
-                        // .Remove() crashing engine :(
-                        // target.Remove();
-                        target.GetTransform()->Translate(Vec3(0, -100, 0));
-                        eatSound.GetSound()->Start();
-                    } else {
-                        holdObj = target;
-                        hasHoldObj = true;
-                    }
+            } else if (target) {
+                if (target->GetName() == FOOD_NAME) {
+                    target->Remove();
+                    eatSound.GetSound()->Start();
+                } else {
+                    holdObj = *target;
+                    hasHoldObj = true;
                 }
             }
         }

@@ -236,11 +236,11 @@ Object Engine::GetParent(ObjectHandle node) {
 }
 
 Transform *Engine::GetTransform(ObjectHandle handle) {
-    return m_Transforms.HasData(handle) ? &m_Transforms.GetData(handle) : nullptr;
+    return handle >= 0 && m_Transforms.HasData(handle) ? &m_Transforms.GetData(handle) : nullptr;
 }
 
 Model *Engine::GetModel(ObjectHandle handle) {
-    return m_Models.HasData(handle) ? &m_Models.GetData(handle) : nullptr;
+    return handle >= 0 && m_Models.HasData(handle) ? &m_Models.GetData(handle) : nullptr;
 }
 
 Transform Engine::GetGlobalTransform(ObjectHandle handle) {
@@ -272,48 +272,48 @@ Transform Engine::GetGlobalTransform(ObjectHandle handle) {
 }
 
 Collider *Engine::GetCollider(ObjectHandle handle) {
-    return m_Colliders.HasData(handle) ? &m_Colliders.GetData(handle) : nullptr;
+    return handle >= 0 && m_Colliders.HasData(handle) ? &m_Colliders.GetData(handle) : nullptr;
 }
 
 RigidBody *Engine::GetRigidBody(ObjectHandle handle) {
-    return m_RigidBodies.HasData(handle) ? &m_RigidBodies.GetData(handle) : nullptr;
+    return handle >= 0 && m_RigidBodies.HasData(handle) ? &m_RigidBodies.GetData(handle) : nullptr;
 }
 
 Animation *Engine::GetAnimation(ObjectHandle handle) {
-    return m_Animations.HasData(handle) ? &m_Animations.GetData(handle) : nullptr;
+    return handle >= 0 && m_Animations.HasData(handle) ? &m_Animations.GetData(handle) : nullptr;
 }
 
 Text *Engine::GetText(ObjectHandle handle) {
-    return m_Texts.HasData(handle) ? &m_Texts.GetData(handle) : nullptr;
+    return handle >= 0 && m_Texts.HasData(handle) ? &m_Texts.GetData(handle) : nullptr;
 }
 
 SkeletalAnimationsManager *Engine::GetSkeletalAnimationsManager(ObjectHandle handle) {
-    return m_SkeletalAnimationsManagers.HasData(handle) ?
+    return handle >= 0 && m_SkeletalAnimationsManagers.HasData(handle) ?
         &m_SkeletalAnimationsManagers.GetData(handle) : nullptr;
 }
 
 Image *Engine::GetImage(ObjectHandle handle) {
-    return m_Images.HasData(handle) ? &m_Images.GetData(handle) : nullptr;
+    return handle >= 0 && m_Images.HasData(handle) ? &m_Images.GetData(handle) : nullptr;
 }
 
 Sound *Engine::GetSound(ObjectHandle handle) {
-    return m_Sounds.HasData(handle) ? &m_Sounds.GetData(handle) : nullptr;
+    return handle >= 0 && m_Sounds.HasData(handle) ? &m_Sounds.GetData(handle) : nullptr;
 }
 
 PointLight *Engine::GetPointLight(ObjectHandle handle) {
-    return m_PointLights.HasData(handle) ? &m_PointLights.GetData(handle) : nullptr;
+    return handle >= 0 && m_PointLights.HasData(handle) ? &m_PointLights.GetData(handle) : nullptr;
 }
 
 SpotLight *Engine::GetSpotLight(ObjectHandle handle) {
-    return m_SpotLights.HasData(handle) ? &m_SpotLights.GetData(handle) : nullptr;
+    return handle >= 0 && m_SpotLights.HasData(handle) ? &m_SpotLights.GetData(handle) : nullptr;
 }
 
 DirLight *Engine::GetDirLight(ObjectHandle handle) {
-    return m_DirLights.HasData(handle) ? &m_DirLights.GetData(handle) : nullptr;
+    return handle >= 0 && m_DirLights.HasData(handle) ? &m_DirLights.GetData(handle) : nullptr;
 }
 
 Behaviour *Engine::GetBehaviour(ObjectHandle handle) {
-    return m_Behaviours.HasData(handle) ? m_Behaviours.GetData(handle) : nullptr;
+    return handle >= 0 && m_Behaviours.HasData(handle) ? m_Behaviours.GetData(handle) : nullptr;
 }
 
 Transform &Engine::AddTransform(ObjectHandle id, Transform v) {
@@ -417,13 +417,14 @@ std::vector<Object> Engine::CollideAll(ObjectHandle a) {
     return res;
 }
 
-std::optional<ObjectHandle> Engine::GlobalRaycast(Ray ray) {
+std::optional<ObjectHandle> Engine::GlobalRaycast(Ray ray, int layer, float maxDist) {
     std::optional<ObjectHandle> result = std::nullopt;
-    float bestDistance = 1e18;
+    float bestDistance = maxDist;
     for (int i = 0; i < m_Colliders.GetSize(); i++) {
         int handle = m_Colliders.GetFromInternal(i);
-        auto current = m_Colliders.GetData(handle).RaycastHit(
-            m_Transforms.GetData(handle), ray);
+        auto &collider = m_Colliders.GetData(handle);
+        if ((collider.layer & layer) == 0) continue;
+        auto current = collider.RaycastHit(m_Transforms.GetData(handle), ray);
 
         if (!current.has_value()) continue;
         if (current.value() < bestDistance) {

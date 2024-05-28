@@ -177,9 +177,8 @@ void buildRoom() {
     Model *cc = engine->GetModelManager().LoadModel("CompanionCube/Portal_Companion_Cube.obj");
     Object cube = newDynamicBody(
         new Transform(Vec3(18, floor_y + cc_scale + 0.1f, 0), Vec3(cc_scale), Mat4(1.0)), cc,
-        new Collider{Collider::GetDefaultAABB(&cc->meshes[0])},
+        new Collider{Collider::GetDefaultAABB(&cc->meshes[0]), Collider::Layer1 | Collider::Layer4},
         new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f, slidingFriction));
-    interactableObjects.push_back(cube);
 
     float chest_scale = 20.f;
     float chest_y = floor_y + chest_scale * 0.1f;
@@ -188,11 +187,10 @@ void buildRoom() {
         Object chestObj = newDynamicBody(
             new Transform(Vec3(-20, chest_y, i * 5 - 10), Vec3(chest_scale), Mat4(1.0)),
             chest,
-            new Collider{Collider::GetDefaultAABB(&chest->meshes[0])},
+            new Collider{Collider::GetDefaultAABB(&chest->meshes[0]), Collider::Layer1 | Collider::Layer4},
             new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f,
                 slidingFriction));
         chestObj.GetTransform()->Rotate(0, glm::radians(90.0f), 0);
-        interactableObjects.push_back(chestObj);
     }
 
     auto &modelManager = engine->GetModelManager();
@@ -284,9 +282,8 @@ void buildRoom() {
     for (int i = 0; i < 4; ++i) {
         Transform *chTransform = new Transform(Vec3(5 * i, floor_y, -15), Vec3(0.4), Mat4(1.0));
         Object chairObj = newDynamicBody(chTransform, chair,
-            new Collider{Collider::GetDefaultAABB(&chair->meshes[0])},
+            new Collider{Collider::GetDefaultAABB(&chair->meshes[0]), Collider::Layer1 | Collider::Layer4},
             new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f, slidingFriction));
-        interactableObjects.push_back(chairObj);
     }
 
 
@@ -313,10 +310,9 @@ void buildRoom() {
     Model *pizza = modelManager.LoadModel("Pizza slice/Pizza_Slice_01.obj");
     Object pizzaObj = newDynamicBody(
         new Transform(Vec3(20, floor_y + table_y, 21), Vec3(0.1), Mat4(1.0)), pizza,
-        new Collider{Collider::GetDefaultAABB(&pizza->meshes[0])},
+        new Collider{Collider::GetDefaultAABB(&pizza->meshes[0]), Collider::Layer1 | Collider::Layer4},
         new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f, slidingFriction));
-    pizzaObj.name = 1;
-    interactableObjects.push_back(pizzaObj);
+    pizzaObj.SetName("Pizza");
 
     Model *painting = modelManager.LoadModel("Wall painting/Wall_Art_Classical_01.obj");
     newModel(new Transform(Vec3(walls_x, floor_y + 8, 6), Vec3(0.5), Mat4(1.0)), painting)
