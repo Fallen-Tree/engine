@@ -8,7 +8,7 @@
 
 #include "classes.cpp"
 
-float gravity = 9.8 * 3;
+float gravity = 9.8;
 Model* ball_model = nullptr;
 // Classes for pool
 class MovingBall : public Behaviour {
@@ -184,6 +184,18 @@ class Table : public Behaviour {
         // get full mesh of the table or make multiple objects for walls of the table.
         auto colliderModel = engine->GetModelManager().LoadModel("pool/stol_collider2.obj");
         Collider *col = new Collider {&colliderModel->meshes[0], Collider::Layer2};
+
+        AABB aabb = Collider::GetDefaultAABB(model);
+        aabb.max.y -= 0.5f;
+        aabb.min.y -= 0.5f;
+        Collider *colForPlayer = new Collider{aabb, Collider::Layer3};
+
+        auto& tableForPlayer = engine->NewObject();
+        tableForPlayer.AddCollider(*colForPlayer);
+        tableForPlayer.AddRigidBody(0.f, glm::mat4(0), 0.f, Vec3(0), 0.f, slidingFriction);
+        tableForPlayer.AddTransform(*transform);
+
+
         float h0 = -0.5;
         float h = 0.85;
 
@@ -191,8 +203,8 @@ class Table : public Behaviour {
         float length = 0.45;
 
         float floor_friction = 0.1f;
-        float floor_bounciness = 0.8f;
-        float walls_bounciness = 0.9f; // TODO(us): can we somehow assign different bounciness to floor and walls?
+        float floor_bounciness = 0.5f;
+        float walls_bounciness = 0.5f; // TODO(us): can we somehow assign different bounciness to floor and walls?
         Object obj = newStaticBody<Table>(transform, model, col, floor_bounciness, floor_friction);
 
         return obj;

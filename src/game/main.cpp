@@ -365,7 +365,7 @@ void poolTable() {
     std::vector<Object> balls;
     for (int i = 0; i < ballsCount; i++) {
         Vec3 pos = coordinates[i];
-        auto newBall = MovingBall::New(pos, 0.2f, "pool/" + std::to_string(i % 16 + 1) + ".png");
+        auto newBall = MovingBall::New(pos, 0.19f, "pool/" + std::to_string(i % 16 + 1) + ".png");
         balls.push_back(newBall);
     }
 
@@ -397,7 +397,8 @@ int main() {
     Object player = engine->NewObject("Player");
     player.AddBehaviour<PlayerController>(engine->camera, interactableObjects, hintText);
     player.AddTransform(Vec3(0.f, 1.5f, 14.f), Vec3(1), Mat4(1));
-    player.AddCollider(AABB{Vec3(-0.6, -7, -0.6f), Vec3(0.6f, 1, 0.6f)}, Collider::Layer1 | Collider::Layer2);
+    player.AddCollider(AABB{Vec3(-0.6, -7, -0.6f), Vec3(0.6f, 1, 0.6f)}, Collider::Layer1 | Collider::Layer3);
+
     float player_mass = 5.0f;
     player.AddRigidBody(player_mass, Mat4(0),
                 0.5f, Vec3(0, -gravity * player_mass, 0), 0.f, slidingFriction);
