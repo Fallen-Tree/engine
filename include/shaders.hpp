@@ -22,10 +22,10 @@ class Shader {
 
 class ShaderProgram {
  private:
+     int m_Program = -1;
      unsigned int GetLoc(const char* name);
 
  public:
-     int m_Program = -1;
      int AttachShader(Shader shader);
      int Link();
      ShaderProgram() = default;
