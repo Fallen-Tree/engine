@@ -9,10 +9,7 @@
 
 #include "render_data.hpp"
 #include "shaders.hpp"
-#include "transform.hpp"
 #include "mesh.hpp"
-#include "logger.hpp"
-#include "assimp_helpers.hpp"
 
 struct BoneInfo {
     int id;
@@ -22,19 +19,20 @@ struct BoneInfo {
 class Model {
  public:
     std::vector<RenderMesh> meshes;
-    ShaderProgram* shader = nullptr;
+    ShaderProgram shader;
+    ShaderProgram depthShader;
 
     void setMaterial(Material material);
 
     static Model *fromMesh(Mesh *mesh, Material material);
-    static Model *fromMesh(Mesh *mesh, Material material, ShaderProgram*);
+    static Model *fromMesh(Mesh *mesh, Material material, ShaderProgram);
 
     auto& GetBoneInfoMap() { return m_BoneInfoMap; }
     int& GetBoneCount() { return m_BoneCounter; }
 
     friend class ModelManager;
  private:
-    static Model *loadFromFile(std::string, ShaderProgram*);
+    static Model *loadFromFile(std::string, ShaderProgram);
     static Model *loadFromFile(std::string);
 
     void processNode(aiNode *node, const aiScene *scene);

@@ -85,7 +85,7 @@ class MovingBall : public Behaviour {
 
 class Cue : public Behaviour {
  public:
-    static Object New(std::vector<Object> objects, Camera *camera) {
+    static Object New(std::vector<Object> objects, Camera *camera, Object player) {
         Model *model = engine->GetModelManager().LoadModel("pool/cue.obj");
         Material material = {
             4.f,
@@ -95,16 +95,17 @@ class Cue : public Behaviour {
         Transform *transform = new Transform(Vec3(0), Vec3(8), Mat4(0));
         Object newCue = newModel<Cue>(transform, model);
         newCue.AddAnimation();
-        reinterpret_cast<Cue*>(newCue.GetBehaviour())->Init(objects, camera);
+        reinterpret_cast<Cue*>(newCue.GetBehaviour())->Init(objects, camera, player);
         return newCue;
     }
 
-    void Init(std::vector<Object> objects, Camera *camera) {
+    void Init(std::vector<Object> objects, Camera *camera, Object player) {
         m_Objects = objects;
         m_Camera = camera;
         m_CueDistance = 1.f;
         m_AttackVelocity = 12.f;
         m_Attacking = false;
+        m_Player = player;
     }
 
     void Update(float dt) override {
@@ -158,6 +159,9 @@ class Cue : public Behaviour {
             m_CurrentTarget = nullptr;
 
         if (m_CurrentTarget != nullptr) {
+            if (self.GetParent() == m_Player) {
+                m_Player.RemoveChild(self);    
+            }
             Vec3 center = m_CurrentTarget->GetTransform()->GetTranslation();
             Vec3 closest = ray.origin + glm::dot(center - ray.origin, ray.direction) * ray.direction;
             closest.y = center.y;
@@ -168,7 +172,11 @@ class Cue : public Behaviour {
             self.GetTransform()->SetRotation(-glm::pi<float>()/2 + 0.06, glm::cross(Vec3{0.f, 1.f, 0.f}, toCenter));
         } else {
             self.GetTransform()->SetRotation(glm::pi<float>(), Vec3(1.f, 0.f, 0.f));
-            self.GetTransform()->SetTranslation(m_Camera->GetPosition() + Vec3{0.5f, -0.5f, -0.5f});
+            if (self.GetParent() != m_Player) {
+                m_Player.AddChild(self);
+                self.GetTransform()->SetTranslation(Vec3(0.45f, -0.0f, -0.7f));
+                self.GetTransform()->SetRotation(Mat4(1));
+            }
         }
      }
 
@@ -179,6 +187,7 @@ class Cue : public Behaviour {
     Object *m_CurrentTarget = nullptr;
     std::vector<Object> m_Objects;
     Camera *m_Camera;
+    Object m_Player;
 };
 
 class Table : public Behaviour {

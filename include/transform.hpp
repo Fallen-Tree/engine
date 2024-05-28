@@ -11,8 +11,9 @@ class Transform {
 
  public:
     Transform() = default;
-    explicit Transform(Vec3 translation, Vec3 scale, float radiansDegree, Vec3 rotationAxis);
-    explicit Transform(Vec3 translation, Vec3 scale, Mat4 rotationMatrix);
+    Transform(Vec3 translation, Vec3 scale, float radiansDegree, Vec3 rotationAxis);
+    Transform(Vec3 translation, Vec3 scale, Mat4 rotationMatrix);
+    Transform(Mat4 transform, Vec3 scale); 
 
     // Translation
     void SetTranslation(Vec3 translation);

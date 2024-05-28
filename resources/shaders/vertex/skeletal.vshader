@@ -1,4 +1,7 @@
-#version 430 core
+#version 330 core
+
+#define NR_SPOT_LIGHTS 3
+#define NR_DIR_LIGHTS 2
 
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 aNormal;
@@ -9,6 +12,11 @@ layout(location = 4) in vec4 weights;
 uniform mat4 model;
 uniform mat4 projection;
 uniform mat4 view;
+uniform int lenArrSpotL;
+uniform int lenArrPointL;
+uniform int lenArrDirL;
+uniform mat4 dirLightSpace[NR_DIR_LIGHTS];
+uniform mat4 spotLightSpace[NR_SPOT_LIGHTS];
 	
 const int MAX_BONES = 100;
 const int MAX_BONE_INFLUENCE = 4;
@@ -17,7 +25,9 @@ uniform mat4 finalBonesMatrices[MAX_BONES];
 out vec2 TexCoord;
 out vec3 Normal;
 out vec3 FragPos;
-	
+out vec4 FragPosDirLight[NR_DIR_LIGHTS];
+out vec4 FragPosSpotLight[NR_SPOT_LIGHTS];
+
 void main()
 {
     int flag = 0;
@@ -42,6 +52,10 @@ void main()
 
     gl_Position =  projection * view * model * totalPosition;
     Normal = mat3(transpose(inverse(model))) * aNormal;
-    FragPos = vec3(model * totalPosition);
+    FragPos = vec3(model * vec4(totalPosition.xyz, 1.0));
+    for (int i = 0; i < lenArrDirL; i++)
+        FragPosDirLight[i] = dirLightSpace[i] * vec4(FragPos, 1.0f);
+    for (int i = 0; i < lenArrSpotL; i++)
+        FragPosSpotLight[i] = spotLightSpace[i] * vec4(FragPos, 1.0f);
     TexCoord = aTexCoord;
 }

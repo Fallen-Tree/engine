@@ -2,7 +2,6 @@
 #include <string>
 #include <vector>
 #include <utility>
-#include "path_resolver.hpp"
 
 ShaderProgram ShaderManager::LoadShaderProgram(std::string vFile, std::string fFile) {
     auto pair = make_pair(vFile, fFile);
@@ -13,6 +12,10 @@ ShaderProgram ShaderManager::LoadShaderProgram(std::string vFile, std::string fF
         m_ShaderPrograms[pair] = ShaderProgram(vShader, fShader);
     }
     return m_ShaderPrograms[pair];
+}
+
+ShaderProgram ShaderManager::LoadDepthProgram(std::string vFile) {
+    return LoadShaderProgram(vFile, "empty.fshader");
 }
 
 Shader ShaderManager::LoadShader(ShaderType type, std::string filename) {
@@ -26,12 +29,20 @@ Shader ShaderManager::LoadShader(ShaderType type, std::string filename) {
     }
 }
 
-void ShaderManager::SetDefault(ShaderProgram program) {
-    m_DefaultShader = program;
+void ShaderManager::SetDefault(std::string vertex, std::string fragment) {
+    m_DefaultShader = LoadShaderProgram(vertex, fragment);
 }
 
-ShaderProgram *ShaderManager::GetDefault() {
-    return &m_DefaultShader;
+void ShaderManager::SetDefaultDepth(std::string vertex) {
+    m_DefaultDepthShader = LoadShaderProgram(vertex, "empty.fshader");
+}
+
+ShaderProgram &ShaderManager::GetDefault() {
+    return m_DefaultShader;
+}
+
+ShaderProgram &ShaderManager::GetDefaultDepth() {
+    return m_DefaultDepthShader;
 }
 
 std::map<std::pair<std::string, std::string>, ShaderProgram>::iterator

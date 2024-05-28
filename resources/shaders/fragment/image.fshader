@@ -7,5 +7,5 @@ uniform vec3 textColor;
 
 void main()
 {    
-    color = vec4(textColor, 1.0) *  texture(text, TexCoords);
+    color = vec4(textColor * texture(text, TexCoords).r, 1.0);
 }  

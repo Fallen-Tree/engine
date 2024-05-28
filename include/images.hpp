@@ -10,7 +10,7 @@ class Image {
     unsigned int m_VAO, m_VBO;
     unsigned int m_TextureID;
     float m_RelX, m_RelY;
-    float m_Scale;
+    float m_Scale = 1.f;
     int m_Height, m_Width;
     bool m_Visible = true;
 
@@ -20,6 +20,7 @@ class Image {
     // coordinates of screen also starts from left bottom corner
     // Scale
     Image() = default;
+    Image(unsigned int texture, int width, int height);
     Image(std::string);
     Image(std::string, float x, float y);
     Image(std::string, float x, float y, float scale);

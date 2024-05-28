@@ -12,12 +12,12 @@
 
 class Object {
  public:
-    int name = 0;
-
     Object(const Object &) = default;
     Object(Object &&) = default;
     Object& operator=(const Object &);
     Object& operator=(const Object &&);
+ 	bool operator==(const Object& b) const;
+ 	bool operator!=(const Object& b) const;
     Object();
     Object(Engine *, ObjectHandle);
 
@@ -27,6 +27,8 @@ class Object {
     void SetEngine(Engine *);
 
     Transform *GetTransform();
+    Transform GetGlobalTransform();
+    void SetGlobalTransform(Transform);
     Model *GetModel();
     Collider *GetCollider();
     Animation *GetAnimation();
@@ -108,10 +110,12 @@ class Object {
 
     void Remove();
     bool IsValid();
-    void AddChild(Object child);
+    void AddChild(Object child, bool saveTransform=false);
+    void RemoveChild(Object child, bool saveTransform=false);
     Object GetParent();
     bool Collide(Object other);
     std::vector<Object> CollideAll();
+    std::optional<Object> GlobalRaycast(Ray ray, int layer, float maxDist=1e18);
 
  private:
     Engine *m_Engine;

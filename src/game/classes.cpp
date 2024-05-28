@@ -12,9 +12,8 @@ template<typename T>
 Object newModel(Transform *transform, Model *model) {
     Object obj = engine->NewObject();
     obj.AddTransform(*transform);
-    if (model) {
+    if (model)
         obj.AddModel(*model);
-    }
     obj.AddBehaviour<T>();
     return obj;
 }
@@ -26,11 +25,6 @@ Object newModel(Transform *transform, Model *model) {
         obj.AddModel(*model);
     return obj;
 }
-
-// Object newSkeletalAnimationModel(Tranfsorm *transform, Model *model) {
-    
-//     return obj;
-// }
 
 template<typename T>
 Object newStaticBody(Transform *transform, Model *model, Collider *collider,

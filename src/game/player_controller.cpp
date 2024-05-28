@@ -26,19 +26,6 @@ class PlayerController : public Behaviour {
 
     void ProcessKeyboard(float deltaTime) {
         Transform *tr = self.GetTransform();
-        if (s_Input->IsKeyPressed(Key::F)) {
-            if (m_MovementMode == Fly) {
-                m_MovementMode = Walk;
-                self.GetRigidBody()->defaultForce = Vec3(0, -gravity * mass, 0);
-                tr->SetTranslation(lastStandPosition);
-                tr->SetScale(Vec3(1.f));
-            } else {
-                m_MovementMode = Fly;
-                self.GetRigidBody()->defaultForce = Vec3(0);
-                lastStandPosition = tr->GetTranslation();
-                tr->SetScale(Vec3(.1f));
-            }
-        }
         if (m_MovementMode != Fly) {
             if (s_Input->IsKeyDown(Key::LShift))
                 m_MovementMode = Run;
@@ -100,8 +87,8 @@ class PlayerController : public Behaviour {
 
         Transform *tr = self.GetTransform();
 
-        tr->Rotate(0, xOffset, 0);
-        tr->RotateGlobal(-yOffset, 0, 0);
+        tr->RotateGlobal(0, -xOffset, 0);
+        tr->Rotate(yOffset, 0, 0);
 
         // to update front vector
         m_Camera->SetTransform(*self.GetTransform());
@@ -127,38 +114,40 @@ class PlayerController : public Behaviour {
     std::vector<Object> m_InteractableObjects;
     PublicText * m_HintText = nullptr;
     Object holdObj;
+    Vec3 holdObjDefaultForce;
     Object eatSound;
     bool hasHoldObj = false;
     const float MAX_HIT_DIST = 15.0f;
-    const float holdDistance = 7.0f;
     const float throwPower = 20.0f;
-    const int FOOD_NAME = 1;
+    const std::string FOOD_NAME = "Pizza";
+
+    void TakeObject(Object o) {
+        holdObj = o;
+        self.AddChild(holdObj, true);
+        hasHoldObj = true;
+        holdObjDefaultForce = holdObj.GetRigidBody()->defaultForce; 
+        holdObj.GetRigidBody()->defaultForce = Vec3(0);
+    }
+
+    void ReleaseObject() {
+        hasHoldObj = false;
+        self.RemoveChild(holdObj, true);
+        holdObj.GetRigidBody()->defaultForce = holdObjDefaultForce;
+    }
 
     void ProcessTargeting(float deltaTime) {
         if (m_MovementMode == Fly) {
-            hasHoldObj = false;
+            ReleaseObject();
             return;
         }
         Ray ray = Ray(m_Camera->GetPosition(), m_Camera->GetPosition() + m_Camera->GetFront());
-        Object target;
-        bool has_target = false;
-        float closest = MAX_HIT_DIST;
-        for (int i = 0; i < m_InteractableObjects.size(); i++) {
-            Object obj = m_InteractableObjects[i];
-            auto hit = obj.GetCollider()->RaycastHit(*obj.GetTransform(), ray);
-            if (hit && *hit < closest) {
-                target = obj;
-                target.name = obj.name;
-                has_target = true;
-                closest = *hit;
-            }
-        }
+        auto target = self.GlobalRaycast(ray, Collider::Layer4, MAX_HIT_DIST);
 
         if (hasHoldObj) {
             // how to move to new line in this text?
             m_HintText->SetContent("E to drop / Q to throw");
-        } else if (has_target) {
-            if (target.name == FOOD_NAME) {
+        } else if (target) {
+            if (target->GetName() == FOOD_NAME) {
                 m_HintText->SetContent("press E to eat");
             } else {
                 m_HintText->SetContent("press E to grab");
@@ -169,34 +158,26 @@ class PlayerController : public Behaviour {
 
         if (s_Input->IsKeyPressed(Key::E)) {
             if (hasHoldObj) {
-                hasHoldObj = false;
-            } else {
-                if (has_target) {
-                    if (target.name == FOOD_NAME) {
-                        // delete food and apply shader
-                        // .Remove() crashing engine :(
-                        // target.Remove();
-                        target.GetTransform()->Translate(Vec3(0, -100, 0));
-                        eatSound.GetSound()->Start();
-                    } else {
-                        holdObj = target;
-                        hasHoldObj = true;
-                    }
+                ReleaseObject();
+            } else if (target) {
+                if (target->GetName() == FOOD_NAME) {
+                    target->Remove();
+                    eatSound.GetSound()->Start();
+                } else {
+                    TakeObject(*target);
                 }
             }
         }
         if (s_Input->IsKeyPressed(Key::Q) && hasHoldObj) {
+            ReleaseObject();
             Vec3 throwVelocity = glm::normalize(m_Camera->GetFront()) * throwPower;
             holdObj.GetRigidBody()->velocity = throwVelocity;
-            hasHoldObj = false;
         }
 
         if (hasHoldObj) {
-            Vec3 holdPos = self.GetTransform()->GetTranslation()
-                + glm::normalize(m_Camera->GetFront()) * holdDistance;
-            Vec3 objMidOffset = Vec3(0, 1, 0);
-            holdObj.GetTransform()->SetTranslation(holdPos - objMidOffset);
             holdObj.GetRigidBody()->velocity = Vec3(0);
+            auto global = holdObj.GetGlobalTransform();
+            holdObj.GetTransform()->Rotate(glm::inverse(global.GetRotation()));
         }
     }
 
@@ -207,10 +188,7 @@ class PlayerController : public Behaviour {
         ProcessTargeting(deltaTime);
     }
 
-    explicit PlayerController(Camera * camera,
-            std::vector<Object> interactableObjects,
-            PublicText * hintText) {
-        m_InteractableObjects = interactableObjects;
+    explicit PlayerController(Camera * camera, PublicText * hintText) {
         m_Camera = camera;
         m_HintText = hintText;
         eatSound = engine->NewObject();

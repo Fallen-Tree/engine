@@ -12,8 +12,6 @@ Engine *engine;
 Object dogSound;
 ShaderProgram *skeletalSP;
 
-std::vector<Object> interactableObjects(0);
-
 // Initializing global variables
 void init() {
     engine = new Engine("Pool game");
@@ -61,60 +59,39 @@ void AddLantern(Vec3 pos) {
     Transform * tr = new Transform(pos, Vec3(1.0f), Mat4(1.0f));
     newModel(tr, lantern);
     engine->NewObject().AddPointLight(
-        Vec3(0.5f, 0.5f, 0.5f), Vec3(1.0f, 1.0f, 1.0f),
-        Vec3(1.0f, 1.0f, 1.0f), pos,
-        1.f, 0.05f, 0.01f);
+        Vec3(0.65f, 0.65f, 0.65f), Vec3(1.f),
+        Vec3(1.f), pos,
+        1.f, 0.01f, 0.01f);
 }
 
 void createLights() {
-    engine->NewObject().AddPointLight(
-        Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
-        Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0, 10.0, 0.0),
-        1.f, 0.0f, 0.01f);
-
-    engine->NewObject().AddPointLight(
-        Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
-        Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0f, 10.0f, -20.0f),
-        1.f, 0.0f, 0.01f);
-
-    engine->NewObject().AddPointLight(
-        Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
-        Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0f,  10.0f, 20.0f),
-        1.f, 0.0f, 0.01f);
-    /*
     engine->NewObject().AddDirLight(
-        Vec3(0.05f, 0.05f, 0.05f), Vec3(0.4f, 0.4f, 0.4f),
-        Vec3(0.5f, 0.5f, 0.5f),  Vec3(-0.2f, -1.0f, -0.3f));
-    */
-    engine->NewObject().AddSpotLight(Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
-        Vec3(1.0f, 1.0f, 1.0f), Vec3(1.0f, 1.0f, 1.0f),
-        1.0f, 0.09f, 0.032f, Vec3(0),
-        glm::cos(glm::radians(12.5f)),
-        glm::cos(glm::radians(15.0f)));
-    /*
-    engine->NewObject().AddSpotLight(Vec3(0.0f, 0.0f, 0.0f), Vec3(0.5f, 0.5f, 0.5f),
-        Vec3(0.3f, 0.3f, .3f), Vec3(1.0f, 1.0f, 1.0f),
-        1.0f, 0.09f, 0.032f, Vec3(0),
-        glm::cos(glm::radians(10.0f)),
-        glm::cos(glm::radians(20.0f)));
-    */
+        Vec3(0.01f), Vec3(0.5f, 0.4f, 0.4f), Vec3(0.5f, 0.4f, 0.4f),
+        Vec3(-0.0f, -1.0f, -0.5f));
+
+    auto spotLight = engine->NewObject();
+    auto light = spotLight.AddSpotLight(
+        Vec3(0.1f, 0.1f, 0.1f), Vec3(1.0f, 1.0f, 1.0f), Vec3(1.0f, 1.0f, 1.0f),
+        0.2f, 0.02f, 0.01f,
+        glm::cos(glm::radians(15.f)), glm::cos(glm::radians(35.0f)));
+    spotLight.AddTransform(Vec3(0.f, 9.f, 0.f), Vec3(1.f), Mat4(1.f));
 }
 
 void buildRoom() {
+    createLights();
     float floor_y = -6.0f;
 
     float wall_scale = 4.0f;
     int walls_cnt = 2;
     Vec3 wall_y = Vec3(0, floor_y, 0);
     Model *w2 = engine->GetModelManager().LoadModel("wall.fbx");
+    for (auto &mesh : w2->meshes) {
+        mesh.material.shininess = 4.f;
+    }
     for (int i = -walls_cnt; i <= walls_cnt; ++i) {
         newModel(
             new Transform(Vec3(i, 0, -walls_cnt) * 4.0f * wall_scale + wall_y,
                 Vec3(wall_scale), Mat4(1.0)), w2);
-        newModel(
-            new Transform(Vec3(i, 0, walls_cnt) * 4.0f * wall_scale + wall_y,
-                Vec3(wall_scale), Mat4(1.0)), w2)
-            .GetTransform()->Rotate(0, glm::radians(180.0f), 0);
         newModel(
             new Transform(Vec3(-walls_cnt, 0, i) * 4.0f * wall_scale + wall_y,
                 Vec3(wall_scale), Mat4(1.0)), w2)
@@ -174,16 +151,17 @@ void buildRoom() {
     float ceil_scale = 5.0f;
     float ceil_y = floor_y + 20.0f;
     for (int i = -ceil_cnt; i <= ceil_cnt; ++i) {
-        for (int j = -ceil_cnt; j <= ceil_cnt; ++j) {
-        newModel(new Transform(Vec3(i, 0, j) * 3.5f * ceil_scale + Vec3(0, ceil_y + (i & 1) * 0.01f, 0),
-                Vec3(ceil_scale), Mat4(1.0)), ceil)
-            .GetTransform()->Rotate(glm::radians(180.f), 0, 0);
+        for (int j = -ceil_cnt; j <= ceil_cnt - 1; ++j) {
+            newModel(new Transform(Vec3(i, 0, j) * 3.5f * ceil_scale + Vec3(0, ceil_y + (i & 1) * 0.01f, 0),
+                    Vec3(ceil_scale), Mat4(1.0)), ceil)
+                .GetTransform()->Rotate(glm::radians(180.f), 0, 0);
         }
     }
 
     for (int i = -1; i <= 1; ++i) {
-        for (int j = -1; j <= 1; ++j) {
-            AddLantern(Vec3(i * 25, 12, j * 25));
+        for (int j = -1; j <= 0; ++j) {
+            if (i == 0 && j == 0) continue;
+            AddLantern(Vec3(i * 23, 10, j * 23));
         }
     }
 
@@ -191,9 +169,8 @@ void buildRoom() {
     Model *cc = engine->GetModelManager().LoadModel("CompanionCube/Portal_Companion_Cube.obj");
     Object cube = newDynamicBody(
         new Transform(Vec3(18, floor_y + cc_scale + 0.1f, 0), Vec3(cc_scale), Mat4(1.0)), cc,
-        new Collider{Collider::GetDefaultAABB(&cc->meshes[0])},
+        new Collider{Collider::GetDefaultAABB(&cc->meshes[0]), Collider::Layer1 | Collider::Layer4},
         new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f, TypeFriction::SlidingFriction));
-    interactableObjects.push_back(cube);
 
     float chest_scale = 20.f;
     float chest_y = floor_y + chest_scale * 0.1f;
@@ -202,11 +179,10 @@ void buildRoom() {
         Object chestObj = newDynamicBody(
             new Transform(Vec3(-20, chest_y, i * 5 - 10), Vec3(chest_scale), 0, Vec3(1)),
             chest,
-            new Collider{Collider::GetDefaultAABB(&chest->meshes[0]).ToOBB()},
+            new Collider{Collider::GetDefaultAABB(&chest->meshes[0]).ToOBB(), Collider::Layer1 | Collider::Layer4},
             new RigidBody(1.0f, IBodyOBB(Vec3(1), 20.f), 0.5f, Vec3(0, -gravity, 0), 1.0f,
                 TypeFriction::SlidingFriction));
         chestObj.GetTransform()->Rotate(0, glm::radians(90.0f), 0);
-        interactableObjects.push_back(chestObj);
     }
 
     auto &modelManager = engine->GetModelManager();
@@ -223,12 +199,12 @@ void buildRoom() {
         mesh.material.diffuseColor *= 1.5f;
     }
 
+    dogModel->shader = engine->GetShaderManager()
+        .LoadShaderProgram("skeletal.vshader", "standart.fshader");
+    dogModel->depthShader = engine->GetShaderManager()
+        .LoadDepthProgram("depth_skeletal.vshader");
 
-    dogModel->shader = new ShaderProgram(
-        engine->GetShaderManager().LoadShaderProgram("skeletal.vshader", "standart.fshader"));
-
-
-    Object dogObj = engine->NewObject();
+    Object dogObj = engine->NewObject("Dog");
     dogSound = engine->NewObject();
     dogSound.AddTransform(Vec3(0), Vec3(0), Mat4(1.f));
     dogSound.AddSound(SoundType::SOUND_3D, "dog-panting-1.mp3", true).SetVolume(10.f).SetRadius(20.f);
@@ -237,7 +213,8 @@ void buildRoom() {
     dogObj.AddSound(SoundType::SOUND_3D, "dog-sniffing.wav", true).SetVolume(10.f).SetRadius(20.f);
     dogObj.AddChild(dogSound);
 
-    dogObj.AddModel(*dogModel);
+    auto &m = dogObj.AddModel(*dogModel);
+
     class DogBehaviour : public Behaviour {
      private:
         float direction = 0.f;
@@ -297,16 +274,15 @@ void buildRoom() {
     for (int i = 0; i < 4; ++i) {
         Transform *chTransform = new Transform(Vec3(5 * i, floor_y, -15), Vec3(0.5), 0, Vec3(1));
         Object chairObj = newDynamicBody(chTransform, chair,
-            new Collider{Collider::GetDefaultAABB(&chair->meshes[0])},
+            new Collider{Collider::GetDefaultAABB(&chair->meshes[0]), Collider::Layer1 | Collider::Layer4},
             new RigidBody(1.0f, IBodyOBB(Vec3(0), 20.f), 0.2f, Vec3(0, -gravity, 0), 1.0f, TypeFriction::SlidingFriction));
-        interactableObjects.push_back(chairObj);
     }
 
 
     float table_y = 4.2f;
 
     Model *table = modelManager.LoadModel("Table_Small/Table_Small.obj");
-    newStaticBody(new Transform(Vec3(20, floor_y, 14), Vec3(0.05), Mat4(1.0)), table,
+    newStaticBody(new Transform(Vec3(20, floor_y, 19), Vec3(0.05), Mat4(1.0)), table,
         new Collider{Collider::GetDefaultAABB(&table->meshes[0])});
 
     Model *table2 = modelManager.LoadModel("Desk/desk.obj");
@@ -325,23 +301,22 @@ void buildRoom() {
 
     Model *pizza = modelManager.LoadModel("Pizza slice/Pizza_Slice_01.obj");
     Object pizzaObj = newDynamicBody(
-        new Transform(Vec3(20, floor_y + table_y, 16), Vec3(0.1), Mat4(1.0)), pizza,
-        new Collider{Collider::GetDefaultAABB(&pizza->meshes[0])},
+        new Transform(Vec3(20, floor_y + table_y, 21), Vec3(0.1), Mat4(1.0)), pizza,
+        new Collider{Collider::GetDefaultAABB(&pizza->meshes[0]), Collider::Layer1 | Collider::Layer4},
         new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f, TypeFriction::SlidingFriction));
-    pizzaObj.name = 1;
-    interactableObjects.push_back(pizzaObj);
+    pizzaObj.SetName("Pizza");
 
     Model *painting = modelManager.LoadModel("Wall painting/Wall_Art_Classical_01.obj");
     newModel(new Transform(Vec3(walls_x, floor_y + 8, 6), Vec3(0.5), Mat4(1.0)), painting)
         .GetTransform()->Rotate(0, glm::radians(90.0f), 0);
 
     Model *boomboxModel = modelManager.LoadModel("record player.fbx");
-    auto boombox = newModel(new Transform(Vec3(20, floor_y + table_y, 14),
+    auto boombox = newModel(new Transform(Vec3(20, floor_y + table_y, 19),
         Vec3(1.0, 1.0, 0.25), Mat4(1.0)), boomboxModel);
     boombox.GetTransform()->Rotate(glm::radians(-90.0f), 0, 0);
 }
 
-void poolTable() {
+void poolTable(Object player) {
     float balls_y = -2.0f;
     std::vector<Vec3> coordinates {
         Vec3(-2, balls_y, -0.2f),
@@ -376,14 +351,13 @@ void poolTable() {
 
     Table::New(Vec3(0, table_y, 0), Vec3(5));
 
-    Cue::New(balls, engine->camera);
+    Cue::New(balls, engine->camera, player);
 }
 
 int main() {
     init();
 
     buildRoom();
-    poolTable();
     createUI();
 
     auto ocraFont = engine->GetFontManager().LoadFont("OCRAEXT.TTF", 20);
@@ -391,12 +365,14 @@ int main() {
         PublicText::New(ocraFont, "0", Vec2(0.53f, 0.5f), 1.f, Vec3(1))
         .GetBehaviour());
     Object player = engine->NewObject("Player");
-    player.AddBehaviour<PlayerController>(engine->camera, interactableObjects, hintText);
+    player.AddBehaviour<PlayerController>(engine->camera, hintText);
     player.AddTransform(Vec3(0.f, 1.5f, 14.f), Vec3(1), Mat4(1));
     player.AddCollider(AABB{Vec3(-0.6, -7, -0.6f), Vec3(0.6f, 1, 0.6f)}, Collider::Layer1 | Collider::Layer3);
 
     float player_mass = 5.0f;
     player.AddRigidBody(player_mass, Mat4(0),
                 0.5f, Vec3(0, -gravity * player_mass, 0), 0.f, TypeFriction::SlidingFriction);
+
+    poolTable(player);
     engine->Run();
 }
