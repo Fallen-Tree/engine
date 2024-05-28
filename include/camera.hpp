@@ -32,6 +32,9 @@ class Camera {
     void SetScreenSize(Vec2);
     Vec2 GetScreenSize();
 
+    float GetNearPlane();
+    float GetFarPlane();
+
     void Update(Input * input, float deltaTime);
 
  private:

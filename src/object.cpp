@@ -14,8 +14,12 @@ bool Object::IsValid() {
     return m_Engine && m_Handle != -1 && m_Engine->IsObjectValid(m_Handle);
 }
 
-void Object::AddChild(Object child) {
-    m_Engine->AddChild(m_Handle, child.m_Handle);
+void Object::AddChild(Object child, bool saveTransform) {
+    m_Engine->AddChild(m_Handle, child.m_Handle, saveTransform);
+}
+
+void Object::RemoveChild(Object child, bool saveTransform) {
+    m_Engine->RemoveChild(m_Handle, child.m_Handle, saveTransform);
 }
 
 Object Object::GetParent() {
@@ -34,8 +38,24 @@ Object &Object::operator=(const Object &&rhs) {
     return *this;
 }
 
+bool Object::operator==(const Object &rhs) const {
+    return rhs.m_Handle == m_Handle;
+}
+
+bool Object::operator!=(const Object &rhs) const {
+    return rhs.m_Handle != m_Handle;
+}
+
 Transform *Object::GetTransform() {
     return m_Engine->GetTransform(m_Handle);
+}
+
+Transform Object::GetGlobalTransform() {
+    return m_Engine->GetGlobalTransform(m_Handle);
+}
+
+void Object::SetGlobalTransform(Transform t) {
+    return m_Engine->SetGlobalTransform(m_Handle, t);
 }
 
 Object &Object::SetName(std::string name) {
@@ -97,4 +117,9 @@ bool Object::Collide(Object other) {
 
 std::vector<Object> Object::CollideAll() {
     return m_Engine->CollideAll(m_Handle);
+}
+
+std::optional<Object> Object::GlobalRaycast(Ray ray, int layer, float maxDist) {
+    auto handle = m_Engine->GlobalRaycast(ray, layer, maxDist);
+    return handle ? Object(m_Engine, *handle) : std::optional<Object>();
 }

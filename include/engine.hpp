@@ -47,6 +47,7 @@ class Engine {
 
     Transform *GetTransform(ObjectHandle);
     Transform GetGlobalTransform(ObjectHandle);
+    void SetGlobalTransform(ObjectHandle, Transform);
     Model *GetModel(ObjectHandle);
     Collider *GetCollider(ObjectHandle);
     RigidBody *GetRigidBody(ObjectHandle);
@@ -92,13 +93,14 @@ class Engine {
     std::string GetObjectName(ObjectHandle);
     std::vector<ObjectHandle> GetHandlesByName(std::string name);
 
-    void AddChild(ObjectHandle parent, ObjectHandle child);
+    void AddChild(ObjectHandle parent, ObjectHandle child, bool saveTransform);
+    void RemoveChild(ObjectHandle parent, ObjectHandle child, bool saveTransform);
     Object GetParent(ObjectHandle node);
 
     bool Collide(ObjectHandle, ObjectHandle);
     std::vector<Object> CollideAll(ObjectHandle);
 
-    std::optional<ObjectHandle> GlobalRaycast(Ray ray);
+    std::optional<ObjectHandle> GlobalRaycast(Ray ray, int layer, float maxDist);
 
     Camera* SwitchCamera(Camera* newCamera);
     void Run();

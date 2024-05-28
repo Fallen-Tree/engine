@@ -22,7 +22,7 @@ class Shader {
 
 class ShaderProgram {
  private:
-     unsigned int m_Program = -1;
+     int m_Program = -1;
      unsigned int GetLoc(const char* name);
 
  public:

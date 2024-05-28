@@ -6,6 +6,7 @@
 #include <string>
 
 #include "path_resolver.hpp"
+#include "assimp_helpers.hpp"
 #include "pretty_print.hpp"
 
 Model* Model::loadFromFile(std::string path) {
@@ -21,7 +22,7 @@ Model* Model::loadFromFile(std::string path) {
     return newModel;
 }
 
-Model* Model::loadFromFile(std::string path, ShaderProgram *shader) {
+Model* Model::loadFromFile(std::string path, ShaderProgram shader) {
     Model* newModel = loadFromFile(path);
     newModel->shader = shader;
     return newModel;
@@ -111,7 +112,7 @@ Model *Model::fromMesh(Mesh *mesh, Material material) {
     return newModel;
 }
 
-Model *Model::fromMesh(Mesh *mesh, Material material, ShaderProgram *shader) {
+Model *Model::fromMesh(Mesh *mesh, Material material, ShaderProgram shader) {
     Model *newModel = new Model();
     std::vector<RenderMesh> meshes;
     meshes.push_back(*(new RenderMesh(mesh, material)));

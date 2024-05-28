@@ -571,9 +571,6 @@ CollisionManifold CollidePrimitive(AABB aabb, Triangle tri) {
 
     for (int i = 0; i < res.pointCnt; i++) {
         res.points[i] = points[i];
-        // TODO(theblek): find adequate normal
-        res.normals[i] = Vec3(0);
-        Logger::Info("Point: %s; max: %s; min: %s", ToString(points[i]), ToString(aabb.max), ToString(aabb.min));
     }
 
     points = ClipEdgesToTriangle(aabb.GetEdges(), tri);
@@ -593,17 +590,13 @@ CollisionManifold CollidePrimitive(AABB aabb, Triangle tri) {
         res.normals[i] += res.points[i].z > aabb.max.z - EPS ? Vec3(0.f, 0.f, -1.f) : Vec3(0);
         res.normals[i] += res.points[i].z < aabb.min.z + EPS ? Vec3(0.f, 0.f, 1.f) : Vec3(0);
         res.normals[i] = Norm(res.normals[i]);
-        Logger::Info("Normal %d: %s", i, ToString(res.normals[i]));
         avgNormal += res.normals[i];
     }
 
-    Logger::Info("%d points", res.pointCnt);
-    Logger::Info("%f penetrationDistance", res.penetrationDistance);
     if (res.pointCnt == 0) {
         res.pointCnt = 1;
         res.points[0] = tri.ClosestPoint(center);
         res.normals[0] = Norm(res.points[0] - center);
-        Logger::Info("Normal before: %s", ToString(res.normals[0]));
         float nx = glm::abs(res.normals[0].x);
         float ny = glm::abs(res.normals[0].y);
         float nz = glm::abs(res.normals[0].z);
@@ -614,7 +607,6 @@ CollisionManifold CollidePrimitive(AABB aabb, Triangle tri) {
             res.normals[0] = Vec3(0.f, 1.f, 0.f) * glm::sign(res.points[0].y);
         }
         res.normals[0] = Vec3(0.f, 0.f, 1.f) * glm::sign(res.points[0].z);
-        Logger::Info("Normal after: %s", ToString(res.normals[0]));
     }
     assert(res.pointCnt > 0);
     return res;

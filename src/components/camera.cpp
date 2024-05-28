@@ -98,16 +98,19 @@ Vec2 Camera::GetScreenSize() {
     return m_ScreenSize;
 }
 
-Vec3 NewFront(Mat4 rotation) {
-    // normalize the vectors, because their length gets closer to 0 the more you look
-    // up or down which results in slower movement.
-    const Vec3 startingPos = STARTING_POSITION;
-    return glm::normalize(Mul(startingPos, rotation));
+float Camera::GetNearPlane() {
+    return m_NearPlane;
+}
+
+float Camera::GetFarPlane() {
+    return m_FarPlane;
 }
 
 // calculates the front vector from the Camera's (updated) Euler Angles
 void Camera::UpdateCameraVectors() {
-    this->m_Front = NewFront(m_Transform.GetRotation());
+    this->m_Front = glm::normalize(
+        Mul(STARTING_POSITION, glm::transpose(m_Transform.GetRotation()))
+    );
     // also re-calculate the Right and Up vector
     this->m_Right = glm::normalize(glm::cross(m_Front, m_WorldUp));
     this->m_Up    = glm::normalize(glm::cross(m_Right, m_Front));

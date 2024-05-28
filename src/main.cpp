@@ -152,7 +152,7 @@ int main() {
     {
         // /* PIGEON */
         Model *pigeonModel = engine->GetModelManager().LoadModel("pigeon/scene.gltf");
-        pigeonModel->shader = &skeletalShaderProgram;
+        pigeonModel->shader = skeletalShaderProgram;
         auto pigeonAnimation = new SkeletalAnimationData("pigeon/scene.gltf", 0, pigeonModel);
 
         auto pigeonObj = engine->NewObject();
@@ -163,7 +163,7 @@ int main() {
 
     {
         /* Wolf */
-        Model *wolfModel = engine->GetModelManager().LoadModel("Wolf/Wolf-Blender-2.82a.gltf", &skeletalShaderProgram);
+        Model *wolfModel = engine->GetModelManager().LoadModel("Wolf/Wolf-Blender-2.82a.gltf", skeletalShaderProgram);
         wolfModel->meshes.pop_back();  // Delete Fur
         wolfModel->meshes.erase(wolfModel->meshes.begin() + 1);  // Delete floor
 
@@ -346,11 +346,11 @@ int main() {
         Vec3(0.05f, 0.05f, 0.05f), Vec3(0.4f, 0.4f, 0.4f),
         Vec3(0.5f, 0.5f, 0.5f),  Vec3(-0.2f, -1.0f, -0.3f));
 
-    engine->NewObject().AddSpotLight(Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f),
-        Vec3(1.0f, 1.0f, 1.0f), Vec3(1.0f, 1.0f, 1.0f),
-        1.0f, 0.09f, 0.032f, Vec3(0),
-        glm::cos(glm::radians(12.5f)),
-        glm::cos(glm::radians(15.0f)));
+    /* engine->NewObject().AddSpotLight(Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f), */
+    /*     Vec3(1.0f, 1.0f, 1.0f), Vec3(1.0f, 1.0f, 1.0f), */
+    /*     1.0f, 0.09f, 0.032f, Vec3(0), */
+    /*     glm::cos(glm::radians(12.5f)), */
+    /*     glm::cos(glm::radians(15.0f))); */
 
     Object control = engine->NewObject();
     control.AddBehaviour<CameraController>(engine->camera);

@@ -10,6 +10,21 @@
 #include "user_config.hpp"
 #include "tracy/Tracy.hpp"
 
+Image::Image(unsigned int texture, int width, int height) {
+    m_TextureID = texture;
+    m_Width = width;
+    m_Height = height;
+    glGenVertexArrays(1, &m_VAO);
+    glGenBuffers(1, &m_VBO);
+    glBindVertexArray(m_VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+
 Image::Image(std::string path) {
     path = GetResourcePath(Resource::IMAGE, path);
     m_Visible = true;
@@ -47,14 +62,16 @@ Image::Image(std::string path) {
 }
 
 Image::Image(std::string path, float relX, float relY) {
-  m_RelX = relX;
-  m_RelY = relY;
+    *this = Image(path); 
+    m_RelX = relX;
+    m_RelY = relY;
 }
 
 Image::Image(std::string path, float relX, float relY, float scale) {
-  m_RelX = relX;
-  m_RelY = relY;
-  m_Scale = scale;
+    *this = Image(path); 
+    m_RelX = relX;
+    m_RelY = relY;
+    m_Scale = scale;
 }
 
 Image& Image::SetShaderProgram(ShaderProgram sp) {
@@ -108,6 +125,8 @@ void Image::Render() {
     { xpos + w, ypos,       1.0f, 1.0f },
     { xpos + w, ypos + h,   1.0f, 0.0f }
   };
+  /* for (int i = 0; i < 6; i++) */
+  /*     Logger::Info("%f %f %f %f", vertices[i][0], vertices[i][1], vertices[i][2], vertices[i][3]); */
 
   glBindTexture(GL_TEXTURE_2D, m_TextureID);
   glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
