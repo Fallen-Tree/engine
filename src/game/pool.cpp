@@ -8,7 +8,7 @@
 
 #include "classes.cpp"
 
-float gravity = 9.8;
+float gravity = 9.8 * 3;
 Model* ball_model = nullptr;
 // Classes for pool
 class MovingBall : public Behaviour {

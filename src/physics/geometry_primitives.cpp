@@ -99,7 +99,7 @@ OBB AABB::ToOBB() {
             Vec3(0, 1, 0),
             Vec3(0, 0, 1),
         },
-        glm::abs(max - min * 0.5f)
+        glm::abs((max - min) * 0.5f)
     };
 }
 
