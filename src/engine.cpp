@@ -703,7 +703,6 @@ void Engine::Render(int scr_width, int scr_height) {
         Mat4 view = camera->GetViewMatrix();
         Vec3 viewPos = camera->GetPosition();
 
-
         for (auto [key, shader] : m_ShaderManager) {
             shader.Use();
 
@@ -726,7 +725,6 @@ void Engine::Render(int scr_width, int scr_height) {
             }
 
             char str[100];
-            assert(m_PointLights.GetSize() == 0);
             for (int i = 0; i < m_PointLights.GetSize(); i++) {
                 snprintf(str, sizeof(str), "pointLights[%d].position", i);
                 shader.SetVec3(str, m_PointLights.entries[i].position);
@@ -746,7 +744,6 @@ void Engine::Render(int scr_width, int scr_height) {
 
             shader.SetInt("lenArrPointL", m_PointLights.GetSize());
             // directionLight
-            assert(m_PointLights.GetSize() == 0);
             for (int i = 0; i < m_DirLights.GetSize(); i++) {
                 snprintf(str, sizeof(str), "shadowMapDir[%d]", i);
                 shader.SetInt(str, 2 + i);
@@ -763,7 +760,6 @@ void Engine::Render(int scr_width, int scr_height) {
             }
             shader.SetInt("lenArrDirL", m_DirLights.GetSize());
             // spotLight
-            assert(m_DirLights.GetSize() == 0);
             for (int i = 0; i < m_SpotLights.GetSize(); i++) {
                 ObjectHandle id = m_SpotLights.GetFromInternal(i);
                 if (!GetTransform(id)) {
@@ -800,7 +796,6 @@ void Engine::Render(int scr_width, int scr_height) {
                 shader.SetFloat(str, m_SpotLights.entries[i].quadraticDistCoeff);
             }
             shader.SetInt("lenArrSpotL", m_SpotLights.GetSize());
-            assert(m_SpotLights.GetSize() == 1);
         }
     }
     call_render(false);

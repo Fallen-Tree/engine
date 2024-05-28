@@ -79,9 +79,9 @@ void createLights() {
     /*     Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f), */
     /*     Vec3(1.0f, 1.0f, 1.0f), Vec3(0.0f,  10.0f, 20.0f), */
     /*     1.f, 0.0f, 0.01f); */
-    /* engine->NewObject().AddDirLight( */
-    /*     Vec3(0.2f), Vec3(0.7f), */
-    /*     Vec3(0.7f),  Vec3(-0.2f, -1.0f, -0.3f)); */
+    engine->NewObject().AddDirLight(
+        Vec3(0.01f), Vec3(0.3f),
+        Vec3(0.3f),  Vec3(-0.2f, -1.0f, -0.3f));
 
     /* engine->NewObject().AddDirLight( */
     /*     Vec3(0.2f), Vec3(0.7f, 0.1f, 0.1f), */
@@ -92,13 +92,6 @@ void createLights() {
         0.9f, 0.08f, 0.022f,
         glm::cos(glm::radians(15.f)), glm::cos(glm::radians(25.0f)));
     spotLight.AddTransform(Vec3(0.f, 9.f, 0.f), Vec3(1.f), Mat4(1.f));
-    auto visualization = engine->NewObject()
-        .AddImage(light.depthMap, SHADOW_WIDTH, SHADOW_HEIGHT)
-        .SetRelativePosition(0.1f, 0.1f)
-        .SetScale(0.1f)
-        .SetShaderProgram(engine->GetShaderManager()
-            .LoadShaderProgram("text.vshader", "perspective_depth.fshader")
-        );
     /*
     engine->NewObject().AddSpotLight(Vec3(0.0f, 0.0f, 0.0f), Vec3(0.5f, 0.5f, 0.5f),
         Vec3(0.3f, 0.3f, .3f), Vec3(1.0f, 1.0f, 1.0f),
