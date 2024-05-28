@@ -9,6 +9,28 @@
 #include "classes.cpp"
 
 float gravity = 9.8;
+
+class GameManager : public Behaviour {
+ private:
+    PublicText *text;
+    void ShowScore(int score) {
+        text->SetContent("Score: " + std::to_string(score));
+    }
+
+ public:
+    int score = 0;
+
+    explicit GameManager(PublicText *text) {
+        this->text = text;
+    }
+
+    void Update(float dt) override {
+        ShowScore(score);
+    }
+};
+
+
+GameManager* gameManager;
 Model* ball_model = nullptr;
 // Classes for pool
 class MovingBall : public Behaviour {
@@ -50,7 +72,15 @@ class MovingBall : public Behaviour {
                 return;
             }
         }
+
+        if (!on_floor && self.GetTransform()->GetTranslation().y < -5.f) {
+            gameManager->score += 100;
+            on_floor = 1;
+        }
     }
+
+ private:
+    bool on_floor = 0;
 };
 
 class Cue : public Behaviour {
@@ -59,7 +89,7 @@ class Cue : public Behaviour {
         Model *model = engine->GetModelManager().LoadModel("pool/cue.obj");
         Material material = {
             4.f,
-            Texture("/kiy.png"),
+            Texture("pool/kiy.png"),
         };
         model->setMaterial(material);
         Transform *transform = new Transform(Vec3(0), Vec3(8), Mat4(0));
@@ -159,28 +189,9 @@ class Cue : public Behaviour {
     Object m_Player;
 };
 
-class GameManager : public Behaviour {
- private:
-    PublicText *text;
-    void ShowScore(int score) {
-        text->SetContent("Score: " + std::to_string(score));
-    }
-
- public:
-    int score = 0;
-
-    explicit GameManager(PublicText *text) {
-        this->text = text;
-    }
-
-    void Update(float dt) override {
-        ShowScore(score);
-    }
-};
-
 class Table : public Behaviour {
  public:
-    static Object New(Vec3 position, Vec3 scale, GameManager *gameManager) {
+    static Object New(Vec3 position, Vec3 scale) {
         Transform *transform = new Transform(position, scale, Mat4(1.0));
 
         Model *model = engine->GetModelManager().LoadModel("pool/stol_1.obj");
@@ -193,14 +204,26 @@ class Table : public Behaviour {
         // get full mesh of the table or make multiple objects for walls of the table.
         auto colliderModel = engine->GetModelManager().LoadModel("pool/stol_collider2.obj");
         Collider *col = new Collider {&colliderModel->meshes[0], Collider::Layer2};
+
+        AABB aabb = Collider::GetDefaultAABB(model);
+        aabb.max.y -= 0.5f;
+        aabb.min.y -= 0.5f;
+        Collider *colForPlayer = new Collider{aabb, Collider::Layer3};
+
+        auto tableForPlayer = engine->NewObject();
+        tableForPlayer.AddCollider(*colForPlayer);
+        tableForPlayer.AddRigidBody(0.f, glm::mat4(0), 0.f, Vec3(0), 0.f, slidingFriction);
+        tableForPlayer.AddTransform(*transform);
+
+
         float h0 = -0.5;
         float h = 0.85;
 
         float width = 0.9;
         float length = 0.45;
 
-        float floor_friction = 0.1f;
-        float floor_bounciness = 0.8f;
+        float floor_friction = 0.15f;
+        float floor_bounciness = 0.5f;
         float walls_bounciness = 0.9f; // TODO(us): can we somehow assign different bounciness to floor and walls?
         Object obj = newStaticBody<Table>(transform, model, col, floor_bounciness, floor_friction);
 

@@ -201,10 +201,7 @@ class PlayerController : public Behaviour {
         ProcessTargeting(deltaTime);
     }
 
-    explicit PlayerController(Camera * camera,
-            std::vector<Object> interactableObjects,
-            PublicText * hintText) {
-        m_InteractableObjects = interactableObjects;
+    explicit PlayerController(Camera * camera, PublicText * hintText) {
         m_Camera = camera;
         m_HintText = hintText;
         eatSound = engine->NewObject();

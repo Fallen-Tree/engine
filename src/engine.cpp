@@ -55,7 +55,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
 void processInput(GLFWwindow *window);
 
-Engine::Engine() : m_FontManager(m_ShaderManager) {
+Engine::Engine(std::string windowName) : m_FontManager(m_ShaderManager) {
     _startTime = std::chrono::high_resolution_clock::now();
     camera = new Camera(Vec3(0.0f, 0.0f, 3.0f));
     s_Engine = this;
@@ -76,7 +76,7 @@ Engine::Engine() : m_FontManager(m_ShaderManager) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    m_Window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    m_Window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, windowName.c_str(), NULL, NULL);
     if (m_Window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();

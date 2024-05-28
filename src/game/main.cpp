@@ -14,11 +14,9 @@ Object dogSound;
 ShaderProgram *defaultSP;
 ShaderProgram *skeletalSP;
 
-std::vector<Object> interactableObjects(0);
-
 // Initializing global variables
 void init() {
-    engine = new Engine();
+    engine = new Engine("Pool game");
     std::string vertexShaderSource = "standart.vshader";
     std::string skeletalVertexShaderSource = "skeletal.vshader";
     std::string fragmentShaderSource = "standart.fshader";
@@ -26,6 +24,13 @@ void init() {
         engine->GetShaderManager().LoadShaderProgram(vertexShaderSource, fragmentShaderSource));
     skeletalSP = new ShaderProgram(
         engine->GetShaderManager().LoadShaderProgram(skeletalVertexShaderSource, fragmentShaderSource));
+
+    auto ocraFont = engine->GetFontManager().LoadFont("OCRAEXT.TTF", 20);
+    auto scoreText = PublicText::New(ocraFont, "0", Vec2(0.02f, 0.95f), 1.f, Vec3(0, 0, 0));
+    Object gmObj = engine->NewObject();
+    gmObj.AddBehaviour<GameManager>(
+        reinterpret_cast<PublicText*>(scoreText.GetBehaviour()));
+    gameManager = reinterpret_cast<GameManager*>(gmObj.GetBehaviour());
 }
 
 void createUI() {
@@ -185,10 +190,10 @@ void buildRoom() {
     Model *chest = engine->GetModelManager().LoadModel("Chest/model.obj");
     for (int i = 0; i < 4; ++i) {
         Object chestObj = newDynamicBody(
-            new Transform(Vec3(-20, chest_y, i * 5 - 10), Vec3(chest_scale), Mat4(1.0)),
+            new Transform(Vec3(-20, chest_y, i * 5 - 10), Vec3(chest_scale), 0, Vec3(1)),
             chest,
-            new Collider{Collider::GetDefaultAABB(&chest->meshes[0]), Collider::Layer1 | Collider::Layer4},
-            new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f,
+            new Collider{Collider::GetDefaultAABB(&chest->meshes[0]).ToOBB(), Collider::Layer1 | Collider::Layer4},
+            new RigidBody(1.0f, IBodyOBB(Vec3(1), 20.f), 0.5f, Vec3(0, -gravity, 0), 1.0f,
                 slidingFriction));
         chestObj.GetTransform()->Rotate(0, glm::radians(90.0f), 0);
     }
@@ -280,10 +285,10 @@ void buildRoom() {
 
     Model *chair = modelManager.LoadModel("Chair.obj");
     for (int i = 0; i < 4; ++i) {
-        Transform *chTransform = new Transform(Vec3(5 * i, floor_y, -15), Vec3(0.4), Mat4(1.0));
+        Transform *chTransform = new Transform(Vec3(5 * i, floor_y, -15), Vec3(0.5), 0, Vec3(1));
         Object chairObj = newDynamicBody(chTransform, chair,
             new Collider{Collider::GetDefaultAABB(&chair->meshes[0]), Collider::Layer1 | Collider::Layer4},
-            new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f, slidingFriction));
+            new RigidBody(1.0f, IBodyOBB(Vec3(0), 20.f), 0.2f, Vec3(0, -gravity, 0), 1.0f, slidingFriction));
     }
 
 
@@ -332,8 +337,8 @@ void poolTable(Object player) {
         Vec3(-2.5f, balls_y, 0.1f),
         Vec3(-3.f, balls_y, -0.8f),
         Vec3(-3.f, balls_y, -0.2f),
-    /*    Vec3(-3.f, balls_y, 0.4f),
-        Vec3(-3.5f, balls_y, -1.1f),
+        Vec3(-3.f, balls_y, 0.4f),
+    /*    Vec3(-3.5f, balls_y, -1.1f),
         Vec3(-3.5f, balls_y, -0.5f),
         Vec3(-3.5f, balls_y, 0.1f),
         Vec3(-3.5f, balls_y, 0.7f),
@@ -350,20 +355,14 @@ void poolTable(Object player) {
     std::vector<Object> balls;
     for (int i = 0; i < ballsCount; i++) {
         Vec3 pos = coordinates[i];
-        auto newBall = MovingBall::New(pos, 0.2f, "pool/" + std::to_string(i % 16 + 1) + ".png");
+        auto newBall = MovingBall::New(pos, 0.19f, "pool/" + std::to_string(i % 16 + 1) + ".png");
         balls.push_back(newBall);
     }
 
-    auto ocraFont = engine->GetFontManager().LoadFont("OCRAEXT.TTF", 20);
-    auto scoreText = PublicText::New(ocraFont, "0", Vec2(0.02f, 0.95f), 1.f, Vec3(0, 0, 0));
-    Object gmObj = engine->NewObject();
-    gmObj.AddBehaviour<GameManager>(
-        reinterpret_cast<PublicText*>(scoreText.GetBehaviour()));
-    GameManager *gameManager = reinterpret_cast<GameManager*>(gmObj.GetBehaviour());
 
     float table_y = -7;
 
-    Table::New(Vec3(0, table_y, 0), Vec3(5), gameManager);
+    Table::New(Vec3(0, table_y, 0), Vec3(5));
 
     Cue::New(balls, engine->camera, player);
 }
@@ -379,9 +378,10 @@ int main() {
         PublicText::New(ocraFont, "0", Vec2(0.53f, 0.5f), 1.f, Vec3(1))
         .GetBehaviour());
     Object player = engine->NewObject("Player");
-    player.AddBehaviour<PlayerController>(engine->camera, interactableObjects, hintText);
+    player.AddBehaviour<PlayerController>(engine->camera, hintText);
     player.AddTransform(Vec3(0.f, 1.5f, 14.f), Vec3(1), Mat4(1));
-    player.AddCollider(AABB{Vec3(-0.6, -7, -0.6f), Vec3(0.6f, 1, 0.6f)}, Collider::Layer1 | Collider::Layer2);
+    player.AddCollider(AABB{Vec3(-0.6, -7, -0.6f), Vec3(0.6f, 1, 0.6f)}, Collider::Layer1 | Collider::Layer3);
+
     float player_mass = 5.0f;
     player.AddRigidBody(player_mass, Mat4(0),
                 0.5f, Vec3(0, -gravity * player_mass, 0), 0.f, slidingFriction);
