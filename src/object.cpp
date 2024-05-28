@@ -14,12 +14,12 @@ bool Object::IsValid() {
     return m_Engine && m_Handle != -1 && m_Engine->IsObjectValid(m_Handle);
 }
 
-void Object::AddChild(Object child) {
-    m_Engine->AddChild(m_Handle, child.m_Handle);
+void Object::AddChild(Object child, bool saveTransform) {
+    m_Engine->AddChild(m_Handle, child.m_Handle, saveTransform);
 }
 
-void Object::RemoveChild(Object child) {
-    m_Engine->RemoveChild(m_Handle, child.m_Handle);
+void Object::RemoveChild(Object child, bool saveTransform) {
+    m_Engine->RemoveChild(m_Handle, child.m_Handle, saveTransform);
 }
 
 Object Object::GetParent() {
@@ -52,6 +52,10 @@ Transform *Object::GetTransform() {
 
 Transform Object::GetGlobalTransform() {
     return m_Engine->GetGlobalTransform(m_Handle);
+}
+
+void Object::SetGlobalTransform(Transform t) {
+    return m_Engine->SetGlobalTransform(m_Handle, t);
 }
 
 Object &Object::SetName(std::string name) {

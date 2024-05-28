@@ -127,16 +127,30 @@ class PlayerController : public Behaviour {
     std::vector<Object> m_InteractableObjects;
     PublicText * m_HintText = nullptr;
     Object holdObj;
+    Vec3 holdObjDefaultForce;
     Object eatSound;
     bool hasHoldObj = false;
     const float MAX_HIT_DIST = 15.0f;
-    const float holdDistance = 7.0f;
     const float throwPower = 20.0f;
     const std::string FOOD_NAME = "Pizza";
 
+    void TakeObject(Object o) {
+        holdObj = o;
+        self.AddChild(holdObj, true);
+        hasHoldObj = true;
+        holdObjDefaultForce = holdObj.GetRigidBody()->defaultForce; 
+        holdObj.GetRigidBody()->defaultForce = Vec3(0);
+    }
+
+    void ReleaseObject() {
+        hasHoldObj = false;
+        self.RemoveChild(holdObj, true);
+        holdObj.GetRigidBody()->defaultForce = holdObjDefaultForce;
+    }
+
     void ProcessTargeting(float deltaTime) {
         if (m_MovementMode == Fly) {
-            hasHoldObj = false;
+            ReleaseObject();
             return;
         }
         Ray ray = Ray(m_Camera->GetPosition(), m_Camera->GetPosition() + m_Camera->GetFront());
@@ -157,29 +171,26 @@ class PlayerController : public Behaviour {
 
         if (s_Input->IsKeyPressed(Key::E)) {
             if (hasHoldObj) {
-                hasHoldObj = false;
+                ReleaseObject();
             } else if (target) {
                 if (target->GetName() == FOOD_NAME) {
                     target->Remove();
                     eatSound.GetSound()->Start();
                 } else {
-                    holdObj = *target;
-                    hasHoldObj = true;
+                    TakeObject(*target);
                 }
             }
         }
         if (s_Input->IsKeyPressed(Key::Q) && hasHoldObj) {
+            ReleaseObject();
             Vec3 throwVelocity = glm::normalize(m_Camera->GetFront()) * throwPower;
             holdObj.GetRigidBody()->velocity = throwVelocity;
-            hasHoldObj = false;
         }
 
         if (hasHoldObj) {
-            Vec3 holdPos = self.GetTransform()->GetTranslation()
-                + glm::normalize(m_Camera->GetFront()) * holdDistance;
-            Vec3 objMidOffset = Vec3(0, 1, 0);
-            holdObj.GetTransform()->SetTranslation(holdPos - objMidOffset);
             holdObj.GetRigidBody()->velocity = Vec3(0);
+            auto global = holdObj.GetGlobalTransform();
+            holdObj.GetTransform()->Rotate(glm::inverse(global.GetRotation()));
         }
     }
 

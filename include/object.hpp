@@ -28,6 +28,7 @@ class Object {
 
     Transform *GetTransform();
     Transform GetGlobalTransform();
+    void SetGlobalTransform(Transform);
     Model *GetModel();
     Collider *GetCollider();
     Animation *GetAnimation();
@@ -109,8 +110,8 @@ class Object {
 
     void Remove();
     bool IsValid();
-    void AddChild(Object child);
-    void RemoveChild(Object child);
+    void AddChild(Object child, bool saveTransform=false);
+    void RemoveChild(Object child, bool saveTransform=false);
     Object GetParent();
     bool Collide(Object other);
     std::vector<Object> CollideAll();

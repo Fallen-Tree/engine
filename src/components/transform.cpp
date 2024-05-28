@@ -14,6 +14,14 @@ Transform::Transform(Vec3 translation, Vec3 scale, Mat4 rotation) {
     this->m_Rotation = rotation;
 }
 
+Transform::Transform(Mat4 modelMat, Vec3 scale) {
+    SetScale(scale);
+    SetTranslation(Vec3{modelMat[3][0], modelMat[3][1], modelMat[3][2]});
+    modelMat[3][0] = modelMat[3][1] = modelMat[3][2] = 0;
+    modelMat[3][3] = 1;
+    SetRotation(glm::scale(modelMat, Vec3{1/scale.x, 1/scale.y, 1/scale.z}));
+}
+
 // Translation
 void Transform::SetTranslation(Vec3 translation) {
     this->m_Translation = translation;

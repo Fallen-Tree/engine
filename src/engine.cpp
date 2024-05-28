@@ -122,7 +122,7 @@ Object Engine::NewObject(std::string name) {
     m_Names[handle] = name;
     m_NamesToHandles[name].push_back(handle);
     Logger::Info("Created object %d, named \"%s\"", handle, name.c_str());
-    AddChild(ROOT, handle);
+    AddChild(ROOT, handle, false);
     return Object(this, handle);
 }
 
@@ -205,8 +205,12 @@ void Engine::RemoveObject(ObjectHandle handle) {
     }
 }
 
-void Engine::AddChild(ObjectHandle parent, ObjectHandle child) {
+void Engine::AddChild(ObjectHandle parent, ObjectHandle child, bool saveTransform) {
     assert(child != ROOT && "Adding root as child to anything is ~~stuuupid~~ unexpected");
+    assert(!saveTransform || m_Transforms.HasData(child));
+    Transform global;
+    if (saveTransform)
+        global = GetGlobalTransform(child);
     // TODO(theblek): Check for cycles in the tree
     if (m_Parents.HasData(child)) {
         auto prevParent = m_Parents.GetData(child);
@@ -225,10 +229,19 @@ void Engine::AddChild(ObjectHandle parent, ObjectHandle child) {
     if (!m_Children.HasData(parent))
         m_Children.SetData(parent, std::vector<ObjectHandle>());
     m_Children.GetData(parent).push_back(child);
+    if (!saveTransform || !m_Transforms.HasData(parent)) return;
+    SetGlobalTransform(child, global);
 }
 
-void Engine::RemoveChild(ObjectHandle _, ObjectHandle child) {
-    AddChild(ROOT, child);
+void Engine::RemoveChild(ObjectHandle _, ObjectHandle child, bool saveTransform) {
+    if (saveTransform) {
+        assert(m_Transforms.HasData(child));
+        auto t = GetGlobalTransform(child);
+        AddChild(ROOT, child, false);
+        m_Transforms.SetData(child, t);
+    } else {
+        AddChild(ROOT, child, false);
+    }
 }
 
 Object Engine::GetParent(ObjectHandle node) {
@@ -261,14 +274,26 @@ Transform Engine::GetGlobalTransform(ObjectHandle handle) {
         modelMat = pTransform->GetTransformMatrix() * modelMat;
         scale *= pTransform->GetScale();
     }
-    Transform result;
-    result.SetScale(scale);
-    result.SetTranslation(Vec3{modelMat[3][0], modelMat[3][1], modelMat[3][2]});
-    modelMat[3][0] = modelMat[3][1] = modelMat[3][2] = 0;
-    modelMat[3][3] = 1;
-    result.SetRotation(glm::scale(modelMat, Vec3{1/scale.x, 1/scale.y, 1/scale.z}));
+    Transform result = Transform(modelMat, scale);
 
     return result;
+}
+
+void Engine::SetGlobalTransform(ObjectHandle handle, Transform target) {
+    Logger::Info("Setting?..");
+    auto parent = GetParent(handle);
+    auto parentGlobal = parent.GetGlobalTransform();
+    auto modelMat = glm::inverse(parentGlobal.GetTransformMatrix()) * target.GetTransformMatrix();
+
+    auto cur = parent;
+    Vec3 scale = parent.GetTransform()->GetScale() * GetTransform(handle)->GetScale();
+    while (cur.GetParent().IsValid()) {
+        auto pTransform = cur.GetParent().GetTransform();
+        if (!pTransform) break;
+        cur = cur.GetParent();
+        scale *= pTransform->GetScale();
+    }
+    m_Transforms.SetData(handle, Transform(modelMat, scale));
 }
 
 Collider *Engine::GetCollider(ObjectHandle handle) {
