@@ -93,6 +93,7 @@ class Engine {
     std::vector<ObjectHandle> GetHandlesByName(std::string name);
 
     void AddChild(ObjectHandle parent, ObjectHandle child);
+    void RemoveChild(ObjectHandle parent, ObjectHandle child);
     Object GetParent(ObjectHandle node);
 
     bool Collide(ObjectHandle, ObjectHandle);

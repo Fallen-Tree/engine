@@ -18,6 +18,10 @@ void Object::AddChild(Object child) {
     m_Engine->AddChild(m_Handle, child.m_Handle);
 }
 
+void Object::RemoveChild(Object child) {
+    m_Engine->RemoveChild(m_Handle, child.m_Handle);
+}
+
 Object Object::GetParent() {
     return m_Engine->GetParent(m_Handle);
 }
@@ -34,8 +38,20 @@ Object &Object::operator=(const Object &&rhs) {
     return *this;
 }
 
+bool Object::operator==(const Object &rhs) const {
+    return rhs.m_Handle == m_Handle;
+}
+
+bool Object::operator!=(const Object &rhs) const {
+    return rhs.m_Handle != m_Handle;
+}
+
 Transform *Object::GetTransform() {
     return m_Engine->GetTransform(m_Handle);
+}
+
+Transform Object::GetGlobalTransform() {
+    return m_Engine->GetGlobalTransform(m_Handle);
 }
 
 Object &Object::SetName(std::string name) {

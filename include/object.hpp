@@ -18,6 +18,8 @@ class Object {
     Object(Object &&) = default;
     Object& operator=(const Object &);
     Object& operator=(const Object &&);
+ 	bool operator==(const Object& b) const;
+ 	bool operator!=(const Object& b) const;
     Object();
     Object(Engine *, ObjectHandle);
 
@@ -27,6 +29,7 @@ class Object {
     void SetEngine(Engine *);
 
     Transform *GetTransform();
+    Transform GetGlobalTransform();
     Model *GetModel();
     Collider *GetCollider();
     Animation *GetAnimation();
@@ -109,6 +112,7 @@ class Object {
     void Remove();
     bool IsValid();
     void AddChild(Object child);
+    void RemoveChild(Object child);
     Object GetParent();
     bool Collide(Object other);
     std::vector<Object> CollideAll();

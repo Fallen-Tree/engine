@@ -328,7 +328,7 @@ void buildRoom() {
     boombox.GetTransform()->Rotate(glm::radians(-90.0f), 0, 0);
 }
 
-void poolTable() {
+void poolTable(Object player) {
     float balls_y = -2.0f;
     std::vector<Vec3> coordinates {
         Vec3(-2, balls_y, -0.2f),
@@ -369,14 +369,13 @@ void poolTable() {
 
     Table::New(Vec3(0, table_y, 0), Vec3(5), gameManager);
 
-    Cue::New(balls, engine->camera);
+    Cue::New(balls, engine->camera, player);
 }
 
 int main() {
     init();
 
     buildRoom();
-    poolTable();
     createUI();
 
     auto ocraFont = engine->GetFontManager().LoadFont("OCRAEXT.TTF", 20);
@@ -390,5 +389,7 @@ int main() {
     float player_mass = 5.0f;
     player.AddRigidBody(player_mass, Mat4(0),
                 0.5f, Vec3(0, -gravity * player_mass, 0), 0.f, slidingFriction);
+
+    poolTable(player);
     engine->Run();
 }

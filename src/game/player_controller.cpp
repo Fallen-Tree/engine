@@ -100,8 +100,8 @@ class PlayerController : public Behaviour {
 
         Transform *tr = self.GetTransform();
 
-        tr->Rotate(0, xOffset, 0);
-        tr->RotateGlobal(-yOffset, 0, 0);
+        tr->RotateGlobal(0, -xOffset, 0);
+        tr->Rotate(yOffset, 0, 0);
 
         // to update front vector
         m_Camera->SetTransform(*self.GetTransform());

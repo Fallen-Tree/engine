@@ -208,6 +208,18 @@ void Engine::RemoveObject(ObjectHandle handle) {
 void Engine::AddChild(ObjectHandle parent, ObjectHandle child) {
     assert(child != ROOT && "Adding root as child to anything is ~~stuuupid~~ unexpected");
     // TODO(theblek): Check for cycles in the tree
+    if (m_Parents.HasData(child)) {
+        auto prevParent = m_Parents.GetData(child);
+        if (prevParent != ROOT) {
+            auto &children = m_Children.GetData(prevParent);
+            for (int i = 0; i < children.size(); i++) {
+                if (children[i] == child) {
+                    children.erase(children.begin() + i);
+                    break;
+                }
+            }
+        }
+    }
     m_Parents.SetData(child, parent);
     if (parent == ROOT) return;
     if (!m_Children.HasData(parent))
@@ -215,8 +227,12 @@ void Engine::AddChild(ObjectHandle parent, ObjectHandle child) {
     m_Children.GetData(parent).push_back(child);
 }
 
+void Engine::RemoveChild(ObjectHandle _, ObjectHandle child) {
+    AddChild(ROOT, child);
+}
+
 Object Engine::GetParent(ObjectHandle node) {
-    return m_Parents.HasData(node) ? Object(this, m_Parents.GetData(node)) : Object();
+    return m_Parents.HasData(node) ? Object(this, m_Parents.GetData(node)) : Object(this, ROOT);
 }
 
 Transform *Engine::GetTransform(ObjectHandle handle) {
