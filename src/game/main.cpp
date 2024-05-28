@@ -64,9 +64,9 @@ void AddLantern(Vec3 pos) {
     Transform * tr = new Transform(pos, Vec3(1.0f), Mat4(1.0f));
     newModel(tr, lantern);
     engine->NewObject().AddPointLight(
-        Vec3(0.5f, 0.5f, 0.5f), Vec3(1.f),
+        Vec3(0.65f, 0.65f, 0.65f), Vec3(1.f),
         Vec3(1.f), pos,
-        1.f, 0.05f, 0.01f);
+        1.f, 0.01f, 0.01f);
 }
 
 void createLights() {
@@ -80,14 +80,6 @@ void createLights() {
         0.2f, 0.02f, 0.01f,
         glm::cos(glm::radians(15.f)), glm::cos(glm::radians(35.0f)));
     spotLight.AddTransform(Vec3(0.f, 9.f, 0.f), Vec3(1.f), Mat4(1.f));
-
-    /* Vec3 lightPos = pos; */
-    /* lightPos.y = 9.f; */
-    /* light.AddSpotLight( */
-    /*     Vec3(0.0f, 0.0f, 0.0f), Vec3(1.0f, 1.0f, 1.0f), Vec3(1.0f, 1.0f, 1.0f), */
-    /*     0.9f, 0.08f, 0.022f, */
-    /*     glm::cos(glm::radians(15.f)), glm::cos(glm::radians(25.0f))); */
-    /* light.AddTransform(lightPos, Vec3(1.f), Mat4(1.f)); */
 }
 
 void buildRoom() {
@@ -174,7 +166,7 @@ void buildRoom() {
     for (int i = -1; i <= 1; ++i) {
         for (int j = -1; j <= 0; ++j) {
             if (i == 0 && j == 0) continue;
-            AddLantern(Vec3(i * 25, 12, j * 25));
+            AddLantern(Vec3(i * 23, 10, j * 23));
         }
     }
 
