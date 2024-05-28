@@ -143,7 +143,7 @@ class MovingRotating2 : public Behaviour {
 };
 
 int main() {
-    auto engine = new Engine();
+    auto engine = new Engine("test");
 
     ShaderProgram skeletalShaderProgram = engine
         ->GetShaderManager()

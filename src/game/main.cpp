@@ -18,7 +18,7 @@ std::vector<Object> interactableObjects(0);
 
 // Initializing global variables
 void init() {
-    engine = new Engine();
+    engine = new Engine("Pool game");
     std::string vertexShaderSource = "standart.vshader";
     std::string skeletalVertexShaderSource = "skeletal.vshader";
     std::string fragmentShaderSource = "standart.fshader";
