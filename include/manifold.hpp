@@ -4,7 +4,8 @@
 
 struct CollisionManifold {
     bool collide = false;
-    Vec3 collisionNormal = Vec3(0);
-    Vec3 collisionPoint;
+    int pointCnt = 0;
+    Vec3 normals[4];
+    Vec3 points[4];
     float penetrationDistance = std::numeric_limits<float>::max();
 };

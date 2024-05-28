@@ -73,19 +73,19 @@ void Transform::Rotate(Mat4 rotationMatrix) {
 }
 
 // Getters
-Vec3 Transform::GetTranslation() {
+Vec3 Transform::GetTranslation() const {
     return this->m_Translation;
 }
 
-Vec3 Transform::GetScale() {
+Vec3 Transform::GetScale() const {
     return this->m_Scale;
 }
 
-Mat4 Transform::GetRotation() {
+Mat4 Transform::GetRotation() const {
     return this->m_Rotation;
 }
 
-Mat4 Transform::GetTransformMatrix() {
+Mat4 Transform::GetTransformMatrix() const {
     Mat4 transformMatrix(1.0f);
     transformMatrix = glm::translate(transformMatrix, this->m_Translation);
     transformMatrix = transformMatrix * this->m_Rotation;

@@ -59,7 +59,10 @@ CollisionManifold CollideShifted(T lhs, Transform lhsTransform,
 template<typename U>
 CollisionManifold CollideShifted(Mesh *lhs, Transform lhsTransform,
         U rhs, Transform rhsTransform) {
-    return CollideMeshAt(rhs.Transformed(rhsTransform), lhs, lhsTransform);
+    auto manifold = CollideMeshAt(rhs.Transformed(rhsTransform), lhs, lhsTransform);
+    for (int i = 0; i < manifold.pointCnt; i++)
+        manifold.normals[i] *= -1;
+    return manifold;
 }
 
 CollisionManifold CollideShifted(Mesh *lhs, Transform lhsTransform, Mesh *rhs, Transform rhsTransform) {

@@ -27,7 +27,7 @@ Object newModel(Transform *transform, Model *model) {
 
 template<typename T>
 Object newStaticBody(Transform *transform, Model *model, Collider *collider,
-        float bounciness = 0.2f, float friction = 0.5f) {
+        float bounciness = 0.6f, float friction = 0.5f) {
     Object obj = newModel<T>(transform, model);
     obj.AddCollider(*collider);
     obj.AddRigidBody(0.0f, Mat4(0), bounciness, Vec3(0), friction, slidingFriction);
@@ -84,7 +84,6 @@ class TriggerArea : public Behaviour {
     virtual void OnCollision(Object other) = 0;
 
     void Update(float dt) override {
-        // I need a function too get all colliders (or objects) intersecting with this object
         std::vector<Object> colls = self.CollideAll();
         for (auto obj : colls) {
             OnCollision(obj);

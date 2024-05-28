@@ -76,7 +76,7 @@ int main() {
     };
 
     auto staticAABB = setUpObj(
-        Transform(Vec3(2, -30, 2.0), Vec3(50), 0.f, Vec3(1)),
+        Transform(Vec3(2, -30, 2.0), Vec3(50), Mat4(1)),
         AABB {
             Vec3(-0.5),
             Vec3(0.5),
@@ -126,20 +126,18 @@ int main() {
         return obj;
     };
 
-    Object spheres[3] = {
-        getSphereObj(
-            Transform(Vec3(-10, 4, 2.0), Vec3(1), 0.f, Vec3(1)),
-            Vec3(5, 0, 0),
-            1),
-        getSphereObj(
-            Transform(Vec3(5, 4, 2.0), Vec3(1), 0.f, Vec3(1)),
-            Vec3(0, 0, 0),
-            4.f),
-        getSphereObj(
-            Transform(Vec3(10, 4, 2.0), Vec3(1.0), 0, Vec3(1)),
-            Vec3(0, 0, 0),
-            10000)
-    };
+    getSphereObj(
+        Transform(Vec3(-10, 4, 2.0), Vec3(1), 0.f, Vec3(1)),
+        Vec3(5, 0, 0),
+        1);
+    getSphereObj(
+        Transform(Vec3(5, 4, 2.0), Vec3(1), 0.f, Vec3(1)),
+        Vec3(0, 0, 0),
+        4.f);
+    getSphereObj(
+        Transform(Vec3(10, 4, 2.0), Vec3(1.0), 0, Vec3(1)),
+        Vec3(0, 0, 0),
+        10000);
 
     class FpsText : public Behaviour {
      public:
