@@ -59,9 +59,9 @@ void AddLantern(Vec3 pos) {
     Transform * tr = new Transform(pos, Vec3(1.0f), Mat4(1.0f));
     newModel(tr, lantern);
     engine->NewObject().AddPointLight(
-        Vec3(0.5f, 0.5f, 0.5f), Vec3(1.0f, 1.0f, 1.0f),
-        Vec3(1.0f, 1.0f, 1.0f), pos,
-        1.f, 0.05f, 0.01f);
+        Vec3(0.1f, 0.1f, 0.1f), Vec3(0.5f),
+        Vec3(0.5f), pos,
+        1.f, 0.07f, 0.02f);
 }
 
 void createLights() {
@@ -108,25 +108,24 @@ void buildRoom() {
     float wall_scale = 4.0f;
     int walls_cnt = 2;
     Vec3 wall_y = Vec3(0, floor_y, 0);
-    /* Model *w2 = engine->GetModelManager().LoadModel("wall.fbx"); */
-    /* for (int i = -walls_cnt; i <= walls_cnt; ++i) { */
-    /*     newModel( */
-    /*         new Transform(Vec3(i, 0, -walls_cnt) * 4.0f * wall_scale + wall_y, */
-    /*             Vec3(wall_scale), Mat4(1.0)), w2); */
-    /*     newModel( */
-    /*         new Transform(Vec3(i, 0, walls_cnt) * 4.0f * wall_scale + wall_y, */
-    /*             Vec3(wall_scale), Mat4(1.0)), w2) */
-    /*         .GetTransform()->Rotate(0, glm::radians(180.0f), 0); */
-    /*     newModel( */
-    /*         new Transform(Vec3(-walls_cnt, 0, i) * 4.0f * wall_scale + wall_y, */
-    /*             Vec3(wall_scale), Mat4(1.0)), w2) */
-    /*         .GetTransform()->Rotate(0, glm::radians(90.0f), 0); */
-    /*     newModel( */
-    /*         new Transform(Vec3(walls_cnt, 0, i) * 4.0f * wall_scale + wall_y, */
-    /*             Vec3(wall_scale), Mat4(1.0)), w2) */
-    /*         .GetTransform()->Rotate(0, glm::radians(-90.0f), 0); */
-    /* } */
-    /* engine->NewObject().AddImage("hp.png", 0.03f, 0.15f, 0.4f); */
+    Model *w2 = engine->GetModelManager().LoadModel("wall.fbx");
+    for (int i = -walls_cnt; i <= walls_cnt; ++i) {
+        newModel(
+            new Transform(Vec3(i, 0, -walls_cnt) * 4.0f * wall_scale + wall_y,
+                Vec3(wall_scale), Mat4(1.0)), w2);
+        newModel(
+            new Transform(Vec3(i, 0, walls_cnt) * 4.0f * wall_scale + wall_y,
+                Vec3(wall_scale), Mat4(1.0)), w2)
+            .GetTransform()->Rotate(0, glm::radians(180.0f), 0);
+        newModel(
+            new Transform(Vec3(-walls_cnt, 0, i) * 4.0f * wall_scale + wall_y,
+                Vec3(wall_scale), Mat4(1.0)), w2)
+            .GetTransform()->Rotate(0, glm::radians(90.0f), 0);
+        newModel(
+            new Transform(Vec3(walls_cnt, 0, i) * 4.0f * wall_scale + wall_y,
+                Vec3(wall_scale), Mat4(1.0)), w2)
+            .GetTransform()->Rotate(0, glm::radians(-90.0f), 0);
+    }
 
     float walls_x = walls_cnt * wall_scale * 4.5f + 3.8f;
     newStaticBody(new Transform(Vec3(0), Vec3(1), Mat4(1)), new Collider{AABB {
@@ -184,11 +183,11 @@ void buildRoom() {
     /*     } */
     /* } */
 
-    /* for (int i = -1; i <= 1; ++i) { */
-    /*     for (int j = -1; j <= 1; ++j) { */
-    /*         AddLantern(Vec3(i * 25, 12, j * 25)); */
-    /*     } */
-    /* } */
+    for (int i = -1; i <= 1; ++i) {
+        for (int j = -1; j <= 1; ++j) {
+            AddLantern(Vec3(i * 25, 12, j * 25));
+        }
+    }
 
     float cc_scale = 1.5f;
     Model *cc = engine->GetModelManager().LoadModel("CompanionCube/Portal_Companion_Cube.obj");
