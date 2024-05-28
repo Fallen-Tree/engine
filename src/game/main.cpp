@@ -365,7 +365,7 @@ void poolTable() {
     std::vector<Object> balls;
     for (int i = 0; i < ballsCount; i++) {
         Vec3 pos = coordinates[i];
-        auto newBall = MovingBall::New(pos, 0.2f, "pool/" + std::to_string(i % 16 + 1) + ".png");
+        auto newBall = MovingBall::New(pos, 0.19f, "pool/" + std::to_string(i % 16 + 1) + ".png");
         balls.push_back(newBall);
     }
 

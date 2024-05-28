@@ -138,8 +138,8 @@ void RigidBody::ResolveCollisions(RigidBody *otherRigidBody,
         auto r1 = collisionPoint - globalTransform.GetTranslation();
         auto r2 = collisionPoint - otherGlobalTransform.GetTranslation();
 
-        ApplyTorque(normalForce, r1);
-        otherRigidBody->ApplyTorque(otherNormalForce, r2);
+        ApplyTorque(normalForce * 10.f, r1);
+        otherRigidBody->ApplyTorque(otherNormalForce * 10.f, r2);
 
         // Compute impulse
         if (velAlongNormal <= 0) {
@@ -261,6 +261,7 @@ inline void RigidBody::ComputeFriction(
     if (glm::length(projectionForce + (projectionVel / (dt * massInverse)))
             < glm::length(frictionForce)) {
         frictionForce = -Projection(m_ResForce, direction);
+        velocity -= Projection(velocity, direction);
     }
 
     m_ResForce += frictionForce;

@@ -8,7 +8,7 @@
 
 #include "classes.cpp"
 
-float gravity = 9.8 * 3;
+float gravity = 9.8;
 Model* ball_model = nullptr;
 // Classes for pool
 class MovingBall : public Behaviour {
@@ -190,8 +190,8 @@ class Table : public Behaviour {
         float width = 0.9;
         float length = 0.45;
 
-        float floor_friction = 0.1f;
-        float floor_bounciness = 0.8f;
+        float floor_friction = 0.15f;
+        float floor_bounciness = 0.5f;
         float walls_bounciness = 0.9f; // TODO(us): can we somehow assign different bounciness to floor and walls?
         Object obj = newStaticBody<Table>(transform, model, col, floor_bounciness, floor_friction);
 
