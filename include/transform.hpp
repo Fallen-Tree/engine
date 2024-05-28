@@ -35,10 +35,10 @@ class Transform {
     void RotateGlobal(float radiansDegreeX, float radiansDegreeY, float radiansDegreeZ);
 
     // Getters
-    Vec3 GetTranslation();
-    Vec3 GetScale();
-    Mat4 GetRotation();
-    Mat4 GetTransformMatrix();
+    Vec3 GetTranslation() const;
+    Vec3 GetScale() const;
+    Mat4 GetRotation() const;
+    Mat4 GetTransformMatrix() const;
 };
 
 #endif  // SRC_TRANSFORM_TRANSFORM_HPP_

@@ -62,6 +62,7 @@ struct Ray {
     Ray(Vec3 from, Vec3 to);
 };
 
+// Plane equation: normal * point - d = 0;
 struct Plane {
     Vec3 normal;
     float d;

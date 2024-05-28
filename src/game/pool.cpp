@@ -22,11 +22,12 @@ class MovingBall : public Behaviour {
         Material sphereMaterial = {4.f, Texture(diffuseSource)};
         model->setMaterial(sphereMaterial);
 
-        Collider *collider = new Collider{Sphere{Vec3(0.0), 1.0}};
+        Collider *collider = new Collider{Sphere{Vec3(0.0), 1.0}, Collider::Layer1 | Collider::Layer2};
         RigidBody *rb = new RigidBody(mass, IBodySphere(radius, mass),
                 0.9f, Vec3(0, -mass * gravity, 0), 0.1f, rollingFriction);
         rb->typeFriction = TypeFriction::rollingFriction;
         Object ball = newDynamicBody<MovingBall>(transform, model, collider, rb);
+        ball.SetName("Ball");
         auto& s = ball.AddSound(SoundType::SOUND_3D, "beat3.wav").SetVolume(0.5f).SetRadius(20.f);
         s.Start();
         s.Pause();
@@ -168,40 +169,6 @@ class GameManager : public Behaviour {
     }
 };
 
-
-class Hole : public TriggerArea {
- private:
-    GameManager *gameManager;
-
- public:
-    static Object New(Vec3 pos, GameManager *gm) {
-        Object obj = engine->NewObject();
-        obj.AddTransform(Transform(pos, Vec3(1), Mat4(1)));
-        obj.AddCollider(Collider{AABB{Vec3(-0.25f), Vec3(0.25f)}});  // TO DO: replace with circle
-        obj.AddBehaviour<Hole>(gm);
-        return obj;
-    }
-
-    explicit Hole(GameManager *gm) {
-        this->gameManager = gm;
-    }
-
-    void OnCollision(Object other) override {
-        // Vec3 pos = self.GetTransform()->GetTranslation();
-        // Logger::Info("hole: %f %f %f", pos.x, pos.y, pos.z);
-        // check if some object is a ball and not a table or a player
-        // i haven't found any way better than check transform parameters
-        if (other.GetTransform()->GetScale().x < 1) {
-            Consume(other);
-        }
-    }
-
-    void Consume(Object ball) {
-        gameManager->score += 100;
-        ball.Remove();
-    }
-};
-
 class Table : public Behaviour {
  public:
     static Object New(Vec3 position, Vec3 scale, GameManager *gameManager) {
@@ -215,45 +182,19 @@ class Table : public Behaviour {
         model->setMaterial(material);
 
         // get full mesh of the table or make multiple objects for walls of the table.
-        // Collider *col = new Collider {&model->meshes[0]};
+        auto colliderModel = engine->GetModelManager().LoadModel("pool/stol_collider2.obj");
+        Collider *col = new Collider {&colliderModel->meshes[0], Collider::Layer2};
         float h0 = -0.5;
         float h = 0.85;
 
         float width = 0.9;
         float length = 0.45;
 
-        Collider *col = new Collider{AABB {
-            Vec3{-width, h0, -length},
-            Vec3{width, h, length},
-        }};
-        float floor_friction = 0.5f;
-        float floor_bounciness = 0.00f;
-        float walls_bounciness = 0.9f;
+        float floor_friction = 0.1f;
+        float floor_bounciness = 0.8f;
+        float walls_bounciness = 0.9f; // TODO(us): can we somehow assign different bounciness to floor and walls?
         Object obj = newStaticBody<Table>(transform, model, col, floor_bounciness, floor_friction);
 
-        float wall_height = 0.3;
-        AABB walls[] = {
-            AABB {Vec3(width, h0, -length), Vec3(width + 0.01, h + wall_height, length)},
-            AABB {Vec3(-width - 0.01, h0, -length), Vec3(-width, h + wall_height, length)},
-            AABB {Vec3(-width, h0, length), Vec3(width, h + wall_height, length + 0.01)},
-            AABB {Vec3(-width, h0, -length - 0.01), Vec3(width, h + wall_height, -length)}
-        };
-        for (int i = 0; i < 4; ++i) {
-            Collider *col = new Collider{walls[i]};
-            auto obj = newStaticBody(transform, col, walls_bounciness);
-            obj.SetName("wall");
-        }
-        float top_y = position.y + 0.9f * scale.y;
-        float table_w = scale.x * width * 2;
-        float table_l = scale.z * length * 2;
-        for (int i = 0; i <= 1; ++i) {
-            for (int j = 0; j <= 2; ++j) {
-                Vec3 pos = Vec3(table_w * (j - 1.0f) / 2.0f, top_y, table_l * (i - 0.5f));
-                // Object hole = Hole::New(pos, gameManager);
-                // model to show holes position (but not holes scale)
-                // newModel(new Transform(pos, Vec3(0.1), Mat4(1)), Model::loadFromFile("cube.obj"));
-            }
-        }
         return obj;
     }
 
