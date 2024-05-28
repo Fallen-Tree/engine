@@ -195,6 +195,18 @@ class Table : public Behaviour {
         // get full mesh of the table or make multiple objects for walls of the table.
         auto colliderModel = engine->GetModelManager().LoadModel("pool/stol_collider2.obj");
         Collider *col = new Collider {&colliderModel->meshes[0], Collider::Layer2};
+
+        AABB aabb = Collider::GetDefaultAABB(model);
+        aabb.max.y -= 0.5f;
+        aabb.min.y -= 0.5f;
+        Collider *colForPlayer = new Collider{aabb, Collider::Layer3};
+
+        auto& tableForPlayer = engine->NewObject();
+        tableForPlayer.AddCollider(*colForPlayer);
+        tableForPlayer.AddRigidBody(0.f, glm::mat4(0), 0.f, Vec3(0), 0.f, slidingFriction);
+        tableForPlayer.AddTransform(*transform);
+
+
         float h0 = -0.5;
         float h = 0.85;
 
