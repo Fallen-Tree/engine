@@ -26,6 +26,13 @@ void init() {
         engine->GetShaderManager().LoadShaderProgram(vertexShaderSource, fragmentShaderSource));
     skeletalSP = new ShaderProgram(
         engine->GetShaderManager().LoadShaderProgram(skeletalVertexShaderSource, fragmentShaderSource));
+
+    auto ocraFont = engine->GetFontManager().LoadFont("OCRAEXT.TTF", 20);
+    auto scoreText = PublicText::New(ocraFont, "0", Vec2(0.02f, 0.95f), 1.f, Vec3(0, 0, 0));
+    Object gmObj = engine->NewObject();
+    gmObj.AddBehaviour<GameManager>(
+        reinterpret_cast<PublicText*>(scoreText.GetBehaviour()));
+    gameManager = reinterpret_cast<GameManager*>(gmObj.GetBehaviour());
 }
 
 void createUI() {
@@ -369,16 +376,10 @@ void poolTable() {
         balls.push_back(newBall);
     }
 
-    auto ocraFont = engine->GetFontManager().LoadFont("OCRAEXT.TTF", 20);
-    auto scoreText = PublicText::New(ocraFont, "0", Vec2(0.02f, 0.95f), 1.f, Vec3(0, 0, 0));
-    Object gmObj = engine->NewObject();
-    gmObj.AddBehaviour<GameManager>(
-        reinterpret_cast<PublicText*>(scoreText.GetBehaviour()));
-    GameManager *gameManager = reinterpret_cast<GameManager*>(gmObj.GetBehaviour());
 
     float table_y = -7;
 
-    Table::New(Vec3(0, table_y, 0), Vec3(5), gameManager);
+    Table::New(Vec3(0, table_y, 0), Vec3(5));
 
     Cue::New(balls, engine->camera);
 }
