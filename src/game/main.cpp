@@ -10,8 +10,6 @@
 // Made this global for easier usage inside functions
 Engine *engine;
 Object dogSound;
-// I'd like to move responsibility about default shader to engine
-ShaderProgram *defaultSP;
 ShaderProgram *skeletalSP;
 
 std::vector<Object> interactableObjects(0);
@@ -19,11 +17,8 @@ std::vector<Object> interactableObjects(0);
 // Initializing global variables
 void init() {
     engine = new Engine("Pool game");
-    std::string vertexShaderSource = "standart.vshader";
     std::string skeletalVertexShaderSource = "skeletal.vshader";
     std::string fragmentShaderSource = "standart.fshader";
-    defaultSP = new ShaderProgram(
-        engine->GetShaderManager().LoadShaderProgram(vertexShaderSource, fragmentShaderSource));
     skeletalSP = new ShaderProgram(
         engine->GetShaderManager().LoadShaderProgram(skeletalVertexShaderSource, fragmentShaderSource));
 

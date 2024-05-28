@@ -7,14 +7,14 @@
 #include "logger.hpp"
 
 extern Engine *engine;
-extern ShaderProgram *defaultSP;
 
 template<typename T>
 Object newModel(Transform *transform, Model *model) {
     Object obj = engine->NewObject();
     obj.AddTransform(*transform);
-    model->shader = defaultSP;
-    obj.AddModel(*model);
+    if (model) {
+        obj.AddModel(*model);
+    }
     obj.AddBehaviour<T>();
     return obj;
 }
@@ -22,7 +22,8 @@ Object newModel(Transform *transform, Model *model) {
 Object newModel(Transform *transform, Model *model) {
     Object obj = engine->NewObject();
     obj.AddTransform(*transform);
-    obj.AddModel(*model);
+    if (model)
+        obj.AddModel(*model);
     return obj;
 }
 
