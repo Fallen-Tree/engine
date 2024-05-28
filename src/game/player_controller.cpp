@@ -26,19 +26,6 @@ class PlayerController : public Behaviour {
 
     void ProcessKeyboard(float deltaTime) {
         Transform *tr = self.GetTransform();
-        if (s_Input->IsKeyPressed(Key::F)) {
-            if (m_MovementMode == Fly) {
-                m_MovementMode = Walk;
-                self.GetRigidBody()->defaultForce = Vec3(0, -gravity * mass, 0);
-                tr->SetTranslation(lastStandPosition);
-                tr->SetScale(Vec3(1.f));
-            } else {
-                m_MovementMode = Fly;
-                self.GetRigidBody()->defaultForce = Vec3(0);
-                lastStandPosition = tr->GetTranslation();
-                tr->SetScale(Vec3(.1f));
-            }
-        }
         if (m_MovementMode != Fly) {
             if (s_Input->IsKeyDown(Key::LShift))
                 m_MovementMode = Run;
