@@ -9,10 +9,10 @@
 Mat3 IBodySphere(float radius, float mass);
 Mat3 IBodyOBB(Vec3 halfWidth, float mass);
 
-enum TypeFriction {
-    slidingFriction,
-    rollingFriction,
-    emptyFriction
+enum class TypeFriction {
+    SlidingFriction,
+    RollingFriction,
+    EmptyFriction
 };
 
 class RigidBody {
@@ -32,7 +32,7 @@ public:
  // should be in {0, 1}
  Vec3 angularUnlock = Vec3(1);
 
- TypeFriction typeFriction = TypeFriction::emptyFriction;
+ TypeFriction typeFriction = TypeFriction::EmptyFriction;
 
  RigidBody() = default;
  RigidBody(float mass,

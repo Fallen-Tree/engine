@@ -10,18 +10,13 @@
 // Made this global for easier usage inside functions
 Engine *engine;
 Object dogSound;
-// I'd like to move responsibility about default shader to engine
-ShaderProgram *defaultSP;
 ShaderProgram *skeletalSP;
 
 // Initializing global variables
 void init() {
     engine = new Engine("Pool game");
-    std::string vertexShaderSource = "standart.vshader";
     std::string skeletalVertexShaderSource = "skeletal.vshader";
     std::string fragmentShaderSource = "standart.fshader";
-    defaultSP = new ShaderProgram(
-        engine->GetShaderManager().LoadShaderProgram(vertexShaderSource, fragmentShaderSource));
     skeletalSP = new ShaderProgram(
         engine->GetShaderManager().LoadShaderProgram(skeletalVertexShaderSource, fragmentShaderSource));
 
@@ -175,7 +170,7 @@ void buildRoom() {
     Object cube = newDynamicBody(
         new Transform(Vec3(18, floor_y + cc_scale + 0.1f, 0), Vec3(cc_scale), Mat4(1.0)), cc,
         new Collider{Collider::GetDefaultAABB(&cc->meshes[0]), Collider::Layer1 | Collider::Layer4},
-        new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f, slidingFriction));
+        new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f, TypeFriction::SlidingFriction));
 
     float chest_scale = 20.f;
     float chest_y = floor_y + chest_scale * 0.1f;
@@ -186,7 +181,7 @@ void buildRoom() {
             chest,
             new Collider{Collider::GetDefaultAABB(&chest->meshes[0]).ToOBB(), Collider::Layer1 | Collider::Layer4},
             new RigidBody(1.0f, IBodyOBB(Vec3(1), 20.f), 0.5f, Vec3(0, -gravity, 0), 1.0f,
-                slidingFriction));
+                TypeFriction::SlidingFriction));
         chestObj.GetTransform()->Rotate(0, glm::radians(90.0f), 0);
     }
 
@@ -280,7 +275,7 @@ void buildRoom() {
         Transform *chTransform = new Transform(Vec3(5 * i, floor_y, -15), Vec3(0.5), 0, Vec3(1));
         Object chairObj = newDynamicBody(chTransform, chair,
             new Collider{Collider::GetDefaultAABB(&chair->meshes[0]), Collider::Layer1 | Collider::Layer4},
-            new RigidBody(1.0f, IBodyOBB(Vec3(0), 20.f), 0.2f, Vec3(0, -gravity, 0), 1.0f, slidingFriction));
+            new RigidBody(1.0f, IBodyOBB(Vec3(0), 20.f), 0.2f, Vec3(0, -gravity, 0), 1.0f, TypeFriction::SlidingFriction));
     }
 
 
@@ -308,7 +303,7 @@ void buildRoom() {
     Object pizzaObj = newDynamicBody(
         new Transform(Vec3(20, floor_y + table_y, 21), Vec3(0.1), Mat4(1.0)), pizza,
         new Collider{Collider::GetDefaultAABB(&pizza->meshes[0]), Collider::Layer1 | Collider::Layer4},
-        new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f, slidingFriction));
+        new RigidBody(1.0f, Mat4(0), 0.5f, Vec3(0, -gravity, 0), 1.0f, TypeFriction::SlidingFriction));
     pizzaObj.SetName("Pizza");
 
     Model *painting = modelManager.LoadModel("Wall painting/Wall_Art_Classical_01.obj");
@@ -376,7 +371,7 @@ int main() {
 
     float player_mass = 5.0f;
     player.AddRigidBody(player_mass, Mat4(0),
-                0.5f, Vec3(0, -gravity * player_mass, 0), 0.f, slidingFriction);
+                0.5f, Vec3(0, -gravity * player_mass, 0), 0.f, TypeFriction::SlidingFriction);
 
     poolTable(player);
     engine->Run();

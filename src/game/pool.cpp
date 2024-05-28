@@ -44,10 +44,10 @@ class MovingBall : public Behaviour {
         Material sphereMaterial = {4.f, Texture(diffuseSource)};
         model->setMaterial(sphereMaterial);
 
-        Collider *collider = new Collider{Sphere{Vec3(0.0), 1.0}, Collider::Layer1 | Collider::Layer2};
+        Collider *collider = new Collider{Sphere{Vec3(0.0), 1.0}, Collider::Layer1 | Collider::Layer2 | Collider::Layer5 | Collider::Layer6};
         RigidBody *rb = new RigidBody(mass, IBodySphere(radius, mass),
-                0.9f, Vec3(0, -mass * gravity, 0), 0.1f, rollingFriction);
-        rb->typeFriction = TypeFriction::rollingFriction;
+                0.9f, Vec3(0, -mass * gravity, 0), 0.1f, TypeFriction::RollingFriction);
+        rb->typeFriction = TypeFriction::RollingFriction;
         Object ball = newDynamicBody<MovingBall>(transform, model, collider, rb);
         ball.SetName("Ball");
         auto& s = ball.AddSound(SoundType::SOUND_3D, "beat3.wav").SetVolume(0.5f).SetRadius(20.f);
@@ -59,14 +59,14 @@ class MovingBall : public Behaviour {
     void Update(float dt) override {
         auto balls = self.CollideAll();
         for (auto ball : balls) {
-            if (ball.GetCollider()->shape.index() == 1) {
+            if (ball.GetName() == "Ball") {
                 self.GetSound()->SetVolume(log2f(self.GetRigidBody()->velocity.length()) * 0.15f);
                 self.GetSound()->Start();
                 return;
             }
         }
         for (auto ball : balls) {
-            if (ball.GetName() == "wall") {
+            if (ball.GetName() == "Wall") {
                 self.GetSound()->SetVolume(log2f(self.GetRigidBody()->velocity.length()) * 0.12f);
                 self.GetSound()->Start();
                 return;
@@ -95,7 +95,6 @@ class Cue : public Behaviour {
         Transform *transform = new Transform(Vec3(0), Vec3(8), Mat4(0));
         Object newCue = newModel<Cue>(transform, model);
         newCue.AddAnimation();
-        newCue.AddSound(SoundType::SOUND_FLAT, "beat3.wav").SetVolume(0.1f);
         reinterpret_cast<Cue*>(newCue.GetBehaviour())->Init(objects, camera, player);
         return newCue;
     }
@@ -126,7 +125,9 @@ class Cue : public Behaviour {
         if (s_Input->IsKeyPressed(Key::MouseLeft)) {
             if (m_CurrentTarget != nullptr) {
                 m_Attacking = true;
-                self.GetSound()->Start();
+                m_CurrentTarget->GetSound()
+                    ->SetVolume(log2f(self.GetRigidBody()->velocity.length()) * 0.15f)
+                    .Start();
                 Vec3 myPos = self.GetTransform()->GetTranslation();
                 Vec3 targetPos = m_CurrentTarget->GetTransform()->GetTranslation();
                 Vec3 direction = glm::normalize(targetPos - myPos);
@@ -201,9 +202,15 @@ class Table : public Behaviour {
         };
         model->setMaterial(material);
 
-        // get full mesh of the table or make multiple objects for walls of the table.
-        auto colliderModel = engine->GetModelManager().LoadModel("pool/stol_collider2.obj");
-        Collider *col = new Collider {&colliderModel->meshes[0], Collider::Layer2};
+        auto colliderFloor = engine->GetModelManager().LoadModel("pool/table_collider_floor.obj");
+        Collider *colFloor = new Collider {&colliderFloor->meshes[0], Collider::Layer2};
+
+        auto colliderWalls = engine->GetModelManager().LoadModel("pool/table_collider_walls.obj");
+        Collider *colWalls = new Collider {&colliderWalls->meshes[0], Collider::Layer5};
+
+        auto colliderHoles = engine->GetModelManager().LoadModel("pool/table_collider_holes.obj");
+        Collider *colHoles = new Collider {&colliderHoles->meshes[0], Collider::Layer6};
+
 
         AABB aabb = Collider::GetDefaultAABB(model);
         aabb.max.y -= 0.5f;
@@ -212,7 +219,7 @@ class Table : public Behaviour {
 
         auto tableForPlayer = engine->NewObject();
         tableForPlayer.AddCollider(*colForPlayer);
-        tableForPlayer.AddRigidBody(0.f, glm::mat4(0), 0.f, Vec3(0), 0.f, slidingFriction);
+        tableForPlayer.AddRigidBody(0.f, glm::mat4(0), 0.f, Vec3(0), 0.f, TypeFriction::SlidingFriction);
         tableForPlayer.AddTransform(*transform);
 
 
@@ -222,12 +229,18 @@ class Table : public Behaviour {
         float width = 0.9;
         float length = 0.45;
 
-        float floor_friction = 0.15f;
-        float floor_bounciness = 0.5f;
-        float walls_bounciness = 0.9f; // TODO(us): can we somehow assign different bounciness to floor and walls?
-        Object obj = newStaticBody<Table>(transform, model, col, floor_bounciness, floor_friction);
+        float floor_friction = 0.16f;
+        float floor_bounciness = 0.1f;
+        float holes_bounciness = 0.3f;
+        float walls_bounciness = 0.8f; 
+        float walls_friction = 0.1f;
+        // TODO(us): can we somehow assign different bounciness to floor and walls?
+        Object floor = newStaticBody<Table>(transform, nullptr, colFloor, floor_bounciness, floor_friction);
+        Object holes = newStaticBody<Table>(transform, nullptr, colHoles, holes_bounciness, floor_friction);
+        Object walls = newStaticBody<Table>(transform, model, colWalls, walls_bounciness, walls_friction);
+        walls.SetName("Wall");
 
-        return obj;
+        return walls;
     }
 
     void Update(float dt) override {}

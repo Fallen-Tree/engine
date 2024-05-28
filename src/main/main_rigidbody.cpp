@@ -71,7 +71,7 @@ int main() {
         obj.AddCollider(primitive);
         obj.AddRigidBody(mass, IBodyOBB(Vec3(1), mass), speed,
                     angularSpeed, 0.f, Vec3(0, -mass * 10, 0), angUnlock, 0.05f,
-                    slidingFriction);
+                    TypeFriction::SlidingFriction);
         return obj;
     };
 
@@ -121,8 +121,7 @@ int main() {
         obj.AddCollider(Sphere{ Vec3(0), 1.f });
         obj.AddRigidBody(RigidBody(
             mass, IBodySphere(transform.GetScale().x, mass),
-            speed, Vec3(0), 0, Vec3(0, -mass * 10, 0), Vec3(1), 0.01, rollingFriction));
-        obj.GetRigidBody()->typeFriction = rollingFriction;
+            speed, Vec3(0), 0, Vec3(0, -mass * 10, 0), Vec3(1), 0.01, TypeFriction::RollingFriction));
         return obj;
     };
 

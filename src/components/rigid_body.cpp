@@ -238,16 +238,16 @@ inline void RigidBody::ComputeFriction(
     Vec3 direction = CalculateFrictionDirection(normal, velocity);
     Vec3 frictionForce = Vec3(0);
     switch (typeFriction) {
-        case slidingFriction:
+        case TypeFriction::SlidingFriction:
             frictionForce = ComputeSlidingFriction(
                     normalForce, friction, direction);
             break;
-        case rollingFriction:
+        case TypeFriction::RollingFriction:
             frictionForce = ComputeRollingFriction(
                     normalForce, friction, direction, transform);
             ApplyTorque(normalForce, -direction * friction * glm::length(velocity));
             break;
-        case emptyFriction:
+        case TypeFriction::EmptyFriction:
             return;
         default:
             Logger::Error("Unknown type of friction");
