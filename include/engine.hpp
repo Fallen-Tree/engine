@@ -42,7 +42,7 @@ const ObjectHandle ROOT = -1;
 
 class Engine {
  public:
-    Engine();
+    Engine(std::string windowName);
     ~Engine();
 
     Transform *GetTransform(ObjectHandle);

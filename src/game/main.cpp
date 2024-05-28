@@ -18,7 +18,7 @@ std::vector<Object> interactableObjects(0);
 
 // Initializing global variables
 void init() {
-    engine = new Engine();
+    engine = new Engine("Pool game");
     std::string vertexShaderSource = "standart.vshader";
     std::string skeletalVertexShaderSource = "skeletal.vshader";
     std::string fragmentShaderSource = "standart.fshader";
@@ -354,8 +354,8 @@ void poolTable() {
         Vec3(-2.5f, balls_y, 0.1f),
         Vec3(-3.f, balls_y, -0.8f),
         Vec3(-3.f, balls_y, -0.2f),
-    /*    Vec3(-3.f, balls_y, 0.4f),
-        Vec3(-3.5f, balls_y, -1.1f),
+        Vec3(-3.f, balls_y, 0.4f),
+    /*    Vec3(-3.5f, balls_y, -1.1f),
         Vec3(-3.5f, balls_y, -0.5f),
         Vec3(-3.5f, balls_y, 0.1f),
         Vec3(-3.5f, balls_y, 0.7f),

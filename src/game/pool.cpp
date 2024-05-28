@@ -89,7 +89,7 @@ class Cue : public Behaviour {
         Model *model = engine->GetModelManager().LoadModel("pool/cue.obj");
         Material material = {
             4.f,
-            Texture("/kiy.png"),
+            Texture("pool/kiy.png"),
         };
         model->setMaterial(material);
         Transform *transform = new Transform(Vec3(0), Vec3(8), Mat4(0));
@@ -201,7 +201,7 @@ class Table : public Behaviour {
         aabb.min.y -= 0.5f;
         Collider *colForPlayer = new Collider{aabb, Collider::Layer3};
 
-        auto& tableForPlayer = engine->NewObject();
+        auto tableForPlayer = engine->NewObject();
         tableForPlayer.AddCollider(*colForPlayer);
         tableForPlayer.AddRigidBody(0.f, glm::mat4(0), 0.f, Vec3(0), 0.f, slidingFriction);
         tableForPlayer.AddTransform(*transform);
